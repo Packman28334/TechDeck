@@ -13,6 +13,6 @@ class SpotlightSubsystem:
         pass
 
     def run_command(self, command: dict):
-        match command["id"]:
+        match command["action"]:
             case "change_guide":
                 self.current_guide = command["guide"]

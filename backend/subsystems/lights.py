@@ -24,6 +24,6 @@ class LightingSubsystem:
         pass
 
     def run_command(self, command: dict):
-        match command["id"]:
+        match command["action"]:
             case "jump_to_cue":
                 self.client.send_message(f"/pb/{self.playback}/{command['cue']}", 1.0)

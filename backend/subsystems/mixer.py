@@ -21,7 +21,7 @@ class MixerSubsystem:
         pass
 
     def run_command(self, command: dict):
-        match command["id"]:
+        match command["action"]:
             case "enable_channels":
                 for channel in command["channels"]: # ex. command["channels"] = [0, 5, 8]
                     pass # TODO
