@@ -11,8 +11,19 @@ class Cue:
 
     def call(self, show: "Show", mixer_subsystem: MixerSubsystem, lighting_subsystem: LightingSubsystem, spotlight_subsystem: SpotlightSubsystem, audio_subsystem: AudioSubsystem, backgrounds_subsystem: BackgroundsSubsystem):
         for command in self.commands:
-            #match command["type"]
-            pass
+            match command["subsystem"]:
+                case "mixer":
+                    mixer_subsystem.run_command(command)
+                case "lighting":
+                    lighting_subsystem.run_command(command)
+                case "spotlight":
+                    spotlight_subsystem.run_command(command)
+                case "audio":
+                    audio_subsystem.run_command(command)
+                case "backgrounds":
+                    backgrounds_subsystem.run_command(command)
+                case other:
+                    print(f"Unknown subsystem {other} in command")
 
 class BlackoutCue(Cue):
     def __init__(self):

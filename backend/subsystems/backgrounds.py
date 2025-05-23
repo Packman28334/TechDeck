@@ -4,10 +4,13 @@ class BackgroundsSubsystem:
         pass
 
     def get_configuration(self) -> dict:
-        pass
+        return {}
 
     def enter_blackout(self):
         pass
 
     def exit_blackout(self):
+        pass
+
+    def run_command(self, command: dict):
         pass
