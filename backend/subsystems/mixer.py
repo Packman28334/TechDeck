@@ -1,5 +1,6 @@
 
 import socket
+
 class MixerSubsystem:
     def __init__(self, ip_address: str):
         self.ip_address: str = ip_address
