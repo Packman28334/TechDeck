@@ -30,14 +30,14 @@ class MixerSubsystem:
 
     def identify_channel(self, channel: str) -> tuple[str, int]: # type, number
         channel = str(channel) # just in case
-        if channel.startswith("ST"):
+        if channel.startswith("ST"): # ST = Stereo
             return "StInCh", int(channel.removeprefix("ST"))
-        elif channel.startswith("DCA"):
+        elif channel.startswith("DCA"): # DCA = Groups
             return "DCA", int(channel.removeprefix("DCA"))
-        elif channel.startswith("MTRX"):
+        elif channel.startswith("MTRX"): # MTRX = Matrix
             return "Mtrx", int(channel.removeprefix("MTRX"))
         else:
-            return "InCh", int(channel)
+            return "InCh", int(channel) # InCh = Input Channel
 
     def run_command(self, command: dict):
         match command["action"]:
@@ -61,3 +61,17 @@ class MixerSubsystem:
                     channel_type, channel_number = self.identify_channel(channel)
                     commands.append(f"set MIXER:Current/{channel_type}/Fader/Level {channel_number} 0 {-32768 if value == '-inf' else value*100}")
                 self.send_requests(commands)
+
+
+# For Testing
+if __name__ == "__main__":
+    TestCommands: list[dict] = [
+        {"subsystem": "mixer", "action": "enable_channels", "channels": {"DCA0", "ST1", "8"}},
+        {"subsystem": "mixer", "action": "disable_channels", "channels": {"DCA0", "ST1", "8"}},
+        {"subsystem": "mixer", "action": "set_faders_on_channels", "channels": {"DCA0":10, "ST1":-5, "8":"-inf"}}
+    ]
+
+    Mixer = MixerSubsystem("127.0.0.1")
+    for i, Cue in enumerate(TestCommands, start=1):
+        input(f"Run Cue {i}: ")
+        Mixer.run_command(Cue)
