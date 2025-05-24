@@ -24,34 +24,40 @@ class MixerSubsystem:
         message = ("set MIXER:Current/MuteMaster/On 2 0 0 \n").encode() # Mute Group 3 OFF
         self.socket.sendall(message)
 
+    def send_requests(self, requests: list[str]):
+        self.socket.sendall(("\n ".join(requests)+"\n").encode())
+        #self.socket.recv(1500).decode()
+
+    def identify_channel(self, channel: str) -> tuple[str, int]: # type, number
+        channel = str(channel) # just in case
+        if channel.startswith("ST"):
+            return "StInCh", int(channel.removeprefix("ST"))
+        elif channel.startswith("DCA"):
+            return "DCA", int(channel.removeprefix("DCA"))
+        elif channel.startswith("MTRX"):
+            return "Mtrx", int(channel.removeprefix("MTRX"))
+        else:
+            return "InCh", int(channel)
+
     def run_command(self, command: dict):
-        message = ""
         match command["action"]:
             case "enable_channels": # Turns on any Input/Output Channel 
-                for channel in command["channels"]: # ex. command["channels"] = [0, 5, 8]
-                    message += f"set MIXER:Current/Channel/{command["fadertype"]}/On {channel} 0 1 \n "
-                self.socket.sendall(message.encode())
+                commands = []
+                for channel in command["channels"]:
+                    channel_type, channel_number = self.identify_channel(channel)
+                    commands.append(f"set MIXER:Current/{channel_type}/Fader/On {channel_number} 0 1")
+                self.send_requests(commands)
+
             case "disable_channels":# Turns off any Input/Output Channel 
-                for channel in command["channels"]: # ex. command["channels"] = [0, 5, 8]
-                    message += f"set MIXER:Current/Channel/{command["fadertype"]}/On {channel} 0 0 \n "
-                self.socket.sendall(message.encode())
+                commands = []
+                for channel in command["channels"]:
+                    channel_type, channel_number = self.identify_channel(channel)
+                    commands.append(f"set MIXER:Current/{channel_type}/Fader/On {channel_number} 0 0")
+                self.send_requests(commands)
+
             case "set_faders_on_channels":
-                for channel, value in command["channels"].items(): # ex. command["channels"] = {0: -32768, 5: -5000, 8: 0}
-                    pass #Todo
-                
-if __name__ == "__main__":
-    TestCommands: list[dict] = [
-        {"subsystem": "mixer", "action": "enable_channels", "fadertype": "InCh", "channels": [0, 5, 8]},
-        {"subsystem": "mixer", "action": "enable_channels", "fadertype": "StInCh", "channels": [1]},
-        {"subsystem": "mixer", "action": "disable_channels", "fadertype": "InCh", "channels": [0, 5, 8]},
-        {"subsystem": "mixer", "action": "disable_channels", "fadertype": "StInCh", "channels": [1]}
-    ]
-
-
-    Mixer = MixerSubsystem("127.0.0.1")
-    i: int = 1
-    for Cue in TestCommands:
-        input(f"Run Cue {i}: ")
-        Mixer.run_command(Cue)
-        i += 1
-        
+                commands = []
+                for channel, value in command["channels"].items(): # ex. command["channels"] = {0: -inf, 5: -5, 8: 0, 17: -138} - provide a value in decibels from -138 to 10, or -inf
+                    channel_type, channel_number = self.identify_channel(channel)
+                    commands.append(f"set MIXER:Current/{channel_type}/Fader/Level {channel_number} 0 {-32768 if value == '-inf' else value*100}")
+                self.send_requests(commands)
