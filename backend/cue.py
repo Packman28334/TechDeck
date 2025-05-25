@@ -6,7 +6,8 @@ if TYPE_CHECKING:
     from show import Show
 
 class Cue:
-    def __init__(self, commands: list[dict]):
+    def __init__(self, description: str, commands: list[dict]):
+        self.description: str = description
         self.commands: list[dict] = commands
 
     def call(self, show: "Show", mixer_subsystem: MixerSubsystem, lighting_subsystem: LightingSubsystem, spotlight_subsystem: SpotlightSubsystem, audio_subsystem: AudioSubsystem, backgrounds_subsystem: BackgroundsSubsystem):
@@ -25,9 +26,11 @@ class Cue:
                 case other:
                     print(f"Unknown subsystem {other} in command")
 
+# TODO: make blackout cues support commands optionally for transition music and other miscellaneous things
 class BlackoutCue(Cue):
-    def __init__(self):
-        super().__init__([])
+    def __init__(self, description: str):
+        super().__init__(description, [])
     
     def call(self, show: "Show", mixer_subsystem: MixerSubsystem, lighting_subsystem: LightingSubsystem, spotlight_subsystem: SpotlightSubsystem, audio_subsystem: AudioSubsystem, backgrounds_subsystem: BackgroundsSubsystem):
+
         show.enter_blackout()

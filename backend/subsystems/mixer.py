@@ -31,40 +31,45 @@ class MixerSubsystem:
     def identify_channel(self, channel: str) -> tuple[str, int]: # type, number
         channel = str(channel) # just in case
         if channel.startswith("ST"): # ST = Stereo
-            return "StInCh/Fader", int(channel.removeprefix("ST"))
+            return "StInCh", int(channel.removeprefix("ST"))
         elif channel.startswith("DCA"): # DCA = Groups
-            return "DCA/Fader", int(channel.removeprefix("DCA"))
-        elif channel.startswith("MIX"): # MTRX = Matrix
-            return "Mix/Fader", int(channel.removeprefix("MIX"))
+            return "DCA", int(channel.removeprefix("DCA"))
+        elif channel.startswith("MIX"): # MIX = Output
+            return "Mix", int(channel.removeprefix("MIX"))
         elif channel.startswith("MTRX"): # MTRX = Matrix
-            return "Mtrx/Fader", int(channel.removeprefix("MTRX"))
-        elif channel.startswith("MUTE"): # MUTE = Mute Groups
-            return "MuteMaster", int(channel.removeprefix("MUTE"))
+            return "Mtrx", int(channel.removeprefix("MTRX"))
         else:
-            return "InCh/Fader", int(channel) # InCh = Input Channel
+            return "InCh", int(channel) # InCh = Input Channel
 
     def run_command(self, command: dict):
         match command["action"]:
             case "enable_channels": # Turns on any Input/Output Channel 
-                commands = []
+                requests = []
                 for channel in command["channels"]:
                     channel_type, channel_number = self.identify_channel(channel)
-                    commands.append(f"set MIXER:Current/{channel_type}/On {channel_number} 0 1")
-                self.send_requests(commands)
+                    requests.append(f"set MIXER:Current/{channel_type}/Fader/On {channel_number} 0 1")
+                self.send_requests(requests)
 
             case "disable_channels": # Turns off any Input/Output Channel 
-                commands = []
+                requests = []
                 for channel in command["channels"]:
                     channel_type, channel_number = self.identify_channel(channel)
-                    commands.append(f"set MIXER:Current/{channel_type}/On {channel_number} 0 0")
-                self.send_requests(commands)
+                    requests.append(f"set MIXER:Current/{channel_type}/Fader/On {channel_number} 0 0")
+                self.send_requests(requests)
+
             case "set_faders_on_channels":
-                commands = []
+                requests = []
                 for channel, value in command["channels"].items(): # ex. command["channels"] = {0: -inf, 5: -5, 8: 0, 17: -138} - provide a value in decibels from -138 to 10, or -inf
                     channel_type, channel_number = self.identify_channel(channel)
-                    commands.append(f"set MIXER:Current/{channel_type}/Level {channel_number} 0 {-32768 if value == '-inf' else value*100}")
-                self.send_requests(commands)
+                    requests.append(f"set MIXER:Current/{channel_type}/Fader/Level {channel_number} 0 {-32768 if value == '-inf' else value*100}")
+                self.send_requests(requests)
                 
+            case "mute_group":
+                self.send_requests([f"set MIXER:Current/MuteMaster/On {command['mute_group']} 0 1"])
+
+            case "unmute_group":
+                self.send_requests([f"set MIXER:Current/MuteMaster/On {command['mute_group']} 0 0"])
+
             case "change_scene": # Change used scene
                 # do we want scene value to been in channel or do we want to store it somewhre else?
                 pass #Todo
