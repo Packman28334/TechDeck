@@ -18,12 +18,17 @@ class LightingSubsystem:
         }
 
     def enter_blackout(self):
-        pass
+        self.client.send_message(f"/pb/{self.playback}", 0.0)
 
-    def exit_blackout(self):
-        pass
+    def exit_blackout(self): # TODO: test if calling this slightly before changing the cue results in a flash of incorrect lighting
+        self.client.send_message(f"/pb/{self.playback}", 1.0)
 
     def run_command(self, command: dict):
         match command["action"]:
             case "jump_to_cue":
                 self.client.send_message(f"/pb/{self.playback}/{command['cue']}", 1.0)
+            
+            case "switch_playback":
+                self.client.send_message(f"/pb/{self.playback}", 0.0)
+                self.playback = command['playback']
+                self.client.send_message(f"/pb/{self.playback}", 1.0)
