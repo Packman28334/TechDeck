@@ -14,15 +14,12 @@ class MixerSubsystem:
         }
 
     def enter_blackout(self):
-        # Uses Mute Group 3 to Disable all Wanted Mics (The Blackout Mute Group)
-        # We could set in setting what Mute Group is Blackout
-        message = ("set MIXER:Current/MuteMaster/On 2 0 1 \n").encode() # Mute Group 3 ON
-        self.socket.sendall(message)
+        # Mutes group 1 (inputs)
+        self.send_requests([f"set MIXER:Current/MuteMaster/On 0 0 1"])
 
     def exit_blackout(self):
-        # Undoes enter_blackout
-        message = ("set MIXER:Current/MuteMaster/On 2 0 0 \n").encode() # Mute Group 3 OFF
-        self.socket.sendall(message)
+        # Unmutes group 1 (inputs)
+        self.send_requests([f"set MIXER:Current/MuteMaster/On 0 0 0"])
 
     def send_requests(self, requests: list[str]):
         self.socket.sendall(("\n ".join(requests)+"\n").encode())

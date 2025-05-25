@@ -1,7 +1,7 @@
 
 import zipfile, shutil, pathlib, json, os
 
-from cue import Cue, BlackoutCue
+from cue import Cue
 from subsystems import MixerSubsystem, LightingSubsystem, SpotlightSubsystem, AudioSubsystem, BackgroundsSubsystem
 
 DEFAULT_CONFIGURATION = {
@@ -10,7 +10,8 @@ DEFAULT_CONFIGURATION = {
     },
     "lighting_subsystem": {
         "ip_address": "10.72.2.101",
-        "port_tx": 8000
+        "port_tx": 8000,
+        "initial_playback": 1
     },
     "spotlight_subsystem": {},
     "audio_subsystem": {},
@@ -18,10 +19,10 @@ DEFAULT_CONFIGURATION = {
 }
 
 class Show:
-    def __init__(self, title: str, cues: list[Cue | BlackoutCue], configuration: dict):
+    def __init__(self, title: str, cues: list[Cue], configuration: dict):
         self.title: str = title
 
-        self.cues: list[Cue | BlackoutCue] = cues
+        self.cues: list[Cue] = cues
         self.current_cue: int = -1
 
         self.blackout: bool = False
@@ -44,8 +45,8 @@ class Show:
             zip.extractall("_working_show/")
         return cls(
             filename,
-            Show.deserialize_cues(json.loads(pathlib.Path("_working_show/cue_list.json"))["cues"]),
-            json.loads(pathlib.Path("_working_show/configuration.json")),
+            Show.deserialize_cues(json.loads(pathlib.Path("_working_show/cue_list.json").read_text())["cues"]),
+            json.loads(pathlib.Path("_working_show/configuration.json").read_text()),
         )
 
     def accumulate_subsystem_configuration(self) -> dict:
@@ -54,33 +55,28 @@ class Show:
             "lighting_subsystem": self.lighting_subsystem.get_configuration(),
             "spotlight_subsystem": self.spotlight_subsystem.get_configuration(),
             "audio_subsystem": self.audio_subsystem.get_configuration(),
-            "backgrounds_subsystem": self.backgrounds_subsystem()
+            "backgrounds_subsystem": self.backgrounds_subsystem.get_configuration()
         }
 
     @staticmethod
     def deserialize_cues(cues: list[dict]) -> list[Cue]:
         out = []
         for cue in cues:
-            if cue["type"] == "normal":
-                out.append(Cue(cue["description"], cue["commands"]))
-            elif cue["type"] == "blackout":
-                out.append(BlackoutCue(cue["description"]))
+            out.append(Cue(
+                cue["description"],
+                cue["commands"],
+                blackout=cue["blackout"]
+            ))
         return out
 
     def serialize_cues(self) -> list[dict]:
-        out = []
+        out: list[dict] = []
         for cue in self.cues:
-            if isinstance(cue, BlackoutCue):
-                out.append({
-                    "type": "blackout",
-                    "description": cue.description
-                })
-            else:
-                out.append({
-                    "type": "normal",
-                    "description": cue.description,
-                    "commands": cue.commands
-                })
+            out.append({
+                "description": cue.description,
+                "commands": cue.commands,
+                "blackout": cue.blackout
+            })
         return out
 
     def save(self, filename: str):
@@ -91,7 +87,7 @@ class Show:
         pathlib.Path("_working_show/cue_list.json").write_text(json.dumps({"cues": self.serialize_cues()}))
         pathlib.Path("_working_show/configuration.json").write_text(json.dumps(self.accumulate_subsystem_configuration()))
         with zipfile.ZipFile(f"shows/{filename}.tdshw", "w") as zip:
-            files = {filename: os.path.join(directory_path, filename) for directory_path, subdirectories, filenames in os.walk("_working_show/") for filename in filenames} # https://stackoverflow.com/a/18394205
+            files: dict[str, str] = {filename: os.path.join(directory_path, filename) for directory_path, subdirectories, filenames in os.walk("_working_show/") for filename in filenames} # https://stackoverflow.com/a/18394205
             for filename, file_path in files.items():
                 zip.write(file_path, filename)
 
@@ -114,18 +110,27 @@ class Show:
         self.blackout = False
 
     def next_cue(self):
-        self.exit_blackout()
         self.current_cue += 1
-        self.cues[self.current_cue].call(self, self.mixer_subsystem, self.lighting_subsystem, self.spotlight_subsystem, self.audio_subsystem, self.backgrounds_subsystem)
+        if self.cues[self.current_cue].blackout:
+            self.enter_blackout() # if the blackout flag is set on a cue, we want to enter blackout
+        else:
+            self.exit_blackout() # if the blackout flag is not set, we want to exit blackout automatically if we're in it
+        self.cues[self.current_cue].call(self.mixer_subsystem, self.lighting_subsystem, self.spotlight_subsystem, self.audio_subsystem, self.backgrounds_subsystem)
 
     def previous_cue(self):
-        self.exit_blackout()
         if self.current_cue < 1:
             return
         self.current_cue -= 1
+        if self.cues[self.current_cue].blackout:
+            self.enter_blackout() # if the blackout flag is set on a cue, we want to enter blackout
+        else:
+            self.exit_blackout() # if the blackout flag is not set, we want to exit blackout automatically if we're in it
         self.cues[self.current_cue].call(self.mixer_subsystem, self.lighting_subsystem, self.spotlight_subsystem, self.audio_subsystem, self.backgrounds_subsystem)
 
     def jump_to_cue(self, index: int):
-        self.exit_blackout()
         self.current_cue = index
+        if self.cues[self.current_cue].blackout:
+            self.enter_blackout() # if the blackout flag is set on a cue, we want to enter blackout
+        else:
+            self.exit_blackout() # if the blackout flag is not set, we want to exit blackout automatically if we're in it
         self.cues[self.current_cue].call(self.mixer_subsystem, self.lighting_subsystem, self.spotlight_subsystem, self.audio_subsystem, self.backgrounds_subsystem)
