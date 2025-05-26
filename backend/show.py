@@ -134,3 +134,6 @@ class Show:
         else:
             self.exit_blackout() # if the blackout flag is not set, we want to exit blackout automatically if we're in it
         self.cues[self.current_cue].call(self.mixer_subsystem, self.lighting_subsystem, self.spotlight_subsystem, self.audio_subsystem, self.backgrounds_subsystem)
+    
+    def update_polling_tasks(self):
+        self.audio_subsystem.update_polling_tasks()

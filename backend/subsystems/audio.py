@@ -1,10 +1,55 @@
 
+import pygame, time
+
+pygame.mixer.init()
+pygame.init()
+
 class AudioSubsystem:
     def __init__(self):
-        pass
+        self.stop_at: float = -1.0
+        self.fade_out: int = -1
 
     def get_configuration(self) -> dict:
         return {}
     
+    # def update_polling_tasks(self):
+    #     if pygame.mixer.music.get_busy() and self.stop_at > 0:
+    #         if time.time() > self.stop_at:
+    #             if self.fade_out > 0:
+    #                 pygame.mixer.music.fadeout(self.fade_out)
+    #             else:
+    #                 pygame.mixer.music.stop()
+
+    def update_polling_tasks(self):
+        if pygame.mixer.music.get_busy() and self.stop_at > 0:
+            if self.fade_out > 0:
+                if time.time() > self.stop_at - self.fade_out/1000:
+                    pygame.mixer.music.fadeout(self.fade_out)
+            else:
+                if time.time() > self.stop_at:
+                    pygame.mixer.music.stop()
+
     def run_command(self, command: dict):
-        pass
+        match command["action"]:
+            case "play":
+                pygame.mixer.music.load(f"_working_show/audio_library/{command['filename']}")
+                pygame.mixer.music.play(
+                    command["loops"] if "loops" in command else 0,
+                    command["start_time"] if "start_time" in command else 0,
+                    command["fade_in"] if "fade_in" in command else 0
+                )
+                if "stop_time" in command:
+                    self.stop_at = time.time() + command["stop_time"]
+                else:
+                    self.stop_at = -1.0
+                if "fade_out" in command:
+                    self.fade_out = command["fade_out"]
+                else:
+                    self.fade_out = -1
+            
+            case "stop":
+                if "fade_out" in command:
+                    pygame.mixer.music.fadeout(command["fade_out"])
+                else:
+                    pygame.mixer.music.stop()
+                pygame.mixer.music.unload()

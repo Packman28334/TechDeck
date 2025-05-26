@@ -1,3 +1,4 @@
 python-osc
 fastapi[standard]
+fastapi-utils
 pygame-ce
