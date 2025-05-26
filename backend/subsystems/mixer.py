@@ -1,8 +1,9 @@
 import socket
 
 class MixerSubsystem:
-    def __init__(self, ip_address: str, dummy_mode: bool = False):
+    def __init__(self, ip_address: str, blackout_mute_group: int, dummy_mode: bool = False):
         self.ip_address: str = ip_address
+        self.blackout_mute_group: int = blackout_mute_group
         
         self.dummy_mode: bool = dummy_mode
         if not self.dummy_mode:
@@ -12,20 +13,19 @@ class MixerSubsystem:
 
     def get_configuration(self) -> dict:
         return {
-            "ip_address": self.ip_address
+            "ip_address": self.ip_address,
+            "blackout_mute_group": self.blackout_mute_group
         }
 
     def enter_blackout(self):
         if self.dummy_mode:
             return
-        # Mutes group 1 (inputs)
-        self.send_requests([f"set MIXER:Current/MuteMaster/On 0 0 1"])
+        self.send_requests([f"set MIXER:Current/MuteMaster/On {self.blackout_mute_group-1} 0 1"])
 
     def exit_blackout(self):
         if self.dummy_mode:
             return
-        # Unmutes group 1 (inputs)
-        self.send_requests([f"set MIXER:Current/MuteMaster/On 0 0 0"])
+        self.send_requests([f"set MIXER:Current/MuteMaster/On {self.blackout_mute_group-1} 0 0"])
 
     def send_requests(self, requests: list[str]):
         if self.dummy_mode:
@@ -72,10 +72,10 @@ class MixerSubsystem:
                 self.send_requests(requests)
                 
             case "mute_group":
-                self.send_requests([f"set MIXER:Current/MuteMaster/On {command['mute_group']+1} 0 1"])
+                self.send_requests([f"set MIXER:Current/MuteMaster/On {command['mute_group']-1} 0 1"])
 
             case "unmute_group":
-                self.send_requests([f"set MIXER:Current/MuteMaster/On {command['mute_group']+1} 0 0"])
+                self.send_requests([f"set MIXER:Current/MuteMaster/On {command['mute_group']-1} 0 0"])
 
             case "change_scene": # Change used scene
                 # do we want scene value to been in channel or do we want to store it somewhre else?

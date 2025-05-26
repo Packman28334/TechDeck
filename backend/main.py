@@ -1,10 +1,10 @@
 
-import os
+import os, copy
 
 from show import Show
-from cue import Cue
+from cue import Cue, CueModel, PartialCueModel
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.exceptions import HTTPException
 from fastapi_utils.tasks import repeat_every
 import uvicorn
@@ -92,6 +92,88 @@ def jump_to_cue(cue: int):
     if show:
         return {"cue": show.jump_to_cue(cue)}
     return {}
+
+@app.get("/list_cues")
+def list_cues():
+    global show
+    if show:
+        return {"cues": show.serialize_cues()}
+    return {}
+
+@app.post("/add_cue")
+def add_cue(cue_model: CueModel, position: int | None = None):
+    global show
+    if show:
+        if position == -1:
+            show.cues.append(Cue(
+                description=cue_model.description,
+                commands=cue_model.commands,
+                blackout=cue_model.blackout
+            ))
+        else:
+            show.cues.insert(position, Cue(
+                description=cue_model.description,
+                commands=cue_model.commands,
+                blackout=cue_model.blackout
+            ))
+
+@app.get("/copy_cue/{old_cue}/{new_cue}")
+def copy_cue(old_cue: int, new_cue: int):
+    global show
+    if show:
+        show.cues.insert(new_cue, copy.deepcopy(show.cues[old_cue]))
+
+@app.get("/move_cue/{old_location}/{new_location}")
+def move_cue(old_location: int, new_location: int):
+    global show
+    if show:
+        if new_location > old_location:
+            show.cues.insert(new_location-1, show.cues.pop(old_location))
+        elif new_location < old_location:
+            show.cues.insert(new_location, show.cues.pop(old_location))
+
+@app.get("/remove_cue/{cue}")
+def remove_cue(cue: int):
+    global show
+    if show:
+        show.cues.pop(cue)
+
+@app.post("/update_cue/{cue}")
+def update_cue(cue: int, update: PartialCueModel):
+    global show
+    if show:
+        if update.description != None:
+            show.cues[cue].description = update.description
+        if update.commands != None:
+            show.cues[cue].commands = update.commands
+        if update.blackout != None:
+            show.cues[cue].blackout = update.blackout
+
+@app.post("/add_comand/{cue}")
+async def add_command(request: Request, cue: int, position: int | None = None):
+    global show
+    if show:
+        command: dict = await request.json()
+        if position != None:
+            show.cues[cue].commands.insert(position, command)
+        else:
+            show.cues[cue].commands.append(command)
+
+@app.get("/move_command/{cue}/{old_location}/{new_location}")
+def move_command(cue: int, old_location: int, new_location: int):
+    global show
+    if show:
+        if new_location > old_location:
+            show.cues[cue].commands.insert(new_location-1, show.cues[cue].commands.pop(old_location))
+        elif new_location < old_location:
+            show.cues[cue].commands.insert(new_location, show.cues[cue].commands.pop(old_location))
+
+@app.post("/update_command/{cue}/{command}")
+async def update_command(request: Request, cue: int, command: int):
+    global show
+    if show:
+        for key, value in await request.json():
+            show.cues[cue].commands[command][key] = value
 
 if __name__ == '__main__':
     uvicorn.run("main:app")

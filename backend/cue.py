@@ -1,4 +1,6 @@
 
+from pydantic import BaseModel
+
 from subsystems import MixerSubsystem, LightingSubsystem, SpotlightSubsystem, AudioSubsystem, BackgroundsSubsystem
 
 from typing import TYPE_CHECKING
@@ -26,3 +28,14 @@ class Cue:
                     backgrounds_subsystem.run_command(command)
                 case other:
                     print(f"Unknown subsystem {other} in command")
+
+
+class CueModel(BaseModel):
+    description: str
+    commands: list[dict] = []
+    blackout: bool = False
+
+class PartialCueModel(BaseModel):
+    description: str | None = None
+    commands: list[dict] | None = None
+    blackout: bool | None = None
