@@ -1,5 +1,6 @@
 
 import zipfile, shutil, pathlib, json, os
+from typing import Self
 
 from cue import Cue
 from subsystems import MixerSubsystem, LightingSubsystem, SpotlightSubsystem, AudioSubsystem, BackgroundsSubsystem
@@ -18,6 +19,8 @@ DEFAULT_CONFIGURATION = {
     "backgrounds_subsystem": {}
 }
 
+DUMMY_MODE: bool = True # TODO: move to actual config file
+
 class Show:
     def __init__(self, title: str, cues: list[Cue], configuration: dict):
         self.title: str = title
@@ -27,15 +30,24 @@ class Show:
 
         self.blackout: bool = False
 
-        self.mixer_subsystem: MixerSubsystem = MixerSubsystem(**configuration["mixer_subsystem"])
-        self.lighting_subsystem: LightingSubsystem = LightingSubsystem(**configuration["lighting_subsystem"])
+        self.mixer_subsystem: MixerSubsystem = MixerSubsystem(**configuration["mixer_subsystem"], dummy_mode=DUMMY_MODE)
+        self.lighting_subsystem: LightingSubsystem = LightingSubsystem(**configuration["lighting_subsystem"], dummy_mode=DUMMY_MODE)
         self.spotlight_subsystem: SpotlightSubsystem = SpotlightSubsystem(**configuration["spotlight_subsystem"])
         self.audio_subsystem: AudioSubsystem = AudioSubsystem(**configuration["audio_subsystem"])
         self.backgrounds_subsystem: BackgroundsSubsystem = BackgroundsSubsystem(**configuration["backgrounds_subsystem"])
 
     @classmethod
-    def new(cls, title: str, configuration: dict | None = None):
-        return cls(title, [], configuration if configuration else DEFAULT_CONFIGURATION)
+    def new(cls, title: str) -> Self:
+        obj = cls(title, [], DEFAULT_CONFIGURATION)
+        if os.path.exists("_working_show/") and os.path.isdir("_working_show/"):
+            shutil.rmtree("_working_show/")
+        os.mkdir("_working_show")
+        os.mkdir("_working_show/audio_library")
+        os.mkdir("_working_show/backgrounds_library")
+        pathlib.Path("_working_show/cue_list.json").write_text('{"cues": []}')
+        pathlib.Path("_working_show/configuration.json").write_text(json.dumps(DEFAULT_CONFIGURATION))
+        obj.save(title)
+        return obj
     
     @classmethod
     def load(cls, filename: str):
@@ -80,6 +92,8 @@ class Show:
         return out
 
     def save(self, filename: str):
+        if not os.path.exists("_working_show/"):
+            return
         if not os.path.exists("shows/"):
             os.mkdir("shows")
         if os.path.exists(f"shows/{filename}.tdshw"):

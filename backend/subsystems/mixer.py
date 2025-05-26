@@ -1,12 +1,14 @@
 import socket
 
 class MixerSubsystem:
-    def __init__(self, ip_address: str):
+    def __init__(self, ip_address: str, dummy_mode: bool = False):
         self.ip_address: str = ip_address
         
-        self.socket: socket.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.settimeout(5)
-        self.socket.connect((self.ip_address, 49280))
+        self.dummy_mode: bool = dummy_mode
+        if not self.dummy_mode:
+            self.socket: socket.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.socket.settimeout(5)
+            self.socket.connect((self.ip_address, 49280))
 
     def get_configuration(self) -> dict:
         return {
@@ -14,14 +16,20 @@ class MixerSubsystem:
         }
 
     def enter_blackout(self):
+        if self.dummy_mode:
+            return
         # Mutes group 1 (inputs)
         self.send_requests([f"set MIXER:Current/MuteMaster/On 0 0 1"])
 
     def exit_blackout(self):
+        if self.dummy_mode:
+            return
         # Unmutes group 1 (inputs)
         self.send_requests([f"set MIXER:Current/MuteMaster/On 0 0 0"])
 
     def send_requests(self, requests: list[str]):
+        if self.dummy_mode:
+            return
         self.socket.sendall(("\n ".join(requests)+"\n").encode())
         #self.socket.recv(1500).decode()
 
@@ -39,6 +47,8 @@ class MixerSubsystem:
             return "InCh", int(channel) # InCh = Input Channel
 
     def run_command(self, command: dict):
+        if self.dummy_mode:
+            return
         match command["action"]:
             case "enable_channels": # Turns on any Input/Output Channel 
                 requests = []

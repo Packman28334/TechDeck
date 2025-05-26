@@ -40,5 +40,11 @@ def is_show_loaded():
 def list_shows():
     return {"shows": Show.list_shows()}
 
+@app.get("/new_show/{show_name}")
+def new_show(show_name: str):
+    global show
+    show = Show.new(show_name)
+    return {"show": show_name}
+
 if __name__ == '__main__':
     uvicorn.run("main:app")
