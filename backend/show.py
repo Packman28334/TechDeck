@@ -1,6 +1,5 @@
 
 import zipfile, shutil, pathlib, json, os
-from typing import Self
 
 from cue import Cue
 from subsystems import MixerSubsystem, LightingSubsystem, SpotlightSubsystem, AudioSubsystem, BackgroundsSubsystem
@@ -37,7 +36,7 @@ class Show:
         self.backgrounds_subsystem: BackgroundsSubsystem = BackgroundsSubsystem(**configuration["backgrounds_subsystem"])
 
     @classmethod
-    def new(cls, title: str) -> Self:
+    def new(cls, title: str):
         obj = cls(title, [], DEFAULT_CONFIGURATION)
         if os.path.exists("_working_show/") and os.path.isdir("_working_show/"):
             shutil.rmtree("_working_show/")
@@ -97,13 +96,11 @@ class Show:
         if not os.path.exists("shows/"):
             os.mkdir("shows")
         if os.path.exists(f"shows/{filename}.tdshw"):
-            os.rmdir(f"shows/{filename}.tdshw")
+            os.remove(f"shows/{filename}.tdshw")
         pathlib.Path("_working_show/cue_list.json").write_text(json.dumps({"cues": self.serialize_cues()}))
         pathlib.Path("_working_show/configuration.json").write_text(json.dumps(self.accumulate_subsystem_configuration()))
-        with zipfile.ZipFile(f"shows/{filename}.tdshw", "w") as zip:
-            files: dict[str, str] = {filename: os.path.join(directory_path, filename) for directory_path, subdirectories, filenames in os.walk("_working_show/") for filename in filenames} # https://stackoverflow.com/a/18394205
-            for filename, file_path in files.items():
-                zip.write(file_path, filename)
+        shutil.make_archive(f"shows/{filename}", "zip", "_working_show/")
+        os.rename(f"shows/{filename}.zip", f"shows/{filename}.tdshw")
 
     @staticmethod
     def list_shows() -> list[str]:
@@ -113,47 +110,56 @@ class Show:
 
     def enter_blackout(self):
         if self.blackout:
-            return
+            return False
         self.mixer_subsystem.enter_blackout()
         self.lighting_subsystem.enter_blackout()
         self.spotlight_subsystem.enter_blackout()
         self.backgrounds_subsystem.enter_blackout()
         self.blackout = True
+        return True
     
     def exit_blackout(self):
         if not self.blackout:
-            return
+            return False
         self.mixer_subsystem.exit_blackout()
         self.lighting_subsystem.exit_blackout()
         self.spotlight_subsystem.exit_blackout()
         self.backgrounds_subsystem.exit_blackout()
         self.blackout = False
+        return True
 
     def next_cue(self):
         self.current_cue += 1
+        if self.current_cue > len(self.cues)-1:
+            self.current_cue = 0
         if self.cues[self.current_cue].blackout:
             self.enter_blackout() # if the blackout flag is set on a cue, we want to enter blackout
         else:
             self.exit_blackout() # if the blackout flag is not set, we want to exit blackout automatically if we're in it
         self.cues[self.current_cue].call(self.mixer_subsystem, self.lighting_subsystem, self.spotlight_subsystem, self.audio_subsystem, self.backgrounds_subsystem)
+        return self.current_cue
 
     def previous_cue(self):
-        if self.current_cue < 1:
-            return
         self.current_cue -= 1
+        if self.current_cue < 0:
+            self.current_cue = len(self.cues)-1
         if self.cues[self.current_cue].blackout:
             self.enter_blackout() # if the blackout flag is set on a cue, we want to enter blackout
         else:
             self.exit_blackout() # if the blackout flag is not set, we want to exit blackout automatically if we're in it
         self.cues[self.current_cue].call(self.mixer_subsystem, self.lighting_subsystem, self.spotlight_subsystem, self.audio_subsystem, self.backgrounds_subsystem)
+        return self.current_cue
 
     def jump_to_cue(self, index: int):
+        if index > len(self.cues)-1 or index < 0:
+            return self.current_cue
         self.current_cue = index
         if self.cues[self.current_cue].blackout:
             self.enter_blackout() # if the blackout flag is set on a cue, we want to enter blackout
         else:
             self.exit_blackout() # if the blackout flag is not set, we want to exit blackout automatically if we're in it
         self.cues[self.current_cue].call(self.mixer_subsystem, self.lighting_subsystem, self.spotlight_subsystem, self.audio_subsystem, self.backgrounds_subsystem)
-    
+        return self.current_cue
+
     def update_polling_tasks(self):
         self.audio_subsystem.update_polling_tasks()
