@@ -44,7 +44,7 @@ class MixerSubsystem:
         elif channel.startswith("MTRX"): # MTRX = Matrix
             return "Mtrx", int(channel.removeprefix("MTRX"))
         else:
-            return "InCh", int(channel) # InCh = Input Channel
+            return "InCh", int(channel)-1 # InCh = Input Channel
 
     def run_command(self, command: dict):
         if self.dummy_mode:
@@ -72,28 +72,11 @@ class MixerSubsystem:
                 self.send_requests(requests)
                 
             case "mute_group":
-                self.send_requests([f"set MIXER:Current/MuteMaster/On {command['mute_group']} 0 1"])
+                self.send_requests([f"set MIXER:Current/MuteMaster/On {command['mute_group']+1} 0 1"])
 
             case "unmute_group":
-                self.send_requests([f"set MIXER:Current/MuteMaster/On {command['mute_group']} 0 0"])
+                self.send_requests([f"set MIXER:Current/MuteMaster/On {command['mute_group']+1} 0 0"])
 
             case "change_scene": # Change used scene
                 # do we want scene value to been in channel or do we want to store it somewhre else?
                 pass #Todo
-            
-
-
-# For Testing
-if __name__ == "__main__":
-    TestCommands: list[dict] = [
-        {"subsystem": "mixer", "action": "enable_channels", "channels": {"DCA0", "ST1", "8", "MIX0"}},
-        {"subsystem": "mixer", "action": "disable_channels", "channels": {"DCA0", "ST1", "8", "MIX0"}},
-        {"subsystem": "mixer", "action": "set_faders_on_channels", "channels": {"DCA0":10, "ST1":-5, "8":"-inf"}},
-        {"subsystem": "mixer", "action": "enable_channels", "channels": {"MUTE0"}},
-        {"subsystem": "mixer", "action": "disable_channels", "channels": {"MUTE0"}}
-    ]
-
-    Mixer = MixerSubsystem("127.0.0.1")
-    for i, Cue in enumerate(TestCommands, start=1):
-        input(f"Run Cue {i}: ")
-        Mixer.run_command(Cue)

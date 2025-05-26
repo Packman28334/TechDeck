@@ -1,5 +1,5 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:moon_design/moon_design.dart';
 
 import 'package:techdeck/homepage.dart';
 
@@ -14,9 +14,9 @@ class TechDeckApp extends StatelessWidget {
   Widget build(BuildContext context) {
     ColorScheme colorScheme = ColorScheme.fromSeed(seedColor: Colors.red);
 
-    return CupertinoApp(
+    return MaterialApp(
       title: 'Tech Deck',
-      theme: CupertinoThemeData(),
+      theme: ThemeData.dark(),
       home: const TechDeckHomePage(),
     );
   }

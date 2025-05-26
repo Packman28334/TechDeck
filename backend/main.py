@@ -1,5 +1,6 @@
 
 from show import Show
+from cue import Cue
 
 from fastapi import FastAPI, UploadFile
 from fastapi.exceptions import HTTPException
