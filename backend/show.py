@@ -91,6 +91,12 @@ class Show:
             for filename, file_path in files.items():
                 zip.write(file_path, filename)
 
+    @staticmethod
+    def list_shows() -> list[str]:
+        if not os.path.exists("shows/"):
+            os.mkdir("shows")
+        return [show_name.removesuffix(".tdshw") for show_name in os.listdir("shows") if show_name.endswith(".tdshw")]
+
     def enter_blackout(self):
         if self.blackout:
             return
