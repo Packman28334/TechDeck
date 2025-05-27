@@ -11,7 +11,7 @@ class TechDeckHomePage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            MoonButton(label: Text("Hello, World!"))
+            MoonButton(label: Text("Hello, World!"), onTap: () {print("plz work");},)
           ],
         ),
       ),

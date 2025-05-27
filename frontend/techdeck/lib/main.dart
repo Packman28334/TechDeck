@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moon_design/moon_design.dart';
 import 'package:techdeck/homepage.dart';
 
 void main() {
@@ -12,10 +13,12 @@ class TechDeckApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Tech Deck',
-      theme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        colorSchemeSeed: Colors.red,
+      theme: ThemeData.dark().copyWith(
+        extensions: <ThemeExtension<dynamic>>[MoonTheme(
+          tokens: MoonTokens.dark.copyWith(
+            colors: MoonColors.dark
+          )
+        )]
       ),
       home: const TechDeckHomePage(),
     );
