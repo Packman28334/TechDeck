@@ -58,6 +58,12 @@ def new_show(show_name: str):
     show = Show.new(show_name)
     return {"show": show_name}
 
+@app.get("/list_audio")
+def list_audio():
+    global show
+    if show:
+        return {"audio": show.audio_subsystem.list_audio()}
+
 @app.get("/enter_blackout")
 def enter_blackout():
     global show
@@ -104,7 +110,7 @@ def list_cues():
 def add_cue(cue_model: CueModel, position: int | None = None):
     global show
     if show:
-        if position == -1:
+        if position == None:
             show.cues.append(Cue(
                 description=cue_model.description,
                 commands=cue_model.commands,

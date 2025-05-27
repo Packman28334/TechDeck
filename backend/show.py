@@ -6,7 +6,8 @@ from subsystems import MixerSubsystem, LightingSubsystem, SpotlightSubsystem, Au
 
 DEFAULT_CONFIGURATION = {
     "mixer_subsystem": {
-        "ip_address": "10.72.2.100"
+        "ip_address": "10.72.2.100",
+        "blackout_mute_group": 1
     },
     "lighting_subsystem": {
         "ip_address": "10.72.2.101",

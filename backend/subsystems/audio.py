@@ -1,5 +1,5 @@
 
-import pygame, time
+import pygame, time, os
 
 pygame.mixer.init()
 pygame.init()
@@ -29,21 +29,27 @@ class AudioSubsystem:
                 if time.time() > self.stop_at:
                     pygame.mixer.music.stop()
 
+    def list_audio(self) -> list[str]:
+        if os.path.exists("_working_show") and os.path.isdir("_working_show"):
+            if os.path.exists("_working_show/audio_library") and os.path.isdir("_working_show/audio_library"):
+                return os.listdir("_working_show/audio_library")
+        return []
+
     def run_command(self, command: dict):
         match command["action"]:
             case "play":
                 pygame.mixer.music.load(f"_working_show/audio_library/{command['filename']}")
                 pygame.mixer.music.play(
-                    command["loops"] if "loops" in command else 0,
-                    command["start_time"] if "start_time" in command else 0,
-                    command["fade_in"] if "fade_in" in command else 0
+                    int(command["loops"]) if "loops" in command else 0,
+                    float(command["start_time"]) if "start_time" in command else 0,
+                    int(command["fade_in"]) if "fade_in" in command else 0
                 )
                 if "stop_time" in command:
-                    self.stop_at = time.time() + command["stop_time"]
+                    self.stop_at = time.time() + float(command["stop_time"])
                 else:
                     self.stop_at = -1.0
                 if "fade_out" in command:
-                    self.fade_out = command["fade_out"]
+                    self.fade_out = int(command["fade_out"])
                 else:
                     self.fade_out = -1
             
