@@ -18,7 +18,7 @@ class TechDeckApp extends StatelessWidget {
           tokens: MoonTokens.dark.copyWith(
             colors: MoonColors.dark
           )
-        )]
+        )],
       ),
       home: const TechDeckHomePage(),
     );
