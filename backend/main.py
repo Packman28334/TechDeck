@@ -32,6 +32,7 @@ def autosave() -> None:
 def load_show(show_name: str):
     global show
     show = Show.load(show_name)
+    return {"show": show_name}
 
 @app.get("/save_show/{show_name}")
 def save_show(show_name: str):
@@ -39,6 +40,7 @@ def save_show(show_name: str):
     if not show:
         raise HTTPException(500, "No show loaded")
     show.save(show_name)
+    return {"show": show_name}
 
 @app.get("/is_show_loaded")
 def is_show_loaded():

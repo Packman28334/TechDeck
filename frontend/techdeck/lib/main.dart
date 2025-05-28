@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:moon_design/moon_design.dart';
-import 'package:techdeck/homepage.dart';
+import 'package:techdeck/pages/homepage.dart';
 
 void main() {
   runApp(const TechDeckApp());

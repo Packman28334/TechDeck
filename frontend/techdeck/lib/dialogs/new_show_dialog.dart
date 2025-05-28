@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:moon_design/moon_design.dart';
 import 'package:techdeck/backend_request_dispatcher.dart' as backend;
+import 'package:techdeck/pages/show_page.dart';
 
 class NewShowDialog extends StatefulWidget {
   const NewShowDialog({super.key});
@@ -14,7 +15,11 @@ class _NewShowDialogState extends State<NewShowDialog> {
   final showNameInputController = TextEditingController();
 
   void createNewShow(BuildContext context) {
-    backend.get("/new_show/${showNameInputController.text}");
+    backend.get("/new_show/${showNameInputController.text}").whenComplete(() {
+      print("Created show ${showNameInputController.text}");
+      Navigator.pop(context);
+      Navigator.push(context, MaterialPageRoute(builder: ShowPage(showNameInputController.text).build));
+    });
   }
 
   @override
@@ -35,7 +40,7 @@ class _NewShowDialogState extends State<NewShowDialog> {
       SizedBox(height: 40),
       Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
         MoonButton(label: const Text("Cancel"), onTap: () {Navigator.pop(context);}, width: screenWidth*0.2),
-        MoonButton(label: const Text("Create"), onTap: () {createNewShow(context); Navigator.pop(context);}, backgroundColor: MoonColors.dark.piccolo, width: screenWidth*0.2),
+        MoonButton(label: const Text("Create"), onTap: () {createNewShow(context);}, backgroundColor: MoonColors.dark.piccolo, width: screenWidth*0.2),
       ])
     ]);
   }

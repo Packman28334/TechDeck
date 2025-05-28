@@ -17,5 +17,29 @@ String _getIP() {
 Future<Map<String, dynamic>> get(String route) async {
   print("Sending GET request to $route");
   http.Response response = await http.get(Uri.http(_getIP(), route));
-  return jsonDecode(response.body) as Map<String, dynamic>;
+  if (response.body == "null") {
+    return <String, dynamic>{"_success": true};
+  } else if (response.body == "Internal Server Error" || response.statusCode != 200) {
+    return <String, dynamic>{"_success": false};
+  }
+  Map<String, dynamic> out = jsonDecode(response.body) as Map<String, dynamic>;
+  out["_success"] = true;
+  return out;
+}
+
+Future<Map<String, dynamic>> post(String route, Map<String, dynamic> body) async { // untested
+  print("Sending GET request to $route");
+  http.Response response = await http.post(
+    Uri.http(_getIP(), route),
+    body: body,
+    headers: Map<String, String>.fromIterables(["Content-Type"], ["application/json"])
+  );
+  if (response.body == "null") {
+    return <String, dynamic>{"_success": true};
+  } else if (response.body == "Internal Server Error" || response.statusCode != 200) {
+    return <String, dynamic>{"_success": false};
+  }
+  Map<String, dynamic> out = jsonDecode(response.body) as Map<String, dynamic>;
+  out["_success"] = true;
+  return out;
 }
