@@ -182,4 +182,4 @@ async def update_command(request: Request, cue: int, command: int):
             show.cues[cue].commands[command][key] = value
 
 if __name__ == '__main__':
-    uvicorn.run("main:app")
+    uvicorn.run("main:app", host="0.0.0.0", port=8383)

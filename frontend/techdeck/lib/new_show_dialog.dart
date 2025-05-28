@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:moon_design/moon_design.dart';
+import 'package:techdeck/backend_request_dispatcher.dart' as backend;
 
 class NewShowDialog extends StatefulWidget {
   const NewShowDialog({super.key});
@@ -11,6 +12,10 @@ class NewShowDialog extends StatefulWidget {
 class _NewShowDialogState extends State<NewShowDialog> {
 
   final showNameInputController = TextEditingController();
+
+  void createNewShow(BuildContext context) {
+    backend.get("/new_show/${showNameInputController.text}");
+  }
 
   @override
   void dispose() {
@@ -34,10 +39,5 @@ class _NewShowDialogState extends State<NewShowDialog> {
       ])
     ]);
   }
-
-}
-
-void createNewShow(BuildContext context) {
-
 
 }
