@@ -59,7 +59,7 @@ class TechDeckHomePage extends StatelessWidget {
               if (snapshot.hasData) {
                 return snapshot.data;
               } else {
-                return Text("Please wait...");
+                return Column(children: [Text("Please wait..."), Text("If this is taking longer than normal, the backend may be unreachable.")]);
               }
             })
           ],
