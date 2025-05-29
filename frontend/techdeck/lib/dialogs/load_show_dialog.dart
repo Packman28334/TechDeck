@@ -17,10 +17,15 @@ class _LoadShowDialogState extends State<LoadShowDialog> {
   final showNameInputController = TextEditingController();
 
   void loadShow(BuildContext context) {
-    backend.get("/load_show/${showNameInputController.text}").whenComplete(() {
-      print("Loaded show ${showNameInputController.text}");
-      Navigator.pop(context);
-      Navigator.push(context, MaterialPageRoute(builder: ShowPage(showNameInputController.text).build));
+    backend.get("/load_show/${showNameInputController.text}").then((Map<String, dynamic> response) {
+      if (response["_success"]) {
+        print("Loaded show ${showNameInputController.text}");
+        Navigator.pop(context);
+        Navigator.push(context, MaterialPageRoute(builder: ShowPage(showNameInputController.text).build));
+      } else {
+        Navigator.pop(context);
+        showDialog(context: context, builder: AlertDialog(title: const Text("Failed to load show")).build,);
+      }
     });
   }
 

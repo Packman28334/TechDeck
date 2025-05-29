@@ -19,6 +19,9 @@ class ShowPage extends StatelessWidget {
         ],
       ),
       body: Row(children: [
+        NavigationRail(destinations: [
+          NavigationRailDestination(icon: const Icon(Icons.edit), label: const Text("Edit Cues"))
+        ], selectedIndex: 0, extended: false),
         Expanded(child: CuesList()),
       ],),
     );
