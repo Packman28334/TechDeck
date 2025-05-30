@@ -28,7 +28,7 @@ Future<dynamic> getResumeShowButton(BuildContext context) async {
   if (response['_success'] == true) {
     if (response["loaded"] == true) {
       return MoonButton(label: const Text("Resume last show"), onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: ShowPage(response["show"]).build));
+        Navigator.push(context, MaterialPageRoute(builder: (context) => ShowPage(response['show'])));
       });
     }
   }

@@ -18,7 +18,7 @@ class _NewShowDialogState extends State<NewShowDialog> {
     backend.get("/new_show/${showNameInputController.text}").whenComplete(() {
       print("Created show ${showNameInputController.text}");
       Navigator.pop(context);
-      Navigator.push(context, MaterialPageRoute(builder: ShowPage(showNameInputController.text).build));
+      Navigator.push(context, MaterialPageRoute(builder: (context) => ShowPage(showNameInputController.text)));
     });
   }
 
