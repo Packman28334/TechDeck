@@ -17,7 +17,8 @@ class ShowPage extends StatelessWidget {
         automaticallyImplyLeading: false,
         backgroundColor: Color.fromARGB(255, 0, 0, 0),
         actions: [
-          Tooltip(message: "Begin show", child: MoonButton.icon(icon: const Icon(MoonIcons.media_play_32_regular), onTap: () {})),
+          Tooltip(message: "Begin show", child: MoonButton.icon(icon: const Icon(MoonIcons.media_play_32_regular), onTap: () {})), // todo: make dynamic
+          Tooltip(message: "Toggle blackout", child: MoonButton.icon(icon: const Icon(MoonIcons.other_moon_32_regular), onTap: () {backend.get("/toggle_blackout");})),
           Tooltip(message: "Spotlight view", child: MoonButton.icon(icon: const Icon(MoonIcons.other_lightning_32_regular), onTap: () {})),
           Tooltip(message: "Backdrop view", child: MoonButton.icon(icon: const Icon(MoonIcons.media_video_32_regular), onTap: () {})),
           Tooltip(message: "Audio Library", child: MoonButton.icon(icon: const Icon(MoonIcons.media_music_32_regular), onTap: () {})),

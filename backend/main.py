@@ -80,6 +80,14 @@ def exit_blackout():
         return {"change": show.exit_blackout()}
     return {"change": False}
 
+@app.get("/toggle_blackout")
+def toggle_blackout():
+    global show
+    if show:
+        show.exit_blackout() if show.blackout else show.enter_blackout()
+        return {"change": True}
+    return {"change": False}
+
 @app.get("/next_cue")
 def next_cue():
     global show
