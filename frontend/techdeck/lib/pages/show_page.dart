@@ -17,7 +17,13 @@ class ShowPage extends StatelessWidget {
         automaticallyImplyLeading: false,
         backgroundColor: Color.fromARGB(255, 0, 0, 0),
         actions: [
-          MoonButton.icon(icon: const Icon(MoonIcons.generic_home_32_regular), onTap: () {Navigator.pop(context);},),
+          Tooltip(message: "Begin show", child: MoonButton.icon(icon: const Icon(MoonIcons.media_play_32_regular), onTap: () {})),
+          Tooltip(message: "Spotlight view", child: MoonButton.icon(icon: const Icon(MoonIcons.other_lightning_32_regular), onTap: () {})),
+          Tooltip(message: "Backdrop view", child: MoonButton.icon(icon: const Icon(MoonIcons.media_video_32_regular), onTap: () {})),
+          Tooltip(message: "Audio Library", child: MoonButton.icon(icon: const Icon(MoonIcons.media_music_32_regular), onTap: () {})),
+          Tooltip(message: "Backdrop Library", child: MoonButton.icon(icon: const Icon(MoonIcons.generic_picture_32_regular), onTap: () {})),
+          Tooltip(message: "Show configuration", child: MoonButton.icon(icon: const Icon(MoonIcons.software_settings_32_regular), onTap: () {})),
+          Tooltip(message: "Home", child: MoonButton.icon(icon: const Icon(MoonIcons.generic_home_32_regular), onTap: () {Navigator.pop(context);})),
           SizedBox(width: 10,)
         ],
       ),
@@ -56,8 +62,8 @@ class _CuesListState extends State<CuesList> {
           }),
           Text(index.toString()),
           Text(cue["description"]),
-          Offstage(offstage: true, child: const Icon(MoonIcons.time_clock_32_regular)),
-          Offstage(offstage: !cue["blackout"], child: const Icon(MoonIcons.other_moon_32_regular))
+          Offstage(offstage: true, child: Icon(MoonIcons.time_clock_32_regular, color: MoonColors.dark.hit)),
+          Offstage(offstage: !cue["blackout"], child: Icon(MoonIcons.other_moon_32_regular, color: MoonColors.dark.piccolo))
         ]));
       }
       return out;
@@ -71,9 +77,26 @@ class _CuesListState extends State<CuesList> {
     return LayoutBuilder(builder: (context, constraints) {
       return Column(mainAxisAlignment: MainAxisAlignment.start, children: [
         SizedBox(height: 10),
-        Row(mainAxisAlignment: MainAxisAlignment.center, spacing: 10, children: [
-          MoonButton.icon(icon: const Icon(MoonIcons.files_add_text_32_regular), onTap: () {}),
-        ]),
+        Row(mainAxisAlignment: MainAxisAlignment.center, spacing: 10, children: () {
+          if (selectedCues.isEmpty) {
+            return <Widget>[  
+              Tooltip(message: "Create cue", child: MoonButton.icon(icon: const Icon(MoonIcons.files_add_text_32_regular), onTap: () {})),
+            ];
+          } else if (selectedCues.length == 1) {
+            return <Widget>[
+              Tooltip(message: "Insert cue after", child: MoonButton.icon(icon: const Icon(MoonIcons.files_add_text_32_regular), onTap: () {})),
+              Tooltip(message: "Edit cue", child: MoonButton.icon(icon: const Icon(MoonIcons.generic_edit_32_regular), onTap: () {})),
+              Tooltip(message: "Raise cue", child: MoonButton.icon(icon: const Icon(MoonIcons.arrows_up_32_regular), onTap: () {})),
+              Tooltip(message: "Lower cue", child: MoonButton.icon(icon: const Icon(MoonIcons.arrows_down_32_regular), onTap: () {})),
+              Tooltip(message: "Jump to cue", child: MoonButton.icon(icon: const Icon(MoonIcons.media_play_32_regular), onTap: () {})),
+              Tooltip(message: "Delete cue", child: MoonButton.icon(icon: const Icon(MoonIcons.files_delete_32_regular), onTap: () {})),
+            ];
+          } else {
+            return <Widget>[
+              MoonButton.icon(icon: const Icon(null)) // for spacing
+            ];
+          }
+        }()),
         SizedBox(height: 10),
         FutureBuilder(future: _getCueList(), builder: (context, snapshot) {
           if (snapshot.hasData) {
