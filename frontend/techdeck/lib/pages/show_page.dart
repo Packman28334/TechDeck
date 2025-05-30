@@ -88,7 +88,7 @@ class _CuesListState extends State<CuesList> {
               Tooltip(message: "Edit cue", child: MoonButton.icon(icon: const Icon(MoonIcons.generic_edit_32_regular), onTap: () {})),
               Tooltip(message: "Raise cue", child: MoonButton.icon(icon: const Icon(MoonIcons.arrows_up_32_regular), onTap: () {})),
               Tooltip(message: "Lower cue", child: MoonButton.icon(icon: const Icon(MoonIcons.arrows_down_32_regular), onTap: () {})),
-              Tooltip(message: "Jump to cue", child: MoonButton.icon(icon: const Icon(MoonIcons.media_play_32_regular), onTap: () {})),
+              Tooltip(message: "Jump to cue", child: MoonButton.icon(icon: const Icon(MoonIcons.generic_share_arrow_32_regular), onTap: () {})),
               Tooltip(message: "Delete cue", child: MoonButton.icon(icon: const Icon(MoonIcons.files_delete_32_regular), onTap: () {})),
             ];
           } else {
