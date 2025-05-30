@@ -86,6 +86,7 @@ class _CuesListState extends State<CuesList> {
             return <Widget>[
               Tooltip(message: "Insert cue after", child: MoonButton.icon(icon: const Icon(MoonIcons.files_add_text_32_regular), onTap: () {})),
               Tooltip(message: "Edit cue", child: MoonButton.icon(icon: const Icon(MoonIcons.generic_edit_32_regular), onTap: () {})),
+              Tooltip(message: "Duplicate cue", child: MoonButton.icon(icon: const Icon(MoonIcons.files_copy_32_regular), onTap: () {})),
               Tooltip(message: "Raise cue", child: MoonButton.icon(icon: const Icon(MoonIcons.arrows_up_32_regular), onTap: () {})),
               Tooltip(message: "Lower cue", child: MoonButton.icon(icon: const Icon(MoonIcons.arrows_down_32_regular), onTap: () {})),
               Tooltip(message: "Jump to cue", child: MoonButton.icon(icon: const Icon(MoonIcons.generic_share_arrow_32_regular), onTap: () {})),

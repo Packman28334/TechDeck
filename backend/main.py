@@ -124,12 +124,14 @@ def add_cue(cue_model: CueModel, position: int | None = None):
                 commands=cue_model.commands,
                 blackout=cue_model.blackout
             ))
+        return {"cues": show.serialize_cues()}
 
 @app.get("/copy_cue/{old_cue}/{new_cue}")
 def copy_cue(old_cue: int, new_cue: int):
     global show
     if show:
         show.cues.insert(new_cue, copy.deepcopy(show.cues[old_cue]))
+        return {"cues": show.serialize_cues()}
 
 @app.get("/move_cue/{old_location}/{new_location}")
 def move_cue(old_location: int, new_location: int):
@@ -139,12 +141,28 @@ def move_cue(old_location: int, new_location: int):
             show.cues.insert(new_location-1, show.cues.pop(old_location))
         elif new_location < old_location:
             show.cues.insert(new_location, show.cues.pop(old_location))
+        return {"cues": show.serialize_cues()}
+
+@app.get("/move_cue_up/{location}/{amount}")
+def move_cue(location: int, amount: int):
+    global show
+    if show:
+        show.cues.insert(location-amount, show.cues.pop(location))
+        return {"cues": show.serialize_cues()}
+
+@app.get("/move_cue_down/{location}/{amount}")
+def move_cue(location: int, amount: int):
+    global show
+    if show:
+        show.cues.insert(location+amount+1, show.cues.pop(location))
+        return {"cues": show.serialize_cues()}
 
 @app.get("/remove_cue/{cue}")
 def remove_cue(cue: int):
     global show
     if show:
         show.cues.pop(cue)
+        return {"cues": show.serialize_cues()}
 
 @app.post("/update_cue/{cue}")
 def update_cue(cue: int, update: PartialCueModel):
