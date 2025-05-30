@@ -24,7 +24,7 @@ class _LoadShowDialogState extends State<LoadShowDialog> {
         Navigator.push(context, MaterialPageRoute(builder: (context) => ShowPage(showNameInputController.text)));
       } else {
         Navigator.pop(context);
-        showDialog(context: context, builder: AlertDialog(title: const Text("Failed to load show")).build,);
+        showDialog(context: context, builder: (context) => AlertDialog(title: const Text("Failed to load show")));
       }
     });
   }
