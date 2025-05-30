@@ -26,25 +26,6 @@ class ShowPage extends StatelessWidget {
   }
 }
 
-Future<List<MoonTableRow>> _getCueList() async {
-  Map<String, dynamic> response = await backend.get("/list_cues");
-  if (response["_success"] == true) {
-    List<MoonTableRow> out = [];
-    int index = 0;
-    for (Map<String, dynamic> cue in response["cues"]) {
-      out.add(MoonTableRow(cells: [
-        const Text("."),
-        Text(index.toString()),
-        Text(cue["description"]),
-      ]));
-      index++;
-    }
-    return out;
-  } else {
-    return [];
-  }
-}
-
 class CuesList extends StatefulWidget {
   CuesList({super.key});
 
@@ -54,6 +35,36 @@ class CuesList extends StatefulWidget {
 
 class _CuesListState extends State<CuesList> {
   _CuesListState();
+
+  List<int> selectedCues = [];
+
+  Future<List<MoonTableRow>> _getCueList() async {
+    Map<String, dynamic> response = await backend.get("/list_cues");
+    if (response["_success"] == true) {
+      List<MoonTableRow> out = [];
+      int i = -1;
+      for (Map<String, dynamic> cue in response["cues"]) {
+        i++;
+        final int index = i;
+        out.add(MoonTableRow(cells: [
+          MoonCheckbox(value: selectedCues.contains(index), onChanged: (newValue) {
+            if (selectedCues.contains(index)) {
+              setState(() {selectedCues.remove(index);});
+            } else {
+              setState(() {selectedCues.add(index);});
+            }
+          }),
+          Text(index.toString()),
+          Text(cue["description"]),
+          Offstage(offstage: true, child: const Icon(MoonIcons.time_clock_32_regular)),
+          Offstage(offstage: !cue["blackout"], child: const Icon(MoonIcons.other_moon_32_regular))
+        ]));
+      }
+      return out;
+    } else {
+      return [];
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,15 +78,17 @@ class _CuesListState extends State<CuesList> {
         FutureBuilder(future: _getCueList(), builder: (context, snapshot) {
           if (snapshot.hasData) {
             return MoonTable(
-              columnsCount: 3,
+              columnsCount: 5,
               rowSize: MoonTableRowSize.md,
               sortColumnIndex: 1,
               height: constraints.maxHeight * 0.8,
               scrollBehaviour: ScrollBehavior().copyWith(scrollbars: true),
               header: MoonTableHeader(columns: [
-                MoonTableColumn(cell: const Text(""), showSortingIcon: false, width: 40),
-                MoonTableColumn(cell: const Text("ID"), showSortingIcon: false, width: 50),
-                MoonTableColumn(cell: const Text("Description"), showSortingIcon: false, width: constraints.maxWidth*0.8-90),
+                MoonTableColumn(cell: const Text(""), showSortingIcon: false, width: 40), // checkbox
+                MoonTableColumn(cell: const Text("ID"), showSortingIcon: false, width: 50), // id
+                MoonTableColumn(cell: const Text("Description"), showSortingIcon: false, width: constraints.maxWidth*0.8-170), // description
+                MoonTableColumn(cell: const Text(""), showSortingIcon: false, width: 40), // timed icon
+                MoonTableColumn(cell: const Text(""), showSortingIcon: false, width: 40), // blackout icon
               ]),
               rows: snapshot.data!,
             );
