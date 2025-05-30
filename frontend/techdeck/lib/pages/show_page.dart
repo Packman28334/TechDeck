@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:moon_design/moon_design.dart';
+import 'package:techdeck/backend_request_dispatcher.dart' as backend;
 
 class ShowPage extends StatelessWidget {
   const ShowPage(this.showName, {super.key});
@@ -25,6 +26,25 @@ class ShowPage extends StatelessWidget {
   }
 }
 
+Future<List<MoonTableRow>> _getCueList() async {
+  Map<String, dynamic> response = await backend.get("/list_cues");
+  if (response["_success"] == true) {
+    List<MoonTableRow> out = [];
+    int index = 0;
+    for (Map<String, dynamic> cue in response["cues"]) {
+      out.add(MoonTableRow(cells: [
+        const Text("."),
+        Text(index.toString()),
+        Text(cue["description"]),
+      ]));
+      index++;
+    }
+    return out;
+  } else {
+    return [];
+  }
+}
+
 class CuesList extends StatefulWidget {
   CuesList({super.key});
 
@@ -44,23 +64,25 @@ class _CuesListState extends State<CuesList> {
           MoonButton.icon(icon: const Icon(MoonIcons.files_add_text_32_regular), onTap: () {}),
         ]),
         SizedBox(height: 10),
-        MoonTable(
-          columnsCount: 4,
-          rowSize: MoonTableRowSize.sm,
-          tablePadding: EdgeInsets.symmetric(horizontal: 16),
-          sortColumnIndex: 1,
-          width: constraints.maxWidth,
-          height: constraints.maxHeight,
-          header: MoonTableHeader(columns: [
-            MoonTableColumn(cell: const Text(""), showSortingIcon: false),
-            MoonTableColumn(cell: const Text("ID"), showSortingIcon: false),
-            MoonTableColumn(cell: const Text("Description"), showSortingIcon: false),
-            MoonTableColumn(cell: const Text(""), showSortingIcon: false),
-          ]),
-          rows: [ // columns: jump, id, description, edit
-            MoonTableRow(cells: [const Text("Hello, World!"), const Text("Hello, World!"), const Text("Hello, World!"), const Text("Hello, World!")])
-          ]
-        )
+        FutureBuilder(future: _getCueList(), builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return MoonTable(
+              columnsCount: 3,
+              rowSize: MoonTableRowSize.md,
+              sortColumnIndex: 1,
+              height: constraints.maxHeight * 0.8,
+              scrollBehaviour: ScrollBehavior().copyWith(scrollbars: true),
+              header: MoonTableHeader(columns: [
+                MoonTableColumn(cell: const Text(""), showSortingIcon: false, width: 40),
+                MoonTableColumn(cell: const Text("ID"), showSortingIcon: false, width: 50),
+                MoonTableColumn(cell: const Text("Description"), showSortingIcon: false, width: constraints.maxWidth*0.8-90),
+              ]),
+              rows: snapshot.data!,
+            );
+          } else {
+            return Text("Loading cues...");
+          }
+        })
       ]);
     });
   }

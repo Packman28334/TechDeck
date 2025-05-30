@@ -28,7 +28,7 @@ Future<Map<String, dynamic>> get(String route) async {
 }
 
 Future<Map<String, dynamic>> post(String route, Map<String, dynamic> body) async { // untested
-  print("Sending GET request to $route");
+  print("Sending POST request to $route");
   http.Response response = await http.post(
     Uri.http(_getIP(), route),
     body: body,
