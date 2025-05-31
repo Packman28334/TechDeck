@@ -123,7 +123,7 @@ def list_cues():
     return {}
 
 @app.post("/add_cue")
-def add_cue(cue_model: CueModel, position: int | None = None):
+async def add_cue(cue_model: CueModel, position: int | None = None):
     global show
     if show:
         if position == None:
@@ -139,20 +139,20 @@ def add_cue(cue_model: CueModel, position: int | None = None):
                 blackout=cue_model.blackout
             ))
         for websocket in show.websockets:
-            websocket.send_json({"cues": show.serialize_cues()})
+            await websocket.send_json({"cues": show.serialize_cues()})
         return {"cues": show.serialize_cues()}
 
 @app.get("/copy_cue/{old_cue}/{new_cue}")
-def copy_cue(old_cue: int, new_cue: int):
+async def copy_cue(old_cue: int, new_cue: int):
     global show
     if show:
         show.cues.insert(new_cue, copy.deepcopy(show.cues[old_cue]))
         for websocket in show.websockets:
-            websocket.send_json({"cues": show.serialize_cues()})
+            await websocket.send_json({"cues": show.serialize_cues()})
         return {"cues": show.serialize_cues()}
 
 @app.get("/move_cue/{old_location}/{new_location}")
-def move_cue(old_location: int, new_location: int):
+async def move_cue(old_location: int, new_location: int):
     global show
     if show:
         if new_location > old_location:
@@ -160,34 +160,34 @@ def move_cue(old_location: int, new_location: int):
         elif new_location < old_location:
             show.cues.insert(new_location, show.cues.pop(old_location))
         for websocket in show.websockets:
-            websocket.send_json({"cues": show.serialize_cues()})
+            await websocket.send_json({"cues": show.serialize_cues()})
         return {"cues": show.serialize_cues()}
 
 @app.get("/move_cue_up/{location}/{amount}")
-def move_cue(location: int, amount: int):
+async def move_cue(location: int, amount: int):
     global show
     if show:
         show.cues.insert(location-amount, show.cues.pop(location))
         for websocket in show.websockets:
-            websocket.send_json({"cues": show.serialize_cues()})
+            await websocket.send_json({"cues": show.serialize_cues()})
         return {"cues": show.serialize_cues()}
 
 @app.get("/move_cue_down/{location}/{amount}")
-def move_cue(location: int, amount: int):
+async def move_cue(location: int, amount: int):
     global show
     if show:
         show.cues.insert(location+amount+1, show.cues.pop(location))
         for websocket in show.websockets:
-            websocket.send_json({"cues": show.serialize_cues()})
+            await websocket.send_json({"cues": show.serialize_cues()})
         return {"cues": show.serialize_cues()}
 
 @app.get("/remove_cue/{cue}")
-def remove_cue(cue: int):
+async def remove_cue(cue: int):
     global show
     if show:
         show.cues.pop(cue)
         for websocket in show.websockets:
-            websocket.send_json({"cues": show.serialize_cues()})
+            await websocket.send_json({"cues": show.serialize_cues()})
         return {"cues": show.serialize_cues()}
 
 @app.post("/update_cue/{cue}")
@@ -240,7 +240,7 @@ async def websocket_handler(websocket: WebSocket):
             print(f"recieved ws request {request}")
             match request:
                 case "cues":
-                    websocket.send_json({"cues": show.serialize_cues()})
+                    await websocket.send_json({"cues": show.serialize_cues()})
     except WebSocketDisconnect:
         show.websockets.remove(websocket)
 

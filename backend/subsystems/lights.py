@@ -10,7 +10,7 @@ class LightingSubsystem:
 
         self.current_cue: float = 0.1
 
-        self.dummy_mode: bool = False
+        self.dummy_mode: bool = dummy_mode
         if not dummy_mode:
             self.client: SimpleUDPClient = SimpleUDPClient(self.ip_address, self.port_tx)
             self.client.send_message(f"/pb/{self.playback}/0.1", 1.0) # ensure that initial cue of 0.1 is correct

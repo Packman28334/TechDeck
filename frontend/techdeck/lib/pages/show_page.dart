@@ -46,11 +46,14 @@ class CuesList extends StatefulWidget {
 class _CuesListState extends State<CuesList> {
   _CuesListState() {
     channel.stream.listen((rawData) {
-      print("WS recieved");
       Map<String, dynamic> data = jsonDecode(rawData);
       if (data.containsKey("cues")) {
         setState(() {cueList = data["cues"];});
         setState(() {cueRows = _formatCueTable(cueList);});
+      }
+
+      if (data.containsKey("blackout")) {
+        setState(() {blackout = data["blackout"];});
       }
     });
     channel.sink.add("cues"); // request cues from server
@@ -62,11 +65,11 @@ class _CuesListState extends State<CuesList> {
 
   bool blackout = false;
 
-  List<Map<String, dynamic>> cueList = [];
+  List<dynamic> cueList = []; // for some reason marking it as a List<Map<String, dynamic>> throws an error
   List<MoonTableRow> cueRows = [];
   List<int> selectedCues = [];
 
-  List<MoonTableRow> _formatCueTable(List<Map<String, dynamic>> cues) {
+  List<MoonTableRow> _formatCueTable(List<dynamic> cues) { // because an error is thrown if the cue list is marked as List<Map<String, dynamic>>, we have to adjust the type here as well
     List<MoonTableRow> out = [];
     int i = 0;
     for (Map<String, dynamic> cue in cues) {
@@ -74,9 +77,11 @@ class _CuesListState extends State<CuesList> {
       out.add(MoonTableRow(cells: [
         MoonCheckbox(value: selectedCues.contains(index), onChanged: (newValue) {
           if (selectedCues.contains(index)) {
-            setState(() {selectedCues.remove(index);});
+            selectedCues.remove(index);
+            setState(() {cueRows = _formatCueTable(cueList);});
           } else {
-            setState(() {selectedCues.add(index);});
+            selectedCues.add(index);
+            setState(() {cueRows = _formatCueTable(cueList);});
           }
         }),
         Text(index.toString()),
