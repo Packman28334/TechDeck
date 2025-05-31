@@ -1,6 +1,8 @@
 
 import zipfile, shutil, pathlib, json, os
 
+from fastapi import WebSocket
+
 from cue import Cue
 from subsystems import MixerSubsystem, LightingSubsystem, SpotlightSubsystem, AudioSubsystem, BackgroundsSubsystem
 
@@ -24,6 +26,8 @@ DUMMY_MODE: bool = True # TODO: move to actual config file
 class Show:
     def __init__(self, title: str, cues: list[Cue], configuration: dict):
         self.title: str = title
+
+        self.websockets: list[WebSocket] = []
 
         self.cues: list[Cue] = cues
         self.current_cue: int = -1
@@ -117,6 +121,8 @@ class Show:
         self.spotlight_subsystem.enter_blackout()
         self.backgrounds_subsystem.enter_blackout()
         self.blackout = True
+        for websocket in self.websockets:
+            websocket.send_json({"blackout": True})
         return True
     
     def exit_blackout(self):
@@ -127,6 +133,8 @@ class Show:
         self.spotlight_subsystem.exit_blackout()
         self.backgrounds_subsystem.exit_blackout()
         self.blackout = False
+        for websocket in self.websockets:
+            websocket.send_json({"blackout": False})
         return True
 
     def next_cue(self):
@@ -138,6 +146,8 @@ class Show:
         else:
             self.exit_blackout() # if the blackout flag is not set, we want to exit blackout automatically if we're in it
         self.cues[self.current_cue].call(self.mixer_subsystem, self.lighting_subsystem, self.spotlight_subsystem, self.audio_subsystem, self.backgrounds_subsystem)
+        for websocket in self.websockets:
+            websocket.send_json({"cue": self.current_cue})
         return self.current_cue
 
     def previous_cue(self):
@@ -149,6 +159,8 @@ class Show:
         else:
             self.exit_blackout() # if the blackout flag is not set, we want to exit blackout automatically if we're in it
         self.cues[self.current_cue].call(self.mixer_subsystem, self.lighting_subsystem, self.spotlight_subsystem, self.audio_subsystem, self.backgrounds_subsystem)
+        for websocket in self.websockets:
+            websocket.send_json({"cue": self.current_cue})
         return self.current_cue
 
     def jump_to_cue(self, index: int):
@@ -160,6 +172,8 @@ class Show:
         else:
             self.exit_blackout() # if the blackout flag is not set, we want to exit blackout automatically if we're in it
         self.cues[self.current_cue].call(self.mixer_subsystem, self.lighting_subsystem, self.spotlight_subsystem, self.audio_subsystem, self.backgrounds_subsystem)
+        for websocket in self.websockets:
+            websocket.send_json({"cue": self.current_cue})
         return self.current_cue
 
     def update_polling_tasks(self):

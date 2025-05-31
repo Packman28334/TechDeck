@@ -1,7 +1,10 @@
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:moon_design/moon_design.dart';
 import 'package:techdeck/backend_request_dispatcher.dart' as backend;
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 class ShowPage extends StatelessWidget {
   const ShowPage(this.showName, {super.key});
@@ -41,36 +44,49 @@ class CuesList extends StatefulWidget {
 }
 
 class _CuesListState extends State<CuesList> {
-  _CuesListState();
+  _CuesListState() {
+    channel.stream.listen((rawData) {
+      print("WS recieved");
+      Map<String, dynamic> data = jsonDecode(rawData);
+      if (data.containsKey("cues")) {
+        setState(() {cueList = data["cues"];});
+        setState(() {cueRows = _formatCueTable(cueList);});
+      }
+    });
+    channel.sink.add("cues"); // request cues from server
 
+    backend.get("/is_blackout").then((response) {setState(() {blackout = response["blackout"];});});
+  }
+
+  WebSocketChannel channel = WebSocketChannel.connect(Uri.parse("ws://${backend.getIP()}/websocket"));
+
+  bool blackout = false;
+
+  List<Map<String, dynamic>> cueList = [];
+  List<MoonTableRow> cueRows = [];
   List<int> selectedCues = [];
 
-  Future<List<MoonTableRow>> _getCueList() async {
-    Map<String, dynamic> response = await backend.get("/list_cues");
-    if (response["_success"] == true) {
-      List<MoonTableRow> out = [];
-      int i = -1;
-      for (Map<String, dynamic> cue in response["cues"]) {
-        i++;
-        final int index = i;
-        out.add(MoonTableRow(cells: [
-          MoonCheckbox(value: selectedCues.contains(index), onChanged: (newValue) {
-            if (selectedCues.contains(index)) {
-              setState(() {selectedCues.remove(index);});
-            } else {
-              setState(() {selectedCues.add(index);});
-            }
-          }),
-          Text(index.toString()),
-          Text(cue["description"]),
-          Offstage(offstage: true, child: Icon(MoonIcons.time_clock_32_regular, color: MoonColors.dark.hit)),
-          Offstage(offstage: !cue["blackout"], child: Icon(MoonIcons.other_moon_32_regular, color: MoonColors.dark.piccolo))
-        ]));
-      }
-      return out;
-    } else {
-      return [];
+  List<MoonTableRow> _formatCueTable(List<Map<String, dynamic>> cues) {
+    List<MoonTableRow> out = [];
+    int i = 0;
+    for (Map<String, dynamic> cue in cues) {
+      final int index = i;
+      out.add(MoonTableRow(cells: [
+        MoonCheckbox(value: selectedCues.contains(index), onChanged: (newValue) {
+          if (selectedCues.contains(index)) {
+            setState(() {selectedCues.remove(index);});
+          } else {
+            setState(() {selectedCues.add(index);});
+          }
+        }),
+        Text(index.toString()),
+        Text(cue["description"]),
+        Offstage(offstage: true, child: Icon(MoonIcons.time_clock_32_regular, color: MoonColors.dark.hit)),
+        Offstage(offstage: !cue["blackout"], child: Icon(MoonIcons.other_moon_32_regular, color: MoonColors.dark.piccolo))
+      ]));
+      i++;
     }
+    return out;
   }
 
   @override
@@ -100,27 +116,21 @@ class _CuesListState extends State<CuesList> {
           }
         }()),
         SizedBox(height: 10),
-        FutureBuilder(future: _getCueList(), builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            return MoonTable(
-              columnsCount: 5,
-              rowSize: MoonTableRowSize.md,
-              sortColumnIndex: 1,
-              height: constraints.maxHeight * 0.8,
-              scrollBehaviour: ScrollBehavior().copyWith(scrollbars: true),
-              header: MoonTableHeader(columns: [
-                MoonTableColumn(cell: const Text(""), showSortingIcon: false, width: 40), // checkbox
-                MoonTableColumn(cell: const Text("ID"), showSortingIcon: false, width: 50), // id
-                MoonTableColumn(cell: const Text("Description"), showSortingIcon: false, width: constraints.maxWidth*0.8-170), // description
-                MoonTableColumn(cell: const Text(""), showSortingIcon: false, width: 40), // timed icon
-                MoonTableColumn(cell: const Text(""), showSortingIcon: false, width: 40), // blackout icon
-              ]),
-              rows: snapshot.data!,
-            );
-          } else {
-            return Text("Loading cues...");
-          }
-        })
+        MoonTable(
+          columnsCount: 5,
+          rowSize: MoonTableRowSize.md,
+          sortColumnIndex: 1,
+          height: constraints.maxHeight * 0.8,
+          scrollBehaviour: ScrollBehavior().copyWith(scrollbars: true),
+          header: MoonTableHeader(columns: [
+            MoonTableColumn(cell: const Text(""), showSortingIcon: false, width: 40), // checkbox
+            MoonTableColumn(cell: const Text("ID"), showSortingIcon: false, width: 50), // id
+            MoonTableColumn(cell: const Text("Description"), showSortingIcon: false, width: constraints.maxWidth*0.8-170), // description
+            MoonTableColumn(cell: const Text(""), showSortingIcon: false, width: 40), // timed icon
+            MoonTableColumn(cell: const Text(""), showSortingIcon: false, width: 40), // blackout icon
+          ]),
+          rows: cueRows,
+        )
       ]);
     });
   }

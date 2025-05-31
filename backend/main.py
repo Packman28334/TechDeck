@@ -4,7 +4,7 @@ import os, copy
 from show import Show
 from cue import Cue, CueModel, PartialCueModel
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.exceptions import HTTPException
 from fastapi_utils.tasks import repeat_every
 import uvicorn
@@ -88,6 +88,12 @@ def toggle_blackout():
         return {"change": True}
     return {"change": False}
 
+@app.get("/is_blackout")
+def is_blackout():
+    global show
+    if show:
+        return {"blackout": show.blackout}
+
 @app.get("/next_cue")
 def next_cue():
     global show
@@ -132,6 +138,8 @@ def add_cue(cue_model: CueModel, position: int | None = None):
                 commands=cue_model.commands,
                 blackout=cue_model.blackout
             ))
+        for websocket in show.websockets:
+            websocket.send_json({"cues": show.serialize_cues()})
         return {"cues": show.serialize_cues()}
 
 @app.get("/copy_cue/{old_cue}/{new_cue}")
@@ -139,6 +147,8 @@ def copy_cue(old_cue: int, new_cue: int):
     global show
     if show:
         show.cues.insert(new_cue, copy.deepcopy(show.cues[old_cue]))
+        for websocket in show.websockets:
+            websocket.send_json({"cues": show.serialize_cues()})
         return {"cues": show.serialize_cues()}
 
 @app.get("/move_cue/{old_location}/{new_location}")
@@ -149,6 +159,8 @@ def move_cue(old_location: int, new_location: int):
             show.cues.insert(new_location-1, show.cues.pop(old_location))
         elif new_location < old_location:
             show.cues.insert(new_location, show.cues.pop(old_location))
+        for websocket in show.websockets:
+            websocket.send_json({"cues": show.serialize_cues()})
         return {"cues": show.serialize_cues()}
 
 @app.get("/move_cue_up/{location}/{amount}")
@@ -156,6 +168,8 @@ def move_cue(location: int, amount: int):
     global show
     if show:
         show.cues.insert(location-amount, show.cues.pop(location))
+        for websocket in show.websockets:
+            websocket.send_json({"cues": show.serialize_cues()})
         return {"cues": show.serialize_cues()}
 
 @app.get("/move_cue_down/{location}/{amount}")
@@ -163,6 +177,8 @@ def move_cue(location: int, amount: int):
     global show
     if show:
         show.cues.insert(location+amount+1, show.cues.pop(location))
+        for websocket in show.websockets:
+            websocket.send_json({"cues": show.serialize_cues()})
         return {"cues": show.serialize_cues()}
 
 @app.get("/remove_cue/{cue}")
@@ -170,6 +186,8 @@ def remove_cue(cue: int):
     global show
     if show:
         show.cues.pop(cue)
+        for websocket in show.websockets:
+            websocket.send_json({"cues": show.serialize_cues()})
         return {"cues": show.serialize_cues()}
 
 @app.post("/update_cue/{cue}")
@@ -208,6 +226,23 @@ async def update_command(request: Request, cue: int, command: int):
     if show:
         for key, value in await request.json():
             show.cues[cue].commands[command][key] = value
+
+@app.websocket("/websocket")
+async def websocket_handler(websocket: WebSocket):
+    global show
+    if not show:
+        return
+    await websocket.accept()
+    show.websockets.append(websocket)
+    try:
+        while True:
+            request: str = await websocket.receive_text()
+            print(f"recieved ws request {request}")
+            match request:
+                case "cues":
+                    websocket.send_json({"cues": show.serialize_cues()})
+    except WebSocketDisconnect:
+        show.websockets.remove(websocket)
 
 if __name__ == '__main__':
     uvicorn.run("main:app", host="0.0.0.0", port=8383)
