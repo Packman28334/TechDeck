@@ -31,7 +31,7 @@ Future<Map<String, dynamic>> post(String route, Map<String, dynamic> body) async
   print("Sending POST request to $route");
   http.Response response = await http.post(
     Uri.http(getIP(), route),
-    body: body,
+    body: json.encode(body),
     headers: Map<String, String>.fromIterables(["Content-Type"], ["application/json"])
   );
   if (response.body == "null") {

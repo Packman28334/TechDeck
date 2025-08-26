@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:moon_design/moon_design.dart';
 import 'package:techdeck/backend_request_dispatcher.dart' as backend;
+import 'package:techdeck/dialogs/cue_editor_dialog.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class ShowPage extends StatelessWidget {
@@ -36,6 +37,15 @@ class ShowPage extends StatelessWidget {
   }
 }
 
+void openCueEditorDialog(BuildContext context) {
+  showDialog(context: context, builder: (BuildContext context) {return SimpleDialog(
+    title: const Text("Edit Cue"),
+    children: [
+      CueEditorDialog()
+    ],
+  );});
+}
+
 class CuesList extends StatefulWidget {
   CuesList({super.key});
 
@@ -48,8 +58,7 @@ class _CuesListState extends State<CuesList> {
     channel.stream.listen((rawData) {
       Map<String, dynamic> data = jsonDecode(rawData);
       if (data.containsKey("cues")) {
-        setState(() {cueList = data["cues"];});
-        setState(() {cueRows = _formatCueTable(cueList);});
+        updateCues(data["cues"]);
       }
 
       if (data.containsKey("blackout")) {
@@ -94,6 +103,11 @@ class _CuesListState extends State<CuesList> {
     return out;
   }
 
+  void updateCues(List<dynamic> cues) {
+    setState(() {cueList = cues;});
+    setState(() {cueRows = _formatCueTable(cues);});
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
@@ -102,7 +116,9 @@ class _CuesListState extends State<CuesList> {
         Row(mainAxisAlignment: MainAxisAlignment.center, spacing: 10, children: () {
           if (selectedCues.isEmpty) {
             return <Widget>[  
-              Tooltip(message: "Create cue", child: MoonButton.icon(icon: const Icon(MoonIcons.files_add_text_32_regular), onTap: () {})),
+              Tooltip(message: "Create cue", child: MoonButton.icon(icon: const Icon(MoonIcons.files_add_text_32_regular), onTap: () {
+                backend.post("/add_cue", {"description": "Test Cue", "commands": [], "blackout": false});
+              })),
             ];
           } else if (selectedCues.length == 1) {
             return <Widget>[
@@ -116,7 +132,9 @@ class _CuesListState extends State<CuesList> {
             ];
           } else {
             return <Widget>[
-              MoonButton.icon(icon: const Icon(null)) // for spacing
+              Tooltip(message: "Raise cues", child: MoonButton.icon(icon: const Icon(MoonIcons.arrows_up_32_regular), onTap: () {})),
+              Tooltip(message: "Lower cues", child: MoonButton.icon(icon: const Icon(MoonIcons.arrows_down_32_regular), onTap: () {})),
+              Tooltip(message: "Delete cues", child: MoonButton.icon(icon: const Icon(MoonIcons.files_delete_32_regular), onTap: () {})),
             ];
           }
         }()),
