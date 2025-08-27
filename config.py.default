@@ -1,0 +1,4 @@
+
+DUMMY_MODE: bool = False # dummy mode will disable all connections to audiovisual equipment (sound mixer/lighting console)
+
+PREFERRED_ADAPTER: str | None = None # select the prefered adapter name for the peer-to-peer network

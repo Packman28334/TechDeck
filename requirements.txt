@@ -3,3 +3,4 @@ fastapi[standard]
 fastapi-utils
 typing_inspect
 pygame-ce
+zeroconf

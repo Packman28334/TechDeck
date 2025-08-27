@@ -5,6 +5,7 @@ from fastapi import WebSocket
 
 from cue import Cue
 from subsystems import MixerSubsystem, LightingSubsystem, SpotlightSubsystem, AudioSubsystem, BackgroundsSubsystem
+from config import DUMMY_MODE
 
 DEFAULT_CONFIGURATION = {
     "mixer_subsystem": {
@@ -20,8 +21,6 @@ DEFAULT_CONFIGURATION = {
     "audio_subsystem": {},
     "backgrounds_subsystem": {}
 }
-
-DUMMY_MODE: bool = True # TODO: move to actual config file
 
 class Show:
     def __init__(self, title: str, cues: list[Cue], configuration: dict):

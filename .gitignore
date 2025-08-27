@@ -2,3 +2,5 @@ venv/
 
 _working_show/
 shows/
+
+config.py
