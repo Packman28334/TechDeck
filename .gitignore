@@ -4,3 +4,5 @@ _working_show/
 shows/
 
 config.py
+
+**/__pycache__

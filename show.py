@@ -6,6 +6,7 @@ from fastapi import WebSocket
 from cue import Cue
 from subsystems import MixerSubsystem, LightingSubsystem, SpotlightSubsystem, AudioSubsystem, BackgroundsSubsystem
 from config import DUMMY_MODE
+from p2p_networking import P2PNetworkManager
 
 DEFAULT_CONFIGURATION = {
     "mixer_subsystem": {
@@ -23,10 +24,12 @@ DEFAULT_CONFIGURATION = {
 }
 
 class Show:
-    def __init__(self, title: str, cues: list[Cue], configuration: dict):
+    def __init__(self, title: str, cues: list[Cue], configuration: dict, p2p_network_manager: P2PNetworkManager):
         self.title: str = title
 
         self.websockets: list[WebSocket] = []
+
+        self.p2p_network_manager: P2PNetworkManager = p2p_network_manager
 
         self.cues: list[Cue] = cues
         self.current_cue: int = -1

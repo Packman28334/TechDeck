@@ -1,8 +1,9 @@
 
-import os, copy
+import copy
 
 from show import Show
 from cue import Cue, CueModel, PartialCueModel
+from p2p_networking import P2PNetworkManager
 
 from fastapi import APIRouter, Request, WebSocket, WebSocketDisconnect
 from fastapi.exceptions import HTTPException
@@ -12,20 +13,13 @@ router = APIRouter(prefix="/api")
 
 show: Show | None = None
 
-if os.path.exists("shows/") and os.path.isdir("shows/"):
-    if os.path.exists("shows/autosave.tdshw"):
-        show: Show = Show.load("autosave")
+p2p_network_manager: P2PNetworkManager = P2PNetworkManager()
 
 @router.on_event("startup")
 @repeat_every(seconds=0.1)
 async def update_polling_show_tasks() -> None:
     if show:
         show.update_polling_tasks()
-
-@router.on_event("shutdown")
-def autosave() -> None:
-    if show:
-        show.save("autosave")
 
 @router.get("/load_show/{show_name}")
 def load_show(show_name: str):
