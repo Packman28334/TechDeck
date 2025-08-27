@@ -15,7 +15,7 @@ class Peer:
         self.port: int = port
         self.uuid: str = uuid
 
-        self.websocket: ClientConnection = connect(f"ws://{self.ip_address}:{self.port}/api/ws")
+        self.websocket: ClientConnection = connect(f"ws://{self.ip_address}:{self.port}/api/websocket")
         self.websocket.send("cues")
 
 class TechDeckServiceListener(ServiceListener):
