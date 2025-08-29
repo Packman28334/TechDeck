@@ -10,29 +10,34 @@ from config import PREFERRED_ADAPTER
 # https://forums.balena.io/t/discover-avahi-zeroconf-services-inside-container/48665/4
 
 class Peer:
-    def __init__(self, ip_address: str, port: int, uuid: str):
+    def __init__(self, ip_address: str, port: int, hostname: str, uuid: str):
         self.ip_address: str = ip_address
         self.port: int = port
+        self.hostname: str = hostname
         self.uuid: str = uuid
+
+    def close(self):
+        pass
 
 class TechDeckServiceListener(ServiceListener):
     def __init__(self, manager: "P2PNetworkManager"):
         self.network_manager: P2PNetworkManager = manager
 
-    def parse_info(self, info: ServiceInfo):
-        return {"ip_address": socket.inet_ntoa(info.addresses[0]), "port": info.port, "uuid": info.properties[b"uuid"].decode("utf-8")}
+    def get_info(self, zc: Zeroconf, type_: str, name: str):
+        info = zc.get_service_info(type_, name)
+        return {"ip_address": socket.inet_ntoa(info.addresses[0]), "port": info.port, "hostname": name.split(".")[0], "uuid": info.properties[b"uuid"].decode("utf-8")}
 
     def update_service(self, zc: Zeroconf, type_: str, name: str) -> None:
         pass
 
     def remove_service(self, zc: Zeroconf, type_: str, name: str) -> None:
-        info = self.parse_info(zc.get_service_info(type_, name))
         for peer in self.network_manager.peers:
-            if peer.ip_address == info["ip_address"] and peer.port == info["port"] and peer.uuid == info["uuid"]:
+            if peer.hostname == name.split(".")[0]:
+                peer.close()
                 self.network_manager.peers.remove(peer)
 
     def add_service(self, zc: Zeroconf, type_: str, name: str) -> None:
-        info = self.parse_info(zc.get_service_info(type_, name))
+        info = self.get_info(zc, type_, name)
         self.network_manager.peers.append(Peer(**info))
 
 class P2PNetworkManager:
