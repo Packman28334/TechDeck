@@ -4,4 +4,4 @@ fastapi-utils
 typing_inspect
 pygame-ce
 zeroconf
-websockets
+python-socketio

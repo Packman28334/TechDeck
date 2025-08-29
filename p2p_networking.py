@@ -3,7 +3,6 @@ import socket
 import ifaddr
 from uuid import uuid4
 from zeroconf import Zeroconf, ServiceBrowser, ServiceListener, ServiceInfo
-from websockets.sync.client import connect, ClientConnection
 
 from config import PREFERRED_ADAPTER
 
@@ -14,9 +13,6 @@ class Peer:
         self.ip_address: str = ip_address
         self.port: int = port
         self.uuid: str = uuid
-
-        self.websocket: ClientConnection = connect(f"ws://{self.ip_address}:{self.port}/api/websocket")
-        self.websocket.send("cues")
 
 class TechDeckServiceListener(ServiceListener):
     def __init__(self, manager: "P2PNetworkManager"):
