@@ -19,6 +19,7 @@ class Peer:
 
         self.sio = SimpleClient()
         self.sio.connect(f"http://{ip_address}:{port}")
+        self.sio.emit("hello", {"hostname": hostname})
 
     def close(self):
         pass

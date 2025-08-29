@@ -15,7 +15,7 @@ from socketio import AsyncServer, ASGIApp
 import uvicorn
 
 app = FastAPI()
-sio = AsyncServer(async_mode="asgi")
+sio = AsyncServer(async_mode="asgi", logger=True, engineio_logger=True)
 deploy_app = ASGIApp(sio, app)
 
 show: Show | None = None
@@ -251,6 +251,10 @@ async def websocket_handler(websocket: WebSocket):
 @sio.on("connect")
 def connect(sid, environ, auth):
     print("connect", sid)
+
+@sio.on("message")
+def message(data):
+    print(data)
 
 app.mount("/", StaticFiles(directory="frontend/static"))
 

@@ -5,3 +5,5 @@ typing_inspect
 pygame-ce
 zeroconf
 python-socketio[client]
+requests
+websocket-client
