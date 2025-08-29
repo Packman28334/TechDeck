@@ -252,10 +252,6 @@ async def websocket_handler(websocket: WebSocket):
 def connect(sid, environ, auth):
     print("connect", sid)
 
-@sio.on("message")
-def message(data):
-    print(data)
-
 app.mount("/", StaticFiles(directory="frontend/static"))
 
 if __name__ == '__main__':

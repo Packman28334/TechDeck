@@ -21,10 +21,9 @@ class Peer:
 
         self.sio = SimpleClient()
         self.sio.connect(f"http://{ip_address}:{port}")
-        self.sio.emit("hello", {"hostname": Path('/etc/hostname').read_text()})
 
     def close(self):
-        pass
+        self.sio.disconnect()
 
 class TechDeckServiceListener(ServiceListener):
     def __init__(self, manager: "P2PNetworkManager"):
