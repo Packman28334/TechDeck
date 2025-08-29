@@ -248,6 +248,9 @@ async def websocket_handler(websocket: WebSocket):
     except WebSocketDisconnect:
         show.websockets.remove(websocket)
 
+@sio.on("connect")
+def connect(sid, environ, auth):
+    print("connect", sid)
 
 app.mount("/", StaticFiles(directory="frontend/static"))
 

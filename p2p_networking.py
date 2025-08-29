@@ -4,6 +4,7 @@ import ifaddr
 from uuid import uuid4
 from zeroconf import Zeroconf, ServiceBrowser, ServiceListener, ServiceInfo
 from pathlib import Path
+from socketio import SimpleClient
 
 from config import PREFERRED_ADAPTER
 
@@ -15,6 +16,9 @@ class Peer:
         self.port: int = port
         self.hostname: str = hostname
         self.uuid: str = uuid
+
+        self.sio = SimpleClient()
+        self.sio.connect(f"http://{ip_address}:{port}")
 
     def close(self):
         pass
