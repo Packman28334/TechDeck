@@ -3,6 +3,7 @@ import socket
 import ifaddr
 from uuid import uuid4
 from zeroconf import Zeroconf, ServiceBrowser, ServiceListener, ServiceInfo
+from pathlib import Path
 
 from config import PREFERRED_ADAPTER
 
@@ -42,7 +43,7 @@ class P2PNetworkManager:
 
         self.service_info: ServiceInfo = ServiceInfo(
             "_techdeck._tcp.local.",
-            "Tech Deck Node._techdeck._tcp.local.",
+            f"{self.get_hostname()}._techdeck._tcp.local.",
             port=8383,
             addresses=[socket.inet_aton(ip) for ip in self.find_ip_addresses()],
             properties={"uuid": self.uuid}
@@ -71,6 +72,12 @@ class P2PNetworkManager:
                 ips.extend([ip.ip[0] for ip in adapter.ips if isinstance(ip.ip, tuple) and ip.is_IPv4])
                 return ips
             raise Exception("No network adapter found.") # if no external network adapter is found
+
+    def get_hostname(self):
+        return "".join([char for char in Path('/etc/hostname').read_text() if char.isalnum()])
+
+    def shutdown(self):
+        self.zeroconf.close()
 
 # we have to do this because when instantiating the class in the same python file as the fastapi app, the zeroconf event loop is blocked.
 # why is it blocked? i have no idea. but it is, so we have to do this.

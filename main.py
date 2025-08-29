@@ -253,3 +253,4 @@ app.mount("/", StaticFiles(directory="frontend/static"))
 
 if __name__ == '__main__':
     uvicorn.run("main:deploy_app", host="0.0.0.0", port=8383)
+    p2p_network_manager.shutdown()
