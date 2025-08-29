@@ -38,7 +38,8 @@ class TechDeckServiceListener(ServiceListener):
 
     def add_service(self, zc: Zeroconf, type_: str, name: str) -> None:
         info = self.get_info(zc, type_, name)
-        self.network_manager.peers.append(Peer(**info))
+        if info["uuid"] != self.network_manager.service_info.properties[b"uuid"].decode("utf-8"): # if the detected peer isn't this device
+            self.network_manager.peers.append(Peer(**info))
 
 class P2PNetworkManager:
     def __init__(self):
