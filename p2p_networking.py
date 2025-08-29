@@ -1,10 +1,12 @@
 
 import socket
 import ifaddr
+import time
 from uuid import uuid4
 from zeroconf import Zeroconf, ServiceBrowser, ServiceListener, ServiceInfo
 from pathlib import Path
 from socketio import SimpleClient
+from threading import Thread
 
 from config import PREFERRED_ADAPTER
 
@@ -63,7 +65,15 @@ class P2PNetworkManager:
         self.zeroconf: Zeroconf = Zeroconf()
         self.listener: TechDeckServiceListener = TechDeckServiceListener(self)
         self.browser: ServiceBrowser = ServiceBrowser(self.zeroconf, "_techdeck._tcp.local.", self.listener)
+        t = Thread(target=self.make_discoverable_after_timeout) # other nodes will attempt to connect as soon as the node is made discoverable and they can't until fastapi is accepting requests
+        t.start()
+
+    def make_discoverable(self):
         self.zeroconf.register_service(self.service_info)
+
+    def make_discoverable_after_timeout(self):
+        time.sleep(5)
+        self.make_discoverable()
 
     def find_ip_addresses(self) -> list[str]:
         adapters: list[ifaddr.Adapter] = ifaddr.get_adapters()
