@@ -71,3 +71,7 @@ class P2PNetworkManager:
                 ips.extend([ip.ip[0] for ip in adapter.ips if isinstance(ip.ip, tuple) and ip.is_IPv4])
                 return ips
             raise Exception("No network adapter found.") # if no external network adapter is found
+
+# we have to do this because when instantiating the class in the same python file as the fastapi app, the zeroconf event loop is blocked.
+# why is it blocked? i have no idea. but it is, so we have to do this.
+p2p_network_manager: P2PNetworkManager = P2PNetworkManager()

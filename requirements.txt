@@ -5,3 +5,4 @@ typing_inspect
 pygame-ce
 zeroconf
 python-socketio
+fastapi-socketio

@@ -4,23 +4,21 @@ import copy
 
 from show import Show
 from cue import Cue, CueModel, PartialCueModel
-from p2p_networking import P2PNetworkManager
+from p2p_networking import p2p_network_manager
 
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 from fastapi.exceptions import HTTPException
 from fastapi_utils.tasks import repeat_every
-from socketio import Server, WSGIApp
+from socketio import AsyncServer, ASGIApp
 import uvicorn
 
 app = FastAPI()
-sio = Server()
-deploy_app = WSGIApp(sio, app)
+sio = AsyncServer(async_mode="asgi")
+deploy_app = ASGIApp(sio, app)
 
 show: Show | None = None
-
-p2p_network_manager: P2PNetworkManager = P2PNetworkManager()
 
 @app.get("/")
 def index():
