@@ -47,9 +47,6 @@ def socket_catchall(event, sid, data):
 @sio.on("master_node")
 def master_node(sid, data):
     p2p_network_manager.set_master_node(data["master_uuid"], data["fallback_master_uuid"])
-    if DEBUG_MODE:
-        print(f"Master node: {p2p_network_manager.master_node.hostname if p2p_network_manager.master_node else 'None'}")
-        print(f"Fallback master: {p2p_network_manager.fallback_master.hostname if p2p_network_manager.fallback_master else 'None'}")
 
 app.mount("/", StaticFiles(directory="frontend/static"))
 
