@@ -9,7 +9,7 @@ from pathlib import Path
 from socketio import SimpleClient, AsyncServer
 from threading import Thread
 
-from config import PREFERRED_ADAPTER
+from config import PREFERRED_ADAPTER, DEBUG_MODE, SOCKETIO_LOGGING
 
 # https://forums.balena.io/t/discover-avahi-zeroconf-services-inside-container/48665/4
 
@@ -21,7 +21,10 @@ class Peer:
         self.hostname: str = hostname
         self.uuid: str = uuid
 
-        self.sio = SimpleClient()
+        if DEBUG_MODE:
+            print(f"Connected to peer {hostname} with UUID {uuid} at {ip_address}:{port}")
+
+        self.sio = SimpleClient(logger=SOCKETIO_LOGGING, engineio_logger=SOCKETIO_LOGGING)
         self.sio.connect(f"http://{ip_address}:{port}")
 
         # tell the peer who the master is
@@ -30,6 +33,9 @@ class Peer:
         self.sio.emit("master_node", {"master_uuid": self.network_manager.master_node.uuid if self.network_manager.master_node else self.network_manager.uuid, "fallback_master_uuid": self.network_manager.fallback_master.uuid if self.network_manager.fallback_master else self.network_manager.uuid})
 
     def close(self):
+        if DEBUG_MODE:
+            print(f"Disconnected from peer {self.hostname} with UUID {self.uuid} at {self.ip_address}:{self.port}")
+
         self.sio.disconnect()
 
 class TechDeckServiceListener(ServiceListener):

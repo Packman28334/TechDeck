@@ -1,4 +1,8 @@
 
 DUMMY_MODE: bool = False # dummy mode will disable all connections to audiovisual equipment (sound mixer/lighting console)
+DISABLE_AUDIO: bool = False # will completely disable the audio subsystem for use on systems without a compatible audio service
+
+DEBUG_MODE: bool = False # debug mode will enable additional console logging
+SOCKETIO_LOGGING: bool = False # even more logging, specifically for troubleshooting underlying SocketIO and EngineIO issues
 
 PREFERRED_ADAPTER: str | None = None # select the prefered adapter name for the peer-to-peer network

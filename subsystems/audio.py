@@ -1,8 +1,10 @@
 
 import pygame, time, os
+from config import DISABLE_AUDIO
 
-pygame.mixer.init()
-pygame.init()
+if not DISABLE_AUDIO:
+    pygame.mixer.init()
+    pygame.init()
 
 class AudioSubsystem:
     def __init__(self):
@@ -21,6 +23,8 @@ class AudioSubsystem:
     #                 pygame.mixer.music.stop()
 
     def update_polling_tasks(self):
+        if DISABLE_AUDIO:
+            return
         if pygame.mixer.music.get_busy() and self.stop_at > 0:
             if self.fade_out > 0:
                 if time.time() > self.stop_at - self.fade_out/1000:
@@ -38,6 +42,8 @@ class AudioSubsystem:
     def run_command(self, command: dict):
         match command["action"]:
             case "play":
+                if DISABLE_AUDIO:
+                    return
                 pygame.mixer.music.load(f"_working_show/audio_library/{command['filename']}")
                 pygame.mixer.music.play(
                     int(command["loops"]) if "loops" in command else 0,
@@ -54,6 +60,8 @@ class AudioSubsystem:
                     self.fade_out = -1
             
             case "stop":
+                if DISABLE_AUDIO:
+                    return
                 if "fade_out" in command:
                     pygame.mixer.music.fadeout(command["fade_out"])
                 else:
