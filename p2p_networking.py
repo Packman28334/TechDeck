@@ -30,7 +30,12 @@ class Peer:
         # tell the peer who the master is
         # TODO: only do this if this host is the master
         # TODO: send other information (again, only if this host is a master)
-        self.sio.emit("master_node", {"master_uuid": self.network_manager.master_node.uuid if self.network_manager.master_node else self.network_manager.uuid, "fallback_master_uuid": self.network_manager.fallback_master.uuid if self.network_manager.fallback_master else self.network_manager.uuid})
+        self.send("master_node", {"master_uuid": self.network_manager.master_node.uuid if self.network_manager.master_node else self.network_manager.uuid, "fallback_master_uuid": self.network_manager.fallback_master.uuid if self.network_manager.fallback_master else self.network_manager.uuid})
+
+    def send(self, event: str, data: dict):
+        if DEBUG_MODE:
+            print(f"Sending peer {self.hostname} message {event}: {data}")
+        self.sio.emit(event, data)
 
     def close(self):
         if DEBUG_MODE:
