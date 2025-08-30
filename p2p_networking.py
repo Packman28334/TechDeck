@@ -29,6 +29,8 @@ class Peer:
         self.sio.connect(f"http://{ip_address}:{port}")
 
         if self.network_manager.master_node == self.network_manager.host: # if this host is the master node, fill in the new peer
+            if self.network_manager.fallback_master == self.network_manager.master_node or not self.network_manager.fallback_master: # if there is no unique fallback master
+                self.network_manager.set_master_node(self.network_manager.master_node.uuid, self.uuid) # make this node the fallback master
             self.send("master_node", {"master_uuid": self.network_manager.master_node.uuid if self.network_manager.master_node else "", "fallback_master_uuid": self.network_manager.fallback_master.uuid if self.network_manager.fallback_master else ""})
 
     def send(self, event: str, data: dict):
@@ -74,7 +76,10 @@ class TechDeckServiceListener(ServiceListener):
                 self.network_manager.peers.remove(peer)
 
                 if peer == self.network_manager.master_node: # if the master node just disconnected
-                    self.network_manager.set_master_node(self.network_manager.fallback_master.uuid if self.network_manager.fallback_master else "", None)
+                    self.network_manager.set_master_node(self.network_manager.fallback_master.uuid if self.network_manager.fallback_master else "", None) # make the fallback master the new master, and force reselection of a new fallback
+
+                if peer == self.network_manager.fallback_master: # if the fallback master just disconnected
+                    self.network_manager.set_master_node(self.network_manager.master_node.uuid, None) # remove the fallback master (the function selects a new one if possible)
 
     def add_service(self, zc: Zeroconf, type_: str, name: str) -> None:
         info = self.get_info(zc, type_, name)
