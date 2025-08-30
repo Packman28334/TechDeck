@@ -28,6 +28,9 @@ class Peer:
         self.sio = SimpleClient(logger=SOCKETIO_LOGGING, engineio_logger=SOCKETIO_LOGGING)
         self.sio.connect(f"http://{ip_address}:{port}")
 
+        if self.network_manager.master_node == self.network_manager.host: # if this host is the master node, fill in the new peer
+            self.send("master_node", {"master_uuid": self.network_manager.master_node.uuid if self.network_manager.master_node else "", "fallback_master_uuid": self.network_manager.fallback_master.uuid if self.network_manager.fallback_master else ""})
+
     def send(self, event: str, data: dict):
         if DEBUG_MODE:
             print(f"Sending peer {self.hostname} message {event}: {data}")
