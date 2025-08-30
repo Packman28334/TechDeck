@@ -39,6 +39,20 @@ class Peer:
 
         self.sio.disconnect()
 
+class Host: # implements Peer class for the host for simplicity
+    def __init__(self, network_manager: "P2PNetworkManager"):
+        self.network_manager: "P2PNetworkManager" = network_manager
+        self.ip_address: str = self.network_manager.find_ip_addresses()[0]
+        self.port: int = 8383
+        self.hostname: str = self.network_manager.get_hostname()
+        self.uuid: str = self.network_manager.uuid
+    
+    def send(self, event: str, data: dict):
+        pass
+
+    def close(self):
+        pass
+
 class TechDeckServiceListener(ServiceListener):
     def __init__(self, manager: "P2PNetworkManager"):
         self.network_manager: P2PNetworkManager = manager
@@ -57,12 +71,7 @@ class TechDeckServiceListener(ServiceListener):
                 self.network_manager.peers.remove(peer)
 
                 if peer == self.network_manager.master_node: # if the master node just disconnected
-                    self.network_manager.master_node = self.network_manager.fallback_master # fall back to the backup
-                    if self.network_manager.master_node == "self": # if the host is the new master node
-                        if self.network_manager.peers:
-                            self.network_manager.sio.emit("master_node", {"master_uuid": self.network_manager.uuid, "fallback_master_uuid": random.choice(self.network_manager.peers).uuid}) # elect a new fallback master node
-                        else:
-                            self.network_manager.sio.emit("master_node", {"master_uuid": self.network_manager.uuid, "fallback_master_uuid": self.network_manager.uuid}) # report self as fallback if there are no other peers on the network
+                    self.network_manager.set_master_node(self.network_manager.fallback_master.uuid if self.network_manager.fallback_master else "", None)
 
     def add_service(self, zc: Zeroconf, type_: str, name: str) -> None:
         info = self.get_info(zc, type_, name)
@@ -75,6 +84,7 @@ class P2PNetworkManager:
 
         self.uuid = str(uuid4())
 
+        self.host = Host(self)
         self.peers: list[Peer] = []
 
         self.service_info: ServiceInfo = ServiceInfo(
@@ -91,8 +101,8 @@ class P2PNetworkManager:
         t = Thread(target=self.make_discoverable_after_timeout) # other nodes will attempt to connect as soon as the node is made discoverable and they can't until fastapi is accepting requests
         t.start()
 
-        self.master_node: Peer | Literal["self"] | None = None
-        self.fallback_master: Peer | Literal["self"] | None = None
+        self.master_node: Peer | Host | None = None
+        self.fallback_master: Peer | Host | None = None
 
     def make_discoverable(self):
         self.zeroconf.register_service(self.service_info)
@@ -133,11 +143,15 @@ class P2PNetworkManager:
         return None
 
     def set_master_node(self, master_uuid: str | None, fallback_master_uuid: str | None):
-        self.master_node = "self" if master_uuid == self.uuid else self.get_peer_by_uuid(master_uuid)
-        self.fallback_master = "self" if fallback_master_uuid == self.uuid else self.get_peer_by_uuid(fallback_master_uuid)
-        if self.master_node == "self":
+        self.master_node = self.host if master_uuid == self.uuid else self.get_peer_by_uuid(master_uuid)
+        self.fallback_master = self.host if fallback_master_uuid == self.uuid else self.get_peer_by_uuid(fallback_master_uuid)
+
+        if self.master_node == self.host: # if this node is the new master
+            if (self.fallback_master == self.host or not self.fallback_master) and self.peers: # if this node is both the master and fallback master or there is no fallback master when other peers are available
+                self.fallback_master = random.choice(self.peers) # pick a new fallback master
+
             for peer in self.peers:
-                peer.send("master_node", {"master_uuid": master_uuid, "fallback_master_uuid": fallback_master_uuid})
+                peer.send("master_node", {"master_uuid": self.master_node.uuid if self.master_node else "", "fallback_master_uuid": self.fallback_master.uuid if self.fallback_master else ""})
 
 # we have to do this because when instantiating the class in the same python file as the fastapi app, the zeroconf event loop is blocked.
 # why is it blocked? i have no idea. but it is, so we have to do this.
