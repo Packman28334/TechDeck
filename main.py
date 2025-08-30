@@ -15,7 +15,7 @@ from socketio import AsyncServer, ASGIApp
 import uvicorn
 
 app = FastAPI()
-sio = AsyncServer(async_mode="asgi", logger=True, engineio_logger=True)
+sio = AsyncServer(async_mode="asgi")
 p2p_network_manager.sio = sio
 deploy_app = ASGIApp(sio, app)
 

@@ -14,7 +14,8 @@ from config import PREFERRED_ADAPTER
 # https://forums.balena.io/t/discover-avahi-zeroconf-services-inside-container/48665/4
 
 class Peer:
-    def __init__(self, ip_address: str, port: int, hostname: str, uuid: str):
+    def __init__(self, network_manager: "P2PNetworkManager", ip_address: str, port: int, hostname: str, uuid: str):
+        self.network_manager: "P2PNetworkManager" = network_manager
         self.ip_address: str = ip_address
         self.port: int = port
         self.hostname: str = hostname
@@ -22,6 +23,11 @@ class Peer:
 
         self.sio = SimpleClient()
         self.sio.connect(f"http://{ip_address}:{port}")
+
+        # tell the peer who the master is
+        # TODO: only do this if this host is the master
+        # TODO: send other information (again, only if this host is a master)
+        self.sio.emit("master_node", {"master_uuid": self.network_manager.master_node.uuid if self.network_manager.master_node else self.network_manager.uuid, "fallback_master_uuid": self.network_manager.fallback_master.uuid if self.network_manager.fallback_master else self.network_manager.uuid})
 
     def close(self):
         self.sio.disconnect()
@@ -42,7 +48,7 @@ class TechDeckServiceListener(ServiceListener):
             if peer.hostname == name.split(".")[0]:
                 peer.close()
                 self.network_manager.peers.remove(peer)
-                
+
                 if peer == self.network_manager.master_node: # if the master node just disconnected
                     self.network_manager.master_node = self.network_manager.fallback_master # fall back to the backup
                     if not self.network_manager.master_node: # if the host is the new master node
@@ -54,7 +60,7 @@ class TechDeckServiceListener(ServiceListener):
     def add_service(self, zc: Zeroconf, type_: str, name: str) -> None:
         info = self.get_info(zc, type_, name)
         if info["uuid"] != self.network_manager.service_info.properties[b"uuid"].decode("utf-8") and socket.inet_aton(info["ip_address"]) not in self.network_manager.service_info.addresses: # if the detected peer isn't this device
-            self.network_manager.peers.append(Peer(**info))
+            self.network_manager.peers.append(Peer(self.network_manager, **info))
 
 class P2PNetworkManager:
     def __init__(self):
