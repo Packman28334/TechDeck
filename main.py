@@ -4,7 +4,7 @@ import copy
 
 from show import Show
 from cue import Cue, CueModel, PartialCueModel
-from p2p_networking import p2p_network_manager
+from p2p_networking import p2p_network_manager, Peer
 from config import DEBUG_MODE, SOCKETIO_LOGGING
 
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
@@ -34,6 +34,10 @@ async def update_polling_show_tasks() -> None:
 
 # api routers are for losers. embrace the excessively long main.py file.
 
+@app.get("/promote")
+def promote():
+    p2p_network_manager.set_master_node(p2p_network_manager.uuid, p2p_network_manager.uuid)
+
 @sio.on("*")
 def socket_catchall(event, sid, data):
     if DEBUG_MODE:
@@ -42,11 +46,10 @@ def socket_catchall(event, sid, data):
 
 @sio.on("master_node")
 def master_node(sid, data):
-    p2p_network_manager.master_node = p2p_network_manager.get_peer_by_uuid(data["master_uuid"])
-    p2p_network_manager.fallback_master = p2p_network_manager.get_peer_by_uuid(data["fallback_master_uuid"])
+    p2p_network_manager.set_master_node(data["master_uuid"], data["fallback_master_uuid"])
     if DEBUG_MODE:
-        print(f"Master node: {p2p_network_manager.master_node.hostname if p2p_network_manager.master_node else 'self'}")
-        print(f"Fallback master: {p2p_network_manager.fallback_master.hostname if p2p_network_manager.fallback_master else 'self'}")
+        print(f"Master node: {p2p_network_manager.master_node.hostname if isinstance(p2p_network_manager.master_node, Peer) else p2p_network_manager.master_node}")
+        print(f"Fallback master: {p2p_network_manager.fallback_master.hostname if isinstance(p2p_network_manager.fallback_master, Peer) else p2p_network_manager.fallback_master}")
 
 app.mount("/", StaticFiles(directory="frontend/static"))
 

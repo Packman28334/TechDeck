@@ -8,6 +8,7 @@ from zeroconf import Zeroconf, ServiceBrowser, ServiceListener, ServiceInfo
 from pathlib import Path
 from socketio import SimpleClient, AsyncServer
 from threading import Thread
+from typing import Literal
 
 from config import PREFERRED_ADAPTER, DEBUG_MODE, SOCKETIO_LOGGING
 
@@ -26,11 +27,6 @@ class Peer:
 
         self.sio = SimpleClient(logger=SOCKETIO_LOGGING, engineio_logger=SOCKETIO_LOGGING)
         self.sio.connect(f"http://{ip_address}:{port}")
-
-        # tell the peer who the master is
-        # TODO: only do this if this host is the master
-        # TODO: send other information (again, only if this host is a master)
-        self.send("master_node", {"master_uuid": self.network_manager.master_node.uuid if self.network_manager.master_node else self.network_manager.uuid, "fallback_master_uuid": self.network_manager.fallback_master.uuid if self.network_manager.fallback_master else self.network_manager.uuid})
 
     def send(self, event: str, data: dict):
         if DEBUG_MODE:
@@ -62,7 +58,7 @@ class TechDeckServiceListener(ServiceListener):
 
                 if peer == self.network_manager.master_node: # if the master node just disconnected
                     self.network_manager.master_node = self.network_manager.fallback_master # fall back to the backup
-                    if not self.network_manager.master_node: # if the host is the new master node
+                    if self.network_manager.master_node == "self": # if the host is the new master node
                         if self.network_manager.peers:
                             self.network_manager.sio.emit("master_node", {"master_uuid": self.network_manager.uuid, "fallback_master_uuid": random.choice(self.network_manager.peers).uuid}) # elect a new fallback master node
                         else:
@@ -95,8 +91,8 @@ class P2PNetworkManager:
         t = Thread(target=self.make_discoverable_after_timeout) # other nodes will attempt to connect as soon as the node is made discoverable and they can't until fastapi is accepting requests
         t.start()
 
-        self.master_node: Peer | None = None
-        self.fallback_master: Peer | None = None
+        self.master_node: Peer | Literal["self"] | None = None
+        self.fallback_master: Peer | Literal["self"] | None = None
 
     def make_discoverable(self):
         self.zeroconf.register_service(self.service_info)
@@ -135,6 +131,13 @@ class P2PNetworkManager:
             if peer.uuid == uuid:
                 return peer
         return None
+
+    def set_master_node(self, master_uuid: str | None, fallback_master_uuid: str | None):
+        self.master_node = "self" if master_uuid == self.uuid else self.get_peer_by_uuid(master_uuid)
+        self.fallback_master = "self" if fallback_master_uuid == self.uuid else self.get_peer_by_uuid(fallback_master_uuid)
+        if self.master_node == "self":
+            for peer in self.peers:
+                peer.send("master_node", {"master_uuid": master_uuid, "fallback_master_uuid": fallback_master_uuid})
 
 # we have to do this because when instantiating the class in the same python file as the fastapi app, the zeroconf event loop is blocked.
 # why is it blocked? i have no idea. but it is, so we have to do this.
