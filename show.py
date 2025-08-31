@@ -1,8 +1,7 @@
 
 import zipfile, shutil, pathlib, json, os, asyncio
 
-from fastapi import WebSocket
-
+from cue_list import CueList
 from cue import Cue
 from subsystems import MixerSubsystem, LightingSubsystem, SpotlightSubsystem, AudioSubsystem, BackgroundsSubsystem
 from config import DUMMY_MODE
@@ -24,27 +23,25 @@ DEFAULT_CONFIGURATION = {
 }
 
 class Show:
-    def __init__(self, title: str, cues: list[Cue], configuration: dict):
+    def __init__(self, title: str, cue_list: CueList, configuration: dict):
         self.title: str = title
-
-        self.websockets: list[WebSocket] = []
 
         self.p2p_network_manager: P2PNetworkManager = p2p_network_manager
 
-        self.cues: list[Cue] = cues
+        self.cue_list: CueList = cue_list
         self.current_cue: int = -1
 
         self.blackout: bool = False
 
-        self.mixer_subsystem: MixerSubsystem = MixerSubsystem(**configuration["mixer_subsystem"], dummy_mode=DUMMY_MODE)
-        self.lighting_subsystem: LightingSubsystem = LightingSubsystem(**configuration["lighting_subsystem"], dummy_mode=DUMMY_MODE)
+        self.mixer_subsystem: MixerSubsystem = MixerSubsystem(**configuration["mixer_subsystem"])
+        self.lighting_subsystem: LightingSubsystem = LightingSubsystem(**configuration["lighting_subsystem"])
         self.spotlight_subsystem: SpotlightSubsystem = SpotlightSubsystem(**configuration["spotlight_subsystem"])
         self.audio_subsystem: AudioSubsystem = AudioSubsystem(**configuration["audio_subsystem"])
         self.backgrounds_subsystem: BackgroundsSubsystem = BackgroundsSubsystem(**configuration["backgrounds_subsystem"])
 
     @classmethod
     def new(cls, title: str):
-        obj = cls(title, [], DEFAULT_CONFIGURATION)
+        obj = cls(title, CueList(), DEFAULT_CONFIGURATION)
         if os.path.exists("_working_show/") and os.path.isdir("_working_show/"):
             shutil.rmtree("_working_show/")
         os.mkdir("_working_show")
@@ -63,7 +60,7 @@ class Show:
             zip.extractall("_working_show/")
         return cls(
             filename,
-            Show.deserialize_cues(json.loads(pathlib.Path("_working_show/cue_list.json").read_text())["cues"]),
+            CueList.create_from_serialized(json.loads(pathlib.Path("_working_show/cue_list.json").read_text())["cues"]),
             json.loads(pathlib.Path("_working_show/configuration.json").read_text()),
         )
 
@@ -76,27 +73,6 @@ class Show:
             "backgrounds_subsystem": self.backgrounds_subsystem.get_configuration()
         }
 
-    @staticmethod
-    def deserialize_cues(cues: list[dict]) -> list[Cue]:
-        out = []
-        for cue in cues:
-            out.append(Cue(
-                cue["description"],
-                cue["commands"],
-                blackout=cue["blackout"]
-            ))
-        return out
-
-    def serialize_cues(self) -> list[dict]:
-        out: list[dict] = []
-        for cue in self.cues:
-            out.append({
-                "description": cue.description,
-                "commands": cue.commands,
-                "blackout": cue.blackout
-            })
-        return out
-
     def save(self, filename: str):
         if not os.path.exists("_working_show/"):
             return
@@ -104,7 +80,7 @@ class Show:
             os.mkdir("shows")
         if os.path.exists(f"shows/{filename}.tdshw"):
             os.remove(f"shows/{filename}.tdshw")
-        pathlib.Path("_working_show/cue_list.json").write_text(json.dumps({"cues": self.serialize_cues()}))
+        pathlib.Path("_working_show/cue_list.json").write_text(json.dumps({"cues": self.cue_list.serialize()}))
         pathlib.Path("_working_show/configuration.json").write_text(json.dumps(self.accumulate_subsystem_configuration()))
         shutil.make_archive(f"shows/{filename}", "zip", "_working_show/")
         os.rename(f"shows/{filename}.zip", f"shows/{filename}.tdshw")
@@ -123,8 +99,6 @@ class Show:
         self.spotlight_subsystem.enter_blackout()
         self.backgrounds_subsystem.enter_blackout()
         self.blackout = True
-        for websocket in self.websockets:
-            asyncio.run(websocket.send_json({"blackout": True}))
         return True
     
     def exit_blackout(self):
@@ -135,47 +109,27 @@ class Show:
         self.spotlight_subsystem.exit_blackout()
         self.backgrounds_subsystem.exit_blackout()
         self.blackout = False
-        for websocket in self.websockets:
-            asyncio.run(websocket.send_json({"blackout": False}))
         return True
 
     def next_cue(self):
         self.current_cue += 1
-        if self.current_cue > len(self.cues)-1:
+        if self.current_cue > len(self.cue_list)-1:
             self.current_cue = 0
-        if self.cues[self.current_cue].blackout:
-            self.enter_blackout() # if the blackout flag is set on a cue, we want to enter blackout
-        else:
-            self.exit_blackout() # if the blackout flag is not set, we want to exit blackout automatically if we're in it
-        self.cues[self.current_cue].call(self.mixer_subsystem, self.lighting_subsystem, self.spotlight_subsystem, self.audio_subsystem, self.backgrounds_subsystem)
-        for websocket in self.websockets:
-            asyncio.run(websocket.send_json({"cue": self.current_cue}))
+        self.cue_list[self.current_cue].call(self)
         return self.current_cue
 
     def previous_cue(self):
         self.current_cue -= 1
         if self.current_cue < 0:
-            self.current_cue = len(self.cues)-1
-        if self.cues[self.current_cue].blackout:
-            self.enter_blackout() # if the blackout flag is set on a cue, we want to enter blackout
-        else:
-            self.exit_blackout() # if the blackout flag is not set, we want to exit blackout automatically if we're in it
-        self.cues[self.current_cue].call(self.mixer_subsystem, self.lighting_subsystem, self.spotlight_subsystem, self.audio_subsystem, self.backgrounds_subsystem)
-        for websocket in self.websockets:
-            asyncio.run(websocket.send_json({"cue": self.current_cue}))
+            self.current_cue = len(self.cue_list)-1
+        self.cue_list[self.current_cue].call(self)
         return self.current_cue
 
     def jump_to_cue(self, index: int):
-        if index > len(self.cues)-1 or index < 0:
+        if index > len(self.cue_list)-1 or index < 0:
             return self.current_cue
         self.current_cue = index
-        if self.cues[self.current_cue].blackout:
-            self.enter_blackout() # if the blackout flag is set on a cue, we want to enter blackout
-        else:
-            self.exit_blackout() # if the blackout flag is not set, we want to exit blackout automatically if we're in it
-        self.cues[self.current_cue].call(self.mixer_subsystem, self.lighting_subsystem, self.spotlight_subsystem, self.audio_subsystem, self.backgrounds_subsystem)
-        for websocket in self.websockets:
-            asyncio.run(websocket.send_json({"cue": self.current_cue}))
+        self.cue_list[self.current_cue].call(self)
         return self.current_cue
 
     def update_polling_tasks(self):

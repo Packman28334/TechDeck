@@ -1,8 +1,6 @@
 
 from pydantic import BaseModel
 
-from subsystems import MixerSubsystem, LightingSubsystem, SpotlightSubsystem, AudioSubsystem, BackgroundsSubsystem
-
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from show import Show
@@ -13,22 +11,26 @@ class Cue:
         self.commands: list[dict] = commands
         self.blackout: bool = blackout
 
-    def call(self, mixer_subsystem: MixerSubsystem, lighting_subsystem: LightingSubsystem, spotlight_subsystem: SpotlightSubsystem, audio_subsystem: AudioSubsystem, backgrounds_subsystem: BackgroundsSubsystem):
+    def call(self, show: "Show"):
+        if self.blackout:
+            show.enter_blackout() # if the blackout flag is set, we want to enter blackout
+        else:
+            show.exit_blackout() # if the blackout flag is not set, we want to exit blackout automatically if we're in it
+        
         for command in self.commands:
             match command["subsystem"]:
                 case "mixer":
-                    mixer_subsystem.run_command(command)
+                    show.mixer_subsystem.run_command(command)
                 case "lighting":
-                    lighting_subsystem.run_command(command)
+                    show.lighting_subsystem.run_command(command)
                 case "spotlight":
-                    spotlight_subsystem.run_command(command)
+                    show.spotlight_subsystem.run_command(command)
                 case "audio":
-                    audio_subsystem.run_command(command)
+                    show.audio_subsystem.run_command(command)
                 case "backgrounds":
-                    backgrounds_subsystem.run_command(command)
+                    show.backgrounds_subsystem.run_command(command)
                 case other:
                     print(f"Unknown subsystem {other} in command")
-
 
 class CueModel(BaseModel):
     description: str

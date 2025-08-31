@@ -1,12 +1,13 @@
 import socket
 
+from config import DUMMY_MODE
+
 class MixerSubsystem:
-    def __init__(self, ip_address: str, blackout_mute_group: int, dummy_mode: bool = False):
+    def __init__(self, ip_address: str, blackout_mute_group: int):
         self.ip_address: str = ip_address
         self.blackout_mute_group: int = blackout_mute_group
         
-        self.dummy_mode: bool = dummy_mode
-        if not self.dummy_mode:
+        if not DUMMY_MODE:
             self.socket: socket.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.settimeout(5)
             self.socket.connect((self.ip_address, 49280))
@@ -18,17 +19,17 @@ class MixerSubsystem:
         }
 
     def enter_blackout(self):
-        if self.dummy_mode:
+        if DUMMY_MODE:
             return
         self.send_requests([f"set MIXER:Current/MuteMaster/On {self.blackout_mute_group-1} 0 1"])
 
     def exit_blackout(self):
-        if self.dummy_mode:
+        if DUMMY_MODE:
             return
         self.send_requests([f"set MIXER:Current/MuteMaster/On {self.blackout_mute_group-1} 0 0"])
 
     def send_requests(self, requests: list[str]):
-        if self.dummy_mode:
+        if DUMMY_MODE:
             return
         self.socket.sendall(("\n ".join(requests)+"\n").encode())
         #self.socket.recv(1500).decode()
@@ -47,7 +48,7 @@ class MixerSubsystem:
             return "InCh", int(channel)-1 # InCh = Input Channel
 
     def run_command(self, command: dict):
-        if self.dummy_mode:
+        if DUMMY_MODE:
             return
         match command["action"]:
             case "enable_channels": # Turns on any Input/Output Channel 
@@ -77,6 +78,5 @@ class MixerSubsystem:
             case "unmute_group":
                 self.send_requests([f"set MIXER:Current/MuteMaster/On {command['mute_group']-1} 0 0"])
 
-            case "change_scene": # Change used scene
-                # do we want scene value to been in channel or do we want to store it somewhre else?
-                pass #Todo
+            case "change_scene":
+                pass # TODO

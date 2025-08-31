@@ -1,8 +1,10 @@
 
 from pythonosc.udp_client import SimpleUDPClient
 
+from config import DUMMY_MODE
+
 class LightingSubsystem:
-    def __init__(self, ip_address: str, port_tx: int, initial_playback: int, dummy_mode: bool = False):
+    def __init__(self, ip_address: str, port_tx: int, initial_playback: int):
         self.ip_address: str = ip_address
         self.port_tx: int = port_tx
         self.initial_playback: int = initial_playback
@@ -10,8 +12,7 @@ class LightingSubsystem:
 
         self.current_cue: float = 0.1
 
-        self.dummy_mode: bool = dummy_mode
-        if not dummy_mode:
+        if not DUMMY_MODE:
             self.client: SimpleUDPClient = SimpleUDPClient(self.ip_address, self.port_tx)
             self.client.send_message(f"/pb/{self.playback}/0.1", 1.0) # ensure that initial cue of 0.1 is correct
 
@@ -23,17 +24,17 @@ class LightingSubsystem:
         }
 
     def enter_blackout(self):
-        if self.dummy_mode:
+        if DUMMY_MODE:
             return
         self.client.send_message(f"/pb/{self.playback}/0.1", 1.0) # jump to blackout cue (0.1)
 
     def exit_blackout(self): # doesn't seem to result in flash of incorrect lighting
-        if self.dummy_mode:
+        if DUMMY_MODE:
             return
         self.client.send_message(f"/pb/{self.playback}/{self.current_cue}", 1.0) # jump to previous cue
 
     def run_command(self, command: dict):
-        if self.dummy_mode:
+        if DUMMY_MODE:
             return
         match command["action"]:
             case "jump_to_cue":
