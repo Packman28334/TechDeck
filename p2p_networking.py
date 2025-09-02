@@ -166,6 +166,10 @@ class P2PNetworkManager:
             print(f"Master node: {self.master_node.hostname if self.master_node else 'None'}")
             print(f"Fallback master: {self.fallback_master.hostname if self.fallback_master else 'None'}")
 
+    def broadcast(self, event: str, data: dict) -> None:
+        for peer in self.peers:
+            peer.send(event, data)
+
 # we have to do this because when instantiating the class in the same python file as the fastapi app, the zeroconf event loop is blocked.
 # why is it blocked? i have no idea. but it is, so we have to do this.
 p2p_network_manager: P2PNetworkManager = P2PNetworkManager()

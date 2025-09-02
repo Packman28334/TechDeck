@@ -1,4 +1,6 @@
 
+import copy
+
 from cue import Cue
 
 class CueListIterator:
@@ -17,7 +19,7 @@ class CueList:
         self.cues: list[Cue] = cues
     
     def __str__(self) -> str:
-        return str(self.cues)
+        return str([str(cue) for cue in self.cues])
 
     def __getitem__(self, index: int) -> Cue:
         return self.cues[index]
@@ -30,6 +32,15 @@ class CueList:
 
     def __iter__(self) -> CueListIterator:
         return CueListIterator(self)
+
+    def append(self, cue: Cue) -> None:
+        self.cues.append(cue)
+
+    def insert(self, position: int, cue: Cue) -> None:
+        self.cues.insert(position, cue)
+
+    def pop(self, position: int) -> Cue:
+        return self.cues.pop(position)
 
     @staticmethod
     def deserialize(cues: list[dict]) -> list[Cue]:
@@ -55,3 +66,18 @@ class CueList:
     @classmethod
     def create_from_serialized(cls, cues: list[dict]):
         return cls(cls.deserialize(cues))
+
+    def copy(self, old_position: int, new_position: int) -> None:
+        self.cues.insert(new_position, copy.deepcopy(self.cues[old_position]))
+    
+    def move(self, old_position: int, new_position: int) -> None:
+        if new_position > old_position:
+            self.cues.insert(new_position-1, self.cues.pop(old_position))
+        elif new_position < old_position:
+            self.cues.insert(new_position+1, self.cues.pop(old_position))
+
+    def move_up(self, position: int, amount: int) -> None:
+        self.move(position, position-amount)
+
+    def move_down(self, position: int, amount: int) -> None:
+        self.move(position, position+amount)

@@ -1,10 +1,9 @@
 
-import zipfile, shutil, pathlib, json, os, asyncio
+import zipfile, shutil, pathlib, json, os
 
 from cue_list import CueList
 from cue import Cue
 from subsystems import MixerSubsystem, LightingSubsystem, SpotlightSubsystem, AudioSubsystem, BackgroundsSubsystem
-from config import DUMMY_MODE
 from p2p_networking import p2p_network_manager, P2PNetworkManager
 
 DEFAULT_CONFIGURATION = {

@@ -32,6 +32,32 @@ class Cue:
                 case other:
                     print(f"Unknown subsystem {other} in command")
 
+    def append_command(self, command: dict):
+        self.commands.append(command)
+    
+    def insert_command(self, position: int, command: dict):
+        self.commands.insert(position, command)
+
+    def pop_command(self, position: int) -> dict:
+        return self.commands.pop(position)
+
+    def move_command(self, old_position: int, new_position: int):
+        if new_position > old_position:
+            self.commands.insert(new_position-1, self.commands.pop(old_position))
+        elif new_position < old_position:
+            self.commands.insert(new_position+1, self.commands.pop(old_position))
+
+    def update_command(self, position: int, partial_command: dict) -> dict:
+        for k, v in partial_command.items():
+            self.commands[position][k] = v
+        return self.commands[position]
+
+    def __str__(self) -> str:
+        if self.blackout:
+            return f"Blackout cue \"{self.description}\""
+        else:
+            return f"Cue \"{self.description}\""
+
 class CueModel(BaseModel):
     description: str
     commands: list[dict] = []
