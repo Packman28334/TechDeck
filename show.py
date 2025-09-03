@@ -98,6 +98,7 @@ class Show:
         self.spotlight_subsystem.enter_blackout()
         self.backgrounds_subsystem.enter_blackout()
         self.blackout = True
+        self.p2p_network_manager.broadcast_to_servers("blackout_state_changed", {"new_state": True})
         return True
     
     def exit_blackout(self):
@@ -108,6 +109,7 @@ class Show:
         self.spotlight_subsystem.exit_blackout()
         self.backgrounds_subsystem.exit_blackout()
         self.blackout = False
+        self.p2p_network_manager.broadcast_to_servers("blackout_state_changed", {"new_state": False})
         return True
 
     def next_cue(self):

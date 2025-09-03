@@ -38,15 +38,31 @@ async def update_polling_show_tasks() -> None:
 def promote():
     p2p_network_manager.set_master_node(p2p_network_manager.uuid, p2p_network_manager.uuid)
 
-@sio.on("*")
-def socket_catchall(event, sid, data):
-    if DEBUG_MODE:
-        print(type(event), type(sid), type(data))
-        print(f"SocketIO recieved event {event} from {sid}: {data}")
-
 @sio.on("master_node")
 def master_node(sid, data):
     p2p_network_manager.set_master_node(data["master_uuid"], data["fallback_master_uuid"])
+
+@sio.on("blackout_change_state") # request state change for blackout
+def blackout_change_state(sid, data):
+    if p2p_network_manager.is_master_node:
+        if not show:
+            return
+        match data["action"]:
+            case "enter":
+                show.enter_blackout()
+            case "exit":
+                show.exit_blackout()
+            case "toggle":
+                if show.blackout:
+                    show.exit_blackout()
+                else:
+                    show.enter_blackout()
+    else:
+        p2p_network_manager.master_node.send("blackout_change_state", data)
+
+@sio.on("blackout_state_changed") # forward state change results to client
+def blackout_state_changed(sid, data):
+    p2p_network_manager.broadcast_to_client("blackout_state_changed", data)
 
 app.mount("/", StaticFiles(directory="frontend/static"))
 
