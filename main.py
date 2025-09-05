@@ -60,8 +60,9 @@ def blackout_change_state(sid, data):
     else:
         p2p_network_manager.master_node.send("blackout_change_state", data)
 
-@sio.on("blackout_state_changed") # forward state change results to client
+@sio.on("blackout_state_changed") # update local backend and client with blackout state
 def blackout_state_changed(sid, data):
+    show.blackout = data["new_state"]
     p2p_network_manager.broadcast_to_client("blackout_state_changed", data)
 
 app.mount("/", StaticFiles(directory="frontend/static"))
