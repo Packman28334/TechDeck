@@ -28,6 +28,7 @@ class Show:
         self.p2p_network_manager: P2PNetworkManager = p2p_network_manager
 
         self.cue_list: CueList = cue_list
+        self.cue_list.set_show(self)
         self.current_cue: int = -1
 
         self.blackout: bool = False
@@ -63,6 +64,13 @@ class Show:
             json.loads(pathlib.Path("_working_show/configuration.json").read_text()),
         )
 
+    @classmethod
+    def load_or_create(cls, title: str):
+        if os.path.exists(f"shows/{title}.tdshw"):
+            return cls.load(title)
+        else:
+            return cls.new(title)
+
     def accumulate_subsystem_configuration(self) -> dict:
         return {
             "mixer_subsystem": self.mixer_subsystem.get_configuration(),
@@ -91,6 +99,8 @@ class Show:
         return [show_name.removesuffix(".tdshw") for show_name in os.listdir("shows") if show_name.endswith(".tdshw")]
 
     def enter_blackout(self):
+        if not self.p2p_network_manager.is_master_node:
+            return
         if self.blackout:
             return False
         self.mixer_subsystem.enter_blackout()
@@ -102,6 +112,8 @@ class Show:
         return True
     
     def exit_blackout(self):
+        if not self.p2p_network_manager.is_master_node:
+            return
         if not self.blackout:
             return False
         self.mixer_subsystem.exit_blackout()
@@ -113,24 +125,30 @@ class Show:
         return True
 
     def next_cue(self):
+        if not self.p2p_network_manager.is_master_node:
+            return
         self.current_cue += 1
         if self.current_cue > len(self.cue_list)-1:
             self.current_cue = 0
-        self.cue_list[self.current_cue].call(self)
+        self.cue_list[self.current_cue].call()
         return self.current_cue
 
     def previous_cue(self):
+        if not self.p2p_network_manager.is_master_node:
+            return
         self.current_cue -= 1
         if self.current_cue < 0:
             self.current_cue = len(self.cue_list)-1
-        self.cue_list[self.current_cue].call(self)
+        self.cue_list[self.current_cue].call()
         return self.current_cue
 
     def jump_to_cue(self, index: int):
+        if not self.p2p_network_manager.is_master_node:
+            return
         if index > len(self.cue_list)-1 or index < 0:
             return self.current_cue
         self.current_cue = index
-        self.cue_list[self.current_cue].call(self)
+        self.cue_list[self.current_cue].call()
         return self.current_cue
 
     def update_polling_tasks(self):

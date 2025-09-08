@@ -8,8 +8,12 @@ from zeroconf import Zeroconf, ServiceBrowser, ServiceListener, ServiceInfo
 from pathlib import Path
 from socketio import SimpleClient, AsyncServer
 from threading import Thread
+from typing import TYPE_CHECKING
 
 from config import PREFERRED_ADAPTER, DEBUG_MODE, SOCKETIO_LOGGING
+
+if TYPE_CHECKING:
+    from show import Show
 
 # https://forums.balena.io/t/discover-avahi-zeroconf-services-inside-container/48665/4
 
@@ -29,7 +33,13 @@ class Peer:
 
         if self.network_manager.master_node == self.network_manager.host: # if this host is the master node, fill in the new peer
             self.send("master_node", {"master_uuid": self.network_manager.master_node.uuid if self.network_manager.master_node else "", "fallback_master_uuid": self.network_manager.fallback_master.uuid if self.network_manager.fallback_master else ""})
-            self.send("blackout")
+            if self.network_manager.show:
+                self.send("selected_show", {"title": self.network_manager.show.title})
+                self.send("blackout_state_changed", {"new_state": self.network_manager.show.blackout})
+                self.send("cue_list_changed", {"cue_list": self.network_manager.show.cue_list.serialize()})
+                self.send("current_cue_changed", {"current_cue": self.network_manager.show.current_cue})
+                # TODO: synchronize subsystem states
+                # TODO: synchronize things like timed cues
 
     def send(self, event: str, data: dict):
         if DEBUG_MODE:
@@ -90,6 +100,8 @@ class TechDeckServiceListener(ServiceListener):
 class P2PNetworkManager:
     def __init__(self):
         self.sio: AsyncServer = None # type: ignore
+
+        self.show: "Show" | None = None
 
         self.uuid = str(uuid4())
 

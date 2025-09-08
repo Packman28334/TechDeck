@@ -1,16 +1,14 @@
 
 from pathlib import Path
-import copy
 
 from show import Show
-from cue import Cue, CueModel, PartialCueModel
-from p2p_networking import p2p_network_manager, Peer
-from config import DEBUG_MODE, SOCKETIO_LOGGING
+from cue import Cue
+from p2p_networking import p2p_network_manager
+from config import SOCKETIO_LOGGING
 
-from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
-from fastapi.exceptions import HTTPException
 from fastapi_utils.tasks import repeat_every
 from socketio import AsyncServer, ASGIApp
 import uvicorn
@@ -42,6 +40,22 @@ def promote():
 def master_node(sid, data):
     p2p_network_manager.set_master_node(data["master_uuid"], data["fallback_master_uuid"])
 
+@sio.on("select_show") # ask to load or create a different show
+def select_show(sid, data):
+    if p2p_network_manager.is_master_node:
+        global show
+        show = Show.load_or_create(data["title"])
+        p2p_network_manager.broadcast_to_servers("selected_show", {"title": show.title})
+        p2p_network_manager.broadcast_to_client("selected_show", {"title": show.title})
+    else:
+        p2p_network_manager.master_node.send("select_show", {"title": data["title"]})
+
+@sio.on("selected_show") # load or create show that was just selected by the master node
+def selected_show(sid, data):
+    global show
+    show = Show.load_or_create(data["title"])
+    p2p_network_manager.broadcast_to_client("selected_show", show.title)
+
 @sio.on("blackout_change_state") # request state change for blackout
 def blackout_change_state(sid, data):
     if p2p_network_manager.is_master_node:
@@ -57,6 +71,7 @@ def blackout_change_state(sid, data):
                     show.exit_blackout()
                 else:
                     show.enter_blackout()
+        p2p_network_manager.broadcast_to_client("blackout_state_changed", data)
     else:
         p2p_network_manager.master_node.send("blackout_change_state", data)
 
@@ -64,6 +79,24 @@ def blackout_change_state(sid, data):
 def blackout_state_changed(sid, data):
     show.blackout = data["new_state"]
     p2p_network_manager.broadcast_to_client("blackout_state_changed", data)
+
+@sio.on("cue_list_changed") # update local backend and client with cue list
+def cue_list_changed(sid, data):
+    global show
+    if show:
+        show.cue_list.deserialize_to_self(data["cue_list"])
+
+@sio.on("current_cue_changed") # update local backend and client with current cue
+def current_cue_changed(sid, data):
+    global show
+    if show:
+        show.current_cue = data["current_cue"]
+
+@sio.on("cue_edited") # update local backend and client with new data for cue
+def cue_edited(sid, data):
+    global show
+    if show:
+        show.cue_list[data["index"]] = Cue.deserialize(data["cue"])
 
 app.mount("/", StaticFiles(directory="frontend/static"))
 
