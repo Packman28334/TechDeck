@@ -84,6 +84,7 @@ def blackout_state_changed(sid, data):
 def cue_list_changed(sid, data):
     global show
     if show:
+        show.save(show.title, backup=True)
         show.cue_list.deserialize_to_self(data["cue_list"])
 
 @sio.on("current_cue_changed") # update local backend and client with current cue

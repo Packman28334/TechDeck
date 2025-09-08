@@ -80,17 +80,20 @@ class Show:
             "backgrounds_subsystem": self.backgrounds_subsystem.get_configuration()
         }
 
-    def save(self, filename: str):
+    def save(self, filename: str, backup: bool = False):
         if not os.path.exists("_working_show/"):
             return
         if not os.path.exists("shows/"):
             os.mkdir("shows")
-        if os.path.exists(f"shows/{filename}.tdshw"):
-            os.remove(f"shows/{filename}.tdshw")
+        full_filename: str = f"shows/{filename}.tdshw"
+        if backup:
+            full_filename += ".bak"
+        if os.path.exists(full_filename):
+            os.remove(full_filename)
         pathlib.Path("_working_show/cue_list.json").write_text(json.dumps({"cues": self.cue_list.serialize()}))
         pathlib.Path("_working_show/configuration.json").write_text(json.dumps(self.accumulate_subsystem_configuration()))
         shutil.make_archive(f"shows/{filename}", "zip", "_working_show/")
-        os.rename(f"shows/{filename}.zip", f"shows/{filename}.tdshw")
+        os.rename(f"shows/{filename}.zip", full_filename)
 
     @staticmethod
     def list_shows() -> list[str]:

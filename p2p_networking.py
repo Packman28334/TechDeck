@@ -39,6 +39,7 @@ class Peer:
                 self.send("cue_list_changed", {"cue_list": self.network_manager.show.cue_list.serialize()})
                 self.send("current_cue_changed", {"current_cue": self.network_manager.show.current_cue})
                 # TODO: synchronize subsystem states
+                # TODO: synchronize audio and background libraries
                 # TODO: synchronize things like timed cues
 
     def send(self, event: str, data: dict):
