@@ -1,13 +1,4 @@
 
-.scaffold {
-    width: 100dvw;
-    height: 100dvh;
-    display: flex;
-    flex-flow: column nowrap;
-    justify-content: center;
-    align-items: center;
-}
-
 .title-text-container {
     width: 100%;
     display: flex;

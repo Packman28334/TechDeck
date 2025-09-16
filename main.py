@@ -1,5 +1,6 @@
 
 from pathlib import Path
+import os
 
 from show import Show
 from cue import Cue
@@ -8,7 +9,7 @@ from config import SOCKETIO_LOGGING
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse
+from fastapi.responses import Response, HTMLResponse
 from fastapi_utils.tasks import repeat_every
 from socketio import AsyncServer, ASGIApp
 import uvicorn
@@ -24,6 +25,40 @@ show: Show | None = None
 def index():
     return HTMLResponse(Path("frontend/index.html").read_text())
 
+@app.get("/component/{component}.js")
+def component(component: str):
+    content: str = """
+        class CustomComponentElement_$COMPONENT$ extends HTMLElement {
+            constructor() {
+                super();
+
+                const shadow = this.attachShadow({mode: "open"});
+
+                shadow.innerHTML = `
+                    <link rel="stylesheet" href="/assets/global.css" />
+                    <link rel="stylesheet" href="/component/style/$COMPONENT$.css" />
+                    $CONTENT$
+                    <script src="/assets/global.js"></script>
+                    <script src="/component/logic/$COMPONENT$.js></script>
+                `;
+            }
+        }
+        customElements.define("td-$COMPONENT$", CustomComponentElement_$COMPONENT$);
+    """.replace("$COMPONENT$", component).replace("$CONTENT$", Path(f"frontend/components/{component}/{component}.html").read_text())
+    return Response(content=content, media_type="text/javascript")
+
+@app.get("/component/style/{component}.css")
+def component_style(component: str):
+    return Response(content=Path(f"frontend/components/{component}/{component}.css").read_text(), media_type="text/css")
+
+@app.get("/component/logic/{component}.js")
+def component_logic(component: str):
+    return Response(content=Path(f"frontend/components/{component}/{component}.js").read_text(), media_type="text/javascript")
+
+@app.get("/promote")
+def promote():
+    p2p_network_manager.set_master_node(p2p_network_manager.uuid, p2p_network_manager.uuid)
+
 @app.on_event("startup")
 @repeat_every(seconds=0.1)
 async def update_polling_show_tasks() -> None:
@@ -31,10 +66,6 @@ async def update_polling_show_tasks() -> None:
         show.update_polling_tasks()
 
 # api routers are for losers. embrace the excessively long main.py file.
-
-@app.get("/promote")
-def promote():
-    p2p_network_manager.set_master_node(p2p_network_manager.uuid, p2p_network_manager.uuid)
 
 @sio.on("master_node")
 def master_node(sid, data):
@@ -98,6 +129,10 @@ def cue_edited(sid, data):
     global show
     if show:
         show.cue_list[data["index"]] = Cue.deserialize(data["cue"])
+
+@sio.on("test_event")
+def test_event(sid, data):
+    print("WORKED")
 
 app.mount("/", StaticFiles(directory="frontend/static"))
 

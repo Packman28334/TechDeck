@@ -1,0 +1,13 @@
+<div class="scaffold">
+    <div class="title-text-container">
+        <h1>Tech Deck</h1>
+    </div>
+    <div class="homepage-button-bar">
+        <button class="text-button">Reset Tech Deck network</button>
+        <button class="text-button primary" onclick="this.parentElement.parentElement.parentNode.socket.emit('test_event', 'hi')">Join current show</button>
+    </div>
+    <div class="homepage-button-bar hidden">
+        <button class="text-button">Create new show</button>
+        <button class="text-button primary">Load show</button>
+    </div>
+</div>
