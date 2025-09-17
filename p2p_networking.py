@@ -3,6 +3,7 @@ import socket
 import ifaddr
 import time
 import random
+import asyncio
 from uuid import uuid4
 from zeroconf import Zeroconf, ServiceBrowser, ServiceListener, ServiceInfo
 from pathlib import Path
@@ -172,8 +173,8 @@ class P2PNetworkManager:
             if (self.fallback_master == self.host or not self.fallback_master) and self.peers: # if this node is both the master and fallback master or there is no fallback master when other peers are available
                 self.fallback_master = random.choice(self.peers) # pick a new fallback master
 
-            for peer in self.peers:
-                peer.send("master_node", {"master_uuid": self.master_node.uuid if self.master_node else "", "fallback_master_uuid": self.fallback_master.uuid if self.fallback_master else ""})
+            self.broadcast_to_servers("master_node", {"master_uuid": self.master_node.uuid if self.master_node else "", "fallback_master_uuid": self.fallback_master.uuid if self.fallback_master else ""})
+            asyncio.create_task(self.broadcast_to_client("master_node", {"master_uuid": self.master_node.uuid if self.master_node else "", "fallback_master_uuid": self.fallback_master.uuid if self.fallback_master else ""}))
 
         if DEBUG_MODE:
             print(f"Master node: {self.master_node.hostname if self.master_node else 'None'}")
@@ -187,8 +188,8 @@ class P2PNetworkManager:
         for peer in self.peers:
             peer.send(event, data)
 
-    def broadcast_to_client(self, event: str, data: dict) -> None:
-        self.sio.emit(event, data)
+    async def broadcast_to_client(self, event: str, data: dict) -> None:
+        await self.sio.emit(event, data)
 
 # we have to do this because when instantiating the class in the same python file as the fastapi app, the zeroconf event loop is blocked.
 # why is it blocked? i have no idea. but it is, so we have to do this.

@@ -6,12 +6,18 @@
         <link rel="stylesheet" href="/assets/index.css" />
         <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
         <script src="/component/homepage.js"></script>
+        <script src="/component/nomaster.js"></script>
+        <script src="/component/editshow.js"></script>
     </head>
     <body>
 
-        <td-homepage class="page-view-component"></td-homepage>
+        <div id="pageview-container">
+            <td-homepage id="homepage"></td-homepage>
+            <td-nomaster id="nomaster" class="hidden"></td-nomaster>
+            <td-editshow id="editshow" class="hidden"></td-editshow>
+        </div>
 
-        <script src="/assets/global.js"></script>
         <script src="/assets/index.js"></script>
+        <script src="/assets/show.js"></script>
     </body>
 </html>

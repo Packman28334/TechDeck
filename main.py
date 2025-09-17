@@ -1,6 +1,5 @@
 
 from pathlib import Path
-import os
 
 from show import Show
 from cue import Cue
@@ -36,10 +35,8 @@ def component(component: str):
 
                 shadow.innerHTML = `
                     <link rel="stylesheet" href="/assets/global.css" />
-                    <link rel="stylesheet" href="/component/style/$COMPONENT$.css" />
+                    <link rel="stylesheet" href="/component/$COMPONENT$.css" />
                     $CONTENT$
-                    <script src="/assets/global.js"></script>
-                    <script src="/component/logic/$COMPONENT$.js></script>
                 `;
             }
         }
@@ -47,17 +44,9 @@ def component(component: str):
     """.replace("$COMPONENT$", component).replace("$CONTENT$", Path(f"frontend/components/{component}/{component}.html").read_text())
     return Response(content=content, media_type="text/javascript")
 
-@app.get("/component/style/{component}.css")
+@app.get("/component/{component}.css")
 def component_style(component: str):
     return Response(content=Path(f"frontend/components/{component}/{component}.css").read_text(), media_type="text/css")
-
-@app.get("/component/logic/{component}.js")
-def component_logic(component: str):
-    return Response(content=Path(f"frontend/components/{component}/{component}.js").read_text(), media_type="text/javascript")
-
-@app.get("/promote")
-def promote():
-    p2p_network_manager.set_master_node(p2p_network_manager.uuid, p2p_network_manager.uuid)
 
 @app.on_event("startup")
 @repeat_every(seconds=0.1)
@@ -67,28 +56,40 @@ async def update_polling_show_tasks() -> None:
 
 # api routers are for losers. embrace the excessively long main.py file.
 
-@sio.on("master_node")
+@sio.on("promote") # promote this node to the master node
+def promote(sid, data=None):
+    p2p_network_manager.set_master_node(p2p_network_manager.uuid, p2p_network_manager.uuid)
+
+@sio.on("master_node") # update records of master and fallback master nodes
 def master_node(sid, data):
     p2p_network_manager.set_master_node(data["master_uuid"], data["fallback_master_uuid"])
 
 @sio.on("select_show") # ask to load or create a different show
-def select_show(sid, data):
+async def select_show(sid, title):
     if p2p_network_manager.is_master_node:
         global show
-        show = Show.load_or_create(data["title"])
-        p2p_network_manager.broadcast_to_servers("selected_show", {"title": show.title})
-        p2p_network_manager.broadcast_to_client("selected_show", {"title": show.title})
+        show = Show.load_or_create(title)
+        p2p_network_manager.broadcast_to_servers("selected_show", show.title)
+        await p2p_network_manager.broadcast_to_client("selected_show", show.title)
     else:
-        p2p_network_manager.master_node.send("select_show", {"title": data["title"]})
+        p2p_network_manager.master_node.send("select_show", title)
 
 @sio.on("selected_show") # load or create show that was just selected by the master node
-def selected_show(sid, data):
+async def selected_show(sid, title):
     global show
-    show = Show.load_or_create(data["title"])
-    p2p_network_manager.broadcast_to_client("selected_show", show.title)
+    show = Show.load_or_create(title)
+    await p2p_network_manager.broadcast_to_client("selected_show", show.title)
+
+@sio.on("is_show_loaded") # inform client of whether a show is loaded
+async def is_show_loaded(sid, data=None):
+    global show
+    if p2p_network_manager.master_node: # if there is a master node
+        await p2p_network_manager.broadcast_to_client("is_show_loaded", {"loaded": show.title if show else False, "master_node_present": True})
+    else:
+        await p2p_network_manager.broadcast_to_client("is_show_loaded", {"loaded": False, "master_node_present": False})
 
 @sio.on("blackout_change_state") # request state change for blackout
-def blackout_change_state(sid, data):
+async def blackout_change_state(sid, data):
     if p2p_network_manager.is_master_node:
         if not show:
             return
@@ -102,14 +103,14 @@ def blackout_change_state(sid, data):
                     show.exit_blackout()
                 else:
                     show.enter_blackout()
-        p2p_network_manager.broadcast_to_client("blackout_state_changed", data)
+        await p2p_network_manager.broadcast_to_client("blackout_state_changed", data)
     else:
         p2p_network_manager.master_node.send("blackout_change_state", data)
 
 @sio.on("blackout_state_changed") # update local backend and client with blackout state
-def blackout_state_changed(sid, data):
+async def blackout_state_changed(sid, data):
     show.blackout = data["new_state"]
-    p2p_network_manager.broadcast_to_client("blackout_state_changed", data)
+    await p2p_network_manager.broadcast_to_client("blackout_state_changed", data)
 
 @sio.on("cue_list_changed") # update local backend and client with cue list
 def cue_list_changed(sid, data):
@@ -129,10 +130,6 @@ def cue_edited(sid, data):
     global show
     if show:
         show.cue_list[data["index"]] = Cue.deserialize(data["cue"])
-
-@sio.on("test_event")
-def test_event(sid, data):
-    print("WORKED")
 
 app.mount("/", StaticFiles(directory="frontend/static"))
 
