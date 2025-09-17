@@ -103,7 +103,7 @@ async def blackout_change_state(sid, data):
                     show.exit_blackout()
                 else:
                     show.enter_blackout()
-        await p2p_network_manager.broadcast_to_client("blackout_state_changed", data)
+        await p2p_network_manager.broadcast_to_client("blackout_state_changed", {"new_state": show.blackout})
     else:
         p2p_network_manager.master_node.send("blackout_change_state", data)
 

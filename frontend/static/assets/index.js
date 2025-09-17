@@ -35,6 +35,12 @@ socket.on("selected_show", (title) => {
     loadPageview("editshow");
 });
 
+socket.on("blackout_state_changed", (data) => {
+    if (show) {
+        show._blackout = data["new_state"];
+    }
+});
+
 function promoteThisNodeToMaster() {
     socket.emit("promote");
 }

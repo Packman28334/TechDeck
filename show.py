@@ -5,6 +5,7 @@ from cue_list import CueList
 from cue import Cue
 from subsystems import MixerSubsystem, LightingSubsystem, SpotlightSubsystem, AudioSubsystem, BackgroundsSubsystem
 from p2p_networking import p2p_network_manager, P2PNetworkManager
+from config import DEBUG_MODE
 
 DEFAULT_CONFIGURATION = {
     "mixer_subsystem": {
@@ -112,6 +113,8 @@ class Show:
         self.backgrounds_subsystem.enter_blackout()
         self.blackout = True
         self.p2p_network_manager.broadcast_to_servers("blackout_state_changed", {"new_state": True})
+        if DEBUG_MODE:
+            print("Entered blackout")
         return True
     
     def exit_blackout(self):
@@ -125,6 +128,8 @@ class Show:
         self.backgrounds_subsystem.exit_blackout()
         self.blackout = False
         self.p2p_network_manager.broadcast_to_servers("blackout_state_changed", {"new_state": False})
+        if DEBUG_MODE:
+            print("Exited blackout")
         return True
 
     def next_cue(self):
