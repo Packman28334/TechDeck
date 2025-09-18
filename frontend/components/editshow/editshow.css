@@ -1,0 +1,29 @@
+.main-bar {
+    width: 100vw;
+    height: 48px;
+
+    padding-left: 1em;
+    padding-right: 1em;
+
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-start;
+    align-items: center;
+
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.main-bar > * {
+    display: inline;
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+.main-bar > #title {
+    font-size: 24px;
+    margin-left: 0.5em;
+}
+
+.main-bar > #push-right {
+    margin-left: auto;
+}

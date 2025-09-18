@@ -7,6 +7,14 @@ function loadPageview(pageview) {
     document.querySelector("#pageview-container > #"+currentPageview).classList.add("hidden");
     document.querySelector("#pageview-container > #"+pageview).classList.remove("hidden");
     currentPageview = pageview;
+
+    switch(pageview) {
+        case "editshow":
+            document.querySelector("#pageview-container > #editshow").shadowRoot.querySelector(".main-bar > #title").textContent = show.title;
+            break;
+        default:
+            break;
+    }
 }
 
 var show = undefined;

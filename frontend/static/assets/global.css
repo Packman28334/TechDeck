@@ -13,6 +13,11 @@ h1, h2, h3, h4, h5, h6, p {
     color: white;
 }
 
+
+.material-icons {
+    font-weight: 800 !important;
+}
+
 button.text-button {
     background-color: transparent;
     color: white;
@@ -28,6 +33,27 @@ button.text-button:hover {
 }
 
 button.text-button.primary {
+    background-color: var(--purple);
+}
+
+button.icon-button {
+    background-color: transparent;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    transition: background-color 0.1s ease-in-out;
+    cursor: pointer;
+}
+
+button.icon-button > span.material-icons {
+    font-size: 24px;
+}
+
+button.icon-button:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+button.icon-button.primary {
     background-color: var(--purple);
 }
 
