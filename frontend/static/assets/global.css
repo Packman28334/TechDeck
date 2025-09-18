@@ -28,8 +28,12 @@ button.text-button {
     cursor: pointer;
 }
 
-button.text-button:hover {
-    background-color: rgba(255, 255, 255, 0.05);
+button.text-button:hover > span {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+button.text-button:active > span {
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
 button.text-button.primary {
@@ -38,22 +42,29 @@ button.text-button.primary {
 
 button.icon-button {
     background-color: transparent;
-    color: white;
     border: none;
+    padding: 0px;
+}
+
+button.icon-button > span {
+    color: white;
     border-radius: 8px;
+    padding: 6px;
+    display: block; /* https://stackoverflow.com/questions/6540163/a-few-extra-pixels-of-height-where-could-they-be-coming-from */
+    /* vertical-align: middle; also works */
     transition: background-color 0.1s ease-in-out;
     cursor: pointer;
 }
 
-button.icon-button > span.material-icons {
-    font-size: 24px;
+button.icon-button:hover > span {
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
-button.icon-button:hover {
-    background-color: rgba(255, 255, 255, 0.05);
+button.icon-button:active > span {
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
-button.icon-button.primary {
+button.icon-button.primary > span {
     background-color: var(--purple);
 }
 
