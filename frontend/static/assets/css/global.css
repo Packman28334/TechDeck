@@ -1,6 +1,7 @@
 
 :root {
     --purple: #5f1ab7;
+    --light-purple: #773cc2;
 }
 
 body {
@@ -25,19 +26,24 @@ button.text-button {
     padding: 0.75%;
     border-radius: 8px;
     transition: background-color 0.1s ease-in-out;
+    white-space: nowrap;
     cursor: pointer;
 }
 
-button.text-button:hover > span {
-    background-color: rgba(255, 255, 255, 0.1);
+button.text-button:hover {
+    background-color: rgba(255, 255, 255, 0.125);
 }
 
-button.text-button:active > span {
+button.text-button:active {
     background-color: rgba(255, 255, 255, 0.2);
 }
 
 button.text-button.primary {
     background-color: var(--purple);
+}
+
+button.text-button.primary:active {
+    background-color: var(--light-purple);
 }
 
 button.icon-button {
@@ -52,12 +58,12 @@ button.icon-button > span {
     padding: 6px;
     display: block; /* https://stackoverflow.com/questions/6540163/a-few-extra-pixels-of-height-where-could-they-be-coming-from */
     /* vertical-align: middle; also works */
-    transition: background-color 0.1s ease-in-out;
+    transition: background-color 0.1s ease-in-out, color 0.15s ease-in-out;
     cursor: pointer;
 }
 
 button.icon-button:hover > span {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.125);
 }
 
 button.icon-button:active > span {
@@ -66,6 +72,10 @@ button.icon-button:active > span {
 
 button.icon-button.primary > span {
     background-color: var(--purple);
+}
+
+button.icon-button.toggle-enabled > span {
+    color: var(--purple);
 }
 
 .scaffold {
@@ -79,4 +89,45 @@ button.icon-button.primary > span {
 
 .hidden {
     display: none !important;
+}
+
+.dialog {
+    z-index: 1000;
+
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+
+    max-width: 75dvw;
+    max-height: 75dvh;
+
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: flex-start;
+    align-items: center;
+
+    background-color: black;
+
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+
+    padding: 2dvh 2dvw 2dvh 2dvw;
+
+    transition: transform 0.15s ease-in-out;
+}
+
+.dialog.closed {
+    transform: translateY(250%) scaleX(0%) scaleY(50%);
+}
+.dialog button.text-button {
+    width: 100%;
+    height: 2.5em;
+    margin-top: 0.25em;
+    padding-left: 1em;
+    padding-right: 1em;
+}
+
+.dialog button.text-button.primary {
+    margin-top: 0.5em;
 }
