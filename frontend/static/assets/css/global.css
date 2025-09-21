@@ -81,6 +81,9 @@ button.icon-button.toggle-enabled > span {
 .scaffold {
     width: 100dvw;
     height: 100dvh;
+}
+
+.scaffold.center-on-page {
     display: flex;
     flex-flow: column nowrap;
     justify-content: center;

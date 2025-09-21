@@ -6,6 +6,9 @@ var currentPageview = "homepage";
 function loadPageview(pageview) {
     document.querySelector("#pageview-container > #"+currentPageview).classList.add("hidden");
     document.querySelector("#pageview-container > #"+pageview).classList.remove("hidden");
+
+    closeAllDialogs(); // close all dialogs on the current pageview before changing to the new one
+
     currentPageview = pageview;
 
     switch(pageview) {
