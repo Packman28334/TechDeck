@@ -1,10 +1,13 @@
 <div class="scaffold">
     <div class="main-bar">
-        <button class="icon-button opens-dialog" title="Quit..." onclick="toggleDialog('quit-dialog');">
+        <button class="icon-button opens-dialog" id="quit-button" title="Quit..." onclick="toggleDialog('quit-dialog');">
             <span class="material-symbols-outlined">power_settings_circle</span>
         </button>
         <h1 id="title"></h1>
         <div id="push-right"></div>
+        <button class="icon-button opens-dialog" id="netmon-button" title="Network Monitor" onclick="toggleDialog('netmon-dialog');">
+            <span class="material-symbols-outlined">vital_signs</span>
+        </button>
         <button class="icon-button" id="blackout-button" title="Toggle blackout" onclick="show.toggleBlackout();">
             <span class="material-symbols-outlined">dark_mode</span>
         </button>
@@ -12,8 +15,13 @@
 
     <div class="dialog closed" id="quit-dialog">
         <h1>Quit...</h1>
-        <button class="text-button">Shut down Tech Deck network</button>
-        <button class="text-button">Restart Tech Deck</button>
+        <button class="text-button" onclick="socket.emit('shutdown_network');">Shut down Tech Deck network</button>
         <button class="text-button primary" onclick="loadPageview('homepage');">Select new show</button>
+    </div>
+
+    <div class="dialog closed" id="netmon-dialog">
+        <h1>Network Monitor</h1>
+        <p id="client-ping">Ping to host: pending...</p>
+        <button class="text-button primary" onclick="socket.emit('promote');">Promote this node to master</button>
     </div>
 </div>

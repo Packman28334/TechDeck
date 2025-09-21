@@ -9,8 +9,16 @@ function openDialog(id) {
     getShadowDOM().getElementById(id)?.classList.remove("closed");
 }
 
+function openDialogInPageview(pageview, id) {
+    getShadowDOMOf(pageview).getElementById(id)?.classList.remove("closed");
+}
+
 function closeDialog(id) {
     getShadowDOM().getElementById(id)?.classList.add("closed");
+}
+
+function closeDialogInPageview(pageview, id) {
+    getShadowDOMOf(pageview).getElementById(id)?.classList.add("closed");
 }
 
 function toggleDialog(id) {
@@ -18,6 +26,14 @@ function toggleDialog(id) {
         openDialog(id);
     } else {
         closeDialog(id);
+    }
+}
+
+function toggleDialogInPageview(pageview, id) {
+    if (getShadowDOMOf(pageview).getElementById(id)?.classList.contains("closed")) {
+        openDialogInPageview(pageview, id);
+    } else {
+        closeDialogInPageview(pageview, id);
     }
 }
 

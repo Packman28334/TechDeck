@@ -19,11 +19,15 @@
 .main-bar * {
     margin-top: 0px;
     margin-bottom: 0px;
+    margin-left: 0.25em;
+}
+
+.main-bar > #quit-button {
+    margin-left: 0px;
 }
 
 .main-bar > #title {
     font-size: 24px;
-    margin-left: 0.5em;
 }
 
 .main-bar > #push-right {

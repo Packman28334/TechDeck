@@ -184,12 +184,18 @@ class P2PNetworkManager:
     def is_master_node(self):
         return self.master_node == self.host
 
-    def broadcast_to_servers(self, event: str, data: dict) -> None:
+    def broadcast_to_servers(self, event: str, data: dict | None = None) -> None:
         for peer in self.peers:
-            peer.send(event, data)
+            if data:
+                peer.send(event, data)
+            else:
+                peer.send(event)
 
-    async def broadcast_to_client(self, event: str, data: dict) -> None:
-        await self.sio.emit(event, data)
+    async def broadcast_to_client(self, event: str, data: dict | None = None) -> None:
+        if data:
+            await self.sio.emit(event, data)
+        else:
+            await self.sio.emit(event)
 
 # we have to do this because when instantiating the class in the same python file as the fastapi app, the zeroconf event loop is blocked.
 # why is it blocked? i have no idea. but it is, so we have to do this.

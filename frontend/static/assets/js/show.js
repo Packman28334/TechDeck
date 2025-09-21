@@ -48,9 +48,9 @@ socket.on("blackout_state_changed", (data) => {
     if (show) {
         show._blackout = data["new_state"];
         if (data["new_state"]) {
-            getShadowDOM().querySelector(".main-bar > #blackout-button").classList.add("toggle-enabled");
+            getShadowDOMOf("editshow").querySelector(".main-bar > #blackout-button").classList.add("toggle-enabled");
         } else {
-            getShadowDOM().querySelector(".main-bar > #blackout-button").classList.remove("toggle-enabled");
+            getShadowDOMOf("editshow").querySelector(".main-bar > #blackout-button").classList.remove("toggle-enabled");
         }
     }
 });

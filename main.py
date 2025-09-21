@@ -1,10 +1,11 @@
 
 from pathlib import Path
+import os
 
 from show import Show
 from cue import Cue
 from p2p_networking import p2p_network_manager
-from config import SOCKETIO_LOGGING
+from config import DUMMY_MODE, SOCKETIO_LOGGING
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
@@ -64,6 +65,30 @@ def promote(sid, data=None):
 @sio.on("master_node") # update records of master and fallback master nodes
 def master_node(sid, data):
     p2p_network_manager.set_master_node(data["master_uuid"], data["fallback_master_uuid"])
+
+@sio.on("server_ping") # recieve ping from another node and send it back
+def server_ping(sid, data):
+    print(filter(lambda x: x.uuid == data["my_uuid"], p2p_network_manager.peers)[0]) # TODO: finish
+
+@sio.on("client_ping") # recieve ping from client and send it back
+async def client_ping(sid, data):
+    await p2p_network_manager.broadcast_to_client("client_ping", data)
+
+@sio.on("shutdown_network") # request a shutdown of the Tech Deck network
+def shutdown_network(sid, data=None):
+    if p2p_network_manager.is_master_node:
+        p2p_network_manager.broadcast_to_servers("shutdown_now")
+        print("Shutting down now")
+        if not DUMMY_MODE:
+            os.system("shutdown now")
+    else:
+        p2p_network_manager.master_node.send("shutdown_network")
+
+@sio.on("shutdown_now") # shutdown this peer
+def shutdown_now(sid, data=None):
+    print("Shutting down now")
+    if not DUMMY_MODE:
+        os.system("shutdown now")
 
 @sio.on("select_show") # ask to load or create a different show
 async def select_show(sid, title):
