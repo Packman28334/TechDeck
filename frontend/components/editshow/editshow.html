@@ -13,6 +13,59 @@
         </button>
     </div>
 
+    <div id="cue-table-container">
+        <table id="cue-table">
+            <thead>
+                <tr>
+                    <th class="jump-button-entry"></th>
+                    <th class="select-checkbox-entry"></th>
+                    <th class="id-entry">ID</th>
+                    <th class="description-entry">Description</th>
+                    <th class="notes-entry">Notes</th>
+                    <th class="edit-entry"></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="jump-button-entry">
+                        <button class="icon-button" title="Jump to cue">
+                            <span class="material-symbols-outlined">play_circle</span>
+                        </button>
+                    </td>
+                    <td class="select-checkbox-entry">
+                        <input type="checkbox" />
+                    </td>
+                    <td class="id-entry">1</td>
+                    <td class="description-entry">first cue</td>
+                    <td class="notes-entry">asdf</td>
+                    <td class="edit-entry">
+                        <button class="icon-button" title="Jump to cue">
+                            <span class="material-symbols-outlined">edit</span>
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="jump-button-entry">
+                        <button class="icon-button" title="Jump to cue">
+                            <span class="material-symbols-outlined">play_circle</span>
+                        </button>
+                    </td>
+                    <td class="select-checkbox-entry">
+                        <input type="checkbox" />
+                    </td>
+                    <td class="id-entry">2</td>
+                    <td class="description-entry">second cue</td>
+                    <td class="notes-entry">lkjsdfgjsdl</td>
+                    <td class="edit-entry">
+                        <button class="icon-button" title="Jump to cue">
+                            <span class="material-symbols-outlined">edit</span>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
     <div class="dialog closed" id="quit-dialog">
         <h1>Quit...</h1>
         <button class="text-button" onclick="socket.emit('shutdown_network');">Shut down Tech Deck network</button>

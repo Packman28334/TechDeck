@@ -5,5 +5,5 @@
     <div class="title-text-container">
         <h3>No master node is present. Please elect a master node now.</h3>
     </div>
-    <button class="text-button primary" onclick="promoteThisNodeToMaster();">Promote this node</button>
+    <button class="text-button primary" onclick="socket.emit('promote');">Promote this node</button>
 </div>
