@@ -43,10 +43,13 @@ class Peer:
                 # TODO: synchronize audio and background libraries
                 # TODO: synchronize things like timed cues
 
-    def send(self, event: str, data: dict):
+    def send(self, event: str, data: dict | None = None):
         if DEBUG_MODE:
             print(f"Sending peer {self.hostname} message {event}: {data}")
-        self.sio.emit(event, data)
+        if data:
+            self.sio.emit(event, data)
+        else:
+            self.sio.emit(event)
 
     def close(self):
         if DEBUG_MODE:
@@ -62,7 +65,7 @@ class Host: # implements Peer class for the host for simplicity
         self.hostname: str = self.network_manager.get_hostname()
         self.uuid: str = self.network_manager.uuid
     
-    def send(self, event: str, data: dict):
+    def send(self, event: str, data: dict | None = None):
         pass
 
     def close(self):
