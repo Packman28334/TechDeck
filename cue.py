@@ -6,8 +6,9 @@ if TYPE_CHECKING:
     from show import Show
 
 class Cue:
-    def __init__(self, description: str, commands: list[dict], blackout: bool = False):
+    def __init__(self, description: str, commands: list[dict], notes: str = "", blackout: bool = False):
         self.description: str = description
+        self.notes: str = notes
         self.commands: list[dict] = commands
         self.blackout: bool = blackout
         self.show: "Show" | None = None
@@ -17,6 +18,7 @@ class Cue:
         return cls(
             serialized["description"],
             serialized["commands"],
+            notes=serialized["notes"],
             blackout=serialized["blackout"]
         )
 
@@ -24,6 +26,7 @@ class Cue:
         return {
             "description": self.description,
             "commands": self.commands,
+            "notes": self.notes,
             "blackout": self.blackout
         }
 
@@ -59,22 +62,28 @@ class Cue:
 
     def append_command(self, command: dict):
         self.commands.append(command)
+        self._cue_changed()
     
     def insert_command(self, position: int, command: dict):
         self.commands.insert(position, command)
+        self._cue_changed()
 
     def pop_command(self, position: int) -> dict:
-        return self.commands.pop(position)
+        command: dict = self.commands.pop(position)
+        self._cue_changed()
+        return command
 
     def move_command(self, old_position: int, new_position: int):
         if new_position > old_position:
             self.commands.insert(new_position-1, self.commands.pop(old_position))
         elif new_position < old_position:
             self.commands.insert(new_position+1, self.commands.pop(old_position))
+        self._cue_changed()
 
     def update_command(self, position: int, partial_command: dict) -> dict:
         for k, v in partial_command.items():
             self.commands[position][k] = v
+        self._cue_changed()
         return self.commands[position]
 
     def __str__(self) -> str:
@@ -85,10 +94,12 @@ class Cue:
 
 class CueModel(BaseModel):
     description: str
+    notes: str
     commands: list[dict] = []
     blackout: bool = False
 
 class PartialCueModel(BaseModel):
     description: str | None = None
+    notes: str | None = None
     commands: list[dict] | None = None
     blackout: bool | None = None
