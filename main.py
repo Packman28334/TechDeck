@@ -72,7 +72,7 @@ def server_ping(sid, data):
 
 @sio.on("client_ping") # recieve ping from client and send it back
 async def client_ping(sid, data):
-    await p2p_network_manager.broadcast_to_client("client_ping", data)
+    await p2p_network_manager.broadcast_to_client_async("client_ping", data)
 
 @sio.on("shutdown_network") # request a shutdown of the Tech Deck network
 def shutdown_network(sid, data=None):
@@ -96,7 +96,7 @@ async def select_show(sid, title):
         global show
         show = Show.load_or_create(title)
         p2p_network_manager.broadcast_to_servers("selected_show", show.title)
-        await p2p_network_manager.broadcast_to_client("selected_show", show.title)
+        await p2p_network_manager.broadcast_to_client_async("selected_show", show.title)
     else:
         p2p_network_manager.master_node.send("select_show", title)
 
@@ -104,15 +104,15 @@ async def select_show(sid, title):
 async def selected_show(sid, title):
     global show
     show = Show.load_or_create(title)
-    await p2p_network_manager.broadcast_to_client("selected_show", show.title)
+    await p2p_network_manager.broadcast_to_client_async("selected_show", show.title)
 
 @sio.on("is_show_loaded") # inform client of whether a show is loaded
 async def is_show_loaded(sid, data=None):
     global show
     if p2p_network_manager.master_node: # if there is a master node
-        await p2p_network_manager.broadcast_to_client("is_show_loaded", {"loaded": show.title if show else False, "master_node_present": True})
+        await p2p_network_manager.broadcast_to_client_async("is_show_loaded", {"loaded": show.title if show else False, "master_node_present": True})
     else:
-        await p2p_network_manager.broadcast_to_client("is_show_loaded", {"loaded": False, "master_node_present": False})
+        await p2p_network_manager.broadcast_to_client_async("is_show_loaded", {"loaded": False, "master_node_present": False})
 
 @sio.on("blackout_change_state") # request state change for blackout
 async def blackout_change_state(sid, data):
@@ -129,14 +129,14 @@ async def blackout_change_state(sid, data):
                     show.exit_blackout()
                 else:
                     show.enter_blackout()
-        await p2p_network_manager.broadcast_to_client("blackout_state_changed", {"new_state": show.blackout})
+        await p2p_network_manager.broadcast_to_client_async("blackout_state_changed", {"new_state": show.blackout})
     else:
         p2p_network_manager.master_node.send("blackout_change_state", data)
 
 @sio.on("blackout_state_changed") # update local backend and client with blackout state
 async def blackout_state_changed(sid, data):
     show.blackout = data["new_state"]
-    await p2p_network_manager.broadcast_to_client("blackout_state_changed", data)
+    await p2p_network_manager.broadcast_to_client_async("blackout_state_changed", data)
 
 @sio.on("cue_list_changed") # update local backend and client with cue list
 def cue_list_changed(sid, data):
