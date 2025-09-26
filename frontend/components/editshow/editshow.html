@@ -21,7 +21,7 @@
             <div class="cell description"><p>Description</p></div>
             <div class="cell notes"><p>Notes</p></div>
             <div class="cell edit-button">
-                <button class="icon-button">
+                <button class="icon-button opens-dialog" onclick="toggleDialog('create-cue-dialog');">
                     <span class="material-symbols-outlined">add</span>
                 </button>
             </div>
@@ -58,6 +58,16 @@
                 </button>
             </div>
         </div>-->
+    </div>
+
+    <div class="dialog closed" id="create-cue-dialog">
+        <h1>Create cue...</h1>
+        <input type="text" placeholder="Description" id="new-cue-description">
+        <input type="text" placeholder="Notes" id="new-cue-notes">
+        <div class="button-row">
+            <button class="text-button" onclick="closeDialog('create-cue-dialog');">Cancel</button>
+            <button class="text-button primary" onclick="show?.addCueFromDialog(); closeDialog('create-cue-dialog');">Create</button>
+        </div>
     </div>
 
     <div class="dialog closed" id="quit-dialog">

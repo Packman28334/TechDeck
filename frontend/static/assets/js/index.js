@@ -29,6 +29,18 @@ function getShadowDOMOf(pageview) {
     return document.querySelector("#pageview-container > #"+pageview).shadowRoot;
 }
 
+function resetInputsOfChildren(element) {
+    Array.from(element.children).forEach(child => {
+        if (child.tagName == "INPUT") {
+            switch(child.type) {
+                case "text":
+                    child.value = "";
+                    break;
+            }
+        }
+    });
+}
+
 socket.on("client_ping", (timestamp) => {
     getShadowDOMOf("editshow").getElementById("client-ping").textContent = "Ping to host: "+(new Date().getTime()-timestamp).toString()+"ms";
     setTimeout(() => {

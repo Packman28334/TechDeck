@@ -157,6 +157,20 @@ def cue_edited(sid, data):
     if show:
         show.cue_list[data["index"]] = Cue.deserialize(data["cue"])
 
+@sio.on("get_cues") # broadcast current cue list
+async def get_cues(sid, data=None):
+    global show
+    if show:
+        p2p_network_manager.broadcast_to_servers("cue_list_changed", {"cue_list": show.cue_list.serialize()})
+        await p2p_network_manager.broadcast_to_client_async("cue_list_changed", {"cue_list": show.cue_list.serialize()})
+
+@sio.on("add_cue") # add a cue to the list
+def add_cue(sid, data):
+    global show
+    if show:
+        print(data)
+        show.cue_list.append(Cue.deserialize(data))
+
 app.mount("/", StaticFiles(directory="frontend/static"))
 
 if __name__ == '__main__':

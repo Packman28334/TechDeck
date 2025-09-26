@@ -77,6 +77,16 @@ button.icon-button.toggle-enabled > span {
     color: var(--purple);
 }
 
+input[type=text] {
+    border: none;
+    outline: none;
+    background-color: #212121;
+    color: #BBBBBB;
+    padding: 1em 2em 1em 2em;
+    margin-bottom: 0.75em;
+    border-radius: 8px;
+}
+
 .scaffold {
     width: 100dvw;
     height: 100dvh;
@@ -133,4 +143,18 @@ button.icon-button.toggle-enabled > span {
 
 .dialog button.text-button.primary {
     margin-top: 0.5em;
+}
+
+.dialog .button-row {
+    width: 100%;
+    height: 2.5em;
+
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: center;
+    align-items: center;
+}
+
+.dialog .button-row button.text-button:not(.primary) {
+    margin-right: 0.5em;
 }

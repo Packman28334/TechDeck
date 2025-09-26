@@ -35,6 +35,7 @@ class CueList:
             for cue in self.cues: # if the cues were changed, it's possible that there is a cue without a show reference. that is catastrophic. fix it.
                 cue.show = self.show
             self.show.save(self.show.title)
+            self.show.p2p_network_manager.broadcast_to_client("cue_list_changed", {"cue_list": self.serialize()})
 
     def __str__(self) -> str:
         return str([str(cue) for cue in self.cues])

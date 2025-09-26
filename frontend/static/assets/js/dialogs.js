@@ -15,10 +15,12 @@ function openDialogInPageview(pageview, id) {
 
 function closeDialog(id) {
     getShadowDOM().getElementById(id)?.classList.add("closed");
+    resetInputsOfChildren(getShadowDOM().getElementById(id));
 }
 
 function closeDialogInPageview(pageview, id) {
     getShadowDOMOf(pageview).getElementById(id)?.classList.add("closed");
+    resetInputsOfChildren(getShadowDOMOf(pageview).getElementById(id));
 }
 
 function toggleDialog(id) {
@@ -40,5 +42,6 @@ function toggleDialogInPageview(pageview, id) {
 function closeAllDialogs() {
     getShadowDOM().querySelectorAll(".dialog").forEach((dialog, key, parent) => {
         dialog.classList.add("closed");
+        resetInputsOfChildren(dialog);
     });
 }

@@ -137,3 +137,11 @@
     width: 2.25em;
     height: 2.25em;
 }
+
+#create-cue-dialog {
+    width: 33%;
+}
+
+#create-cue-dialog > input[type=text] {
+    width: 90%;
+}

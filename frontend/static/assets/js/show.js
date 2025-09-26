@@ -3,6 +3,8 @@ class Show {
     constructor(title) {
         this.title = title;
         this._blackout = false;
+
+        socket.emit("get_cues");
     }
 
     get blackout() {
@@ -15,6 +17,13 @@ class Show {
 
     toggleBlackout() {
         socket.emit("blackout_change_state", {"action": "toggle"});
+    }
+
+    addCueFromDialog() {
+        var description = getShadowDOM().getElementById("new-cue-description").value;
+        var notes = getShadowDOM().getElementById("new-cue-notes").value;
+
+        socket.emit("add_cue", {"description": description, "notes": notes, "blackout": false, "commands": []})
     }
 }
 
@@ -52,5 +61,46 @@ socket.on("blackout_state_changed", (data) => {
         } else {
             getShadowDOMOf("editshow").querySelector(".main-bar > #blackout-button").classList.remove("toggle-enabled");
         }
+    }
+});
+
+socket.on("cue_list_changed", (data) => {
+    if (show) {
+        cueTable = getShadowDOMOf("editshow").querySelector(".cue-table");
+        
+        Array.from(cueTable.children).forEach(child => {
+            if (!child.classList.contains("header")) {
+                cueTable.removeChild(child);
+            }
+        });
+
+        var index = 0;
+        data["cue_list"].forEach(cue => {
+            index++;
+
+            row = document.createElement("divnot (child..clas");
+            row.classList.add("row");
+
+            row.innerHTML = `
+                <div class="cell goto-button">
+                    <button class="icon-button">
+                        <span class="material-symbols-outlined">play_circle</span>
+                    </button>
+                </div>
+                <div class="cell select-checkbox"><input type="checkbox"></div>
+                <div class="cell cue-id"><p>$ID$</p></div>
+                <div class="cell description"><p>$DESCRIPTION$</p></div>
+                <div class="cell notes"><p>$NOTES$</p></div>
+                <div class="cell edit-button">
+                    <button class="icon-button">
+                        <span class="material-symbols-outlined">edit</span>
+                    </button>
+                </div>
+            `.replace("$DESCRIPTION$", cue["description"])
+            .replace("$NOTES$", cue["notes"])
+            .replace("$ID$", index);
+
+            cueTable.appendChild(row);
+        });
     }
 });
