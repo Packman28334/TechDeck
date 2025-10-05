@@ -64,10 +64,51 @@
         <h1>Create cue...</h1>
         <input type="text" placeholder="Description" id="new-cue-description">
         <input type="text" placeholder="Notes" id="new-cue-notes">
+
+        <button class="text-button" onclick="toggleDialog('add-command-dialog');">Add Command</button>
+
         <div class="button-row">
             <button class="text-button" onclick="closeDialog('create-cue-dialog');">Cancel</button>
             <button class="text-button primary" onclick="show?.addCueFromDialog(); closeDialog('create-cue-dialog');">Create</button>
         </div>
+    </div>
+
+    <div class="dialog closed" id="add-command-dialog">
+        <h1>Add command...</h1>
+
+        <div class="subsystem-tab-bar">
+            <input type="radio" id="radio-mixer-tab" name="subsystem-tab" checked />
+            <label class="subsystem-tab" for="radio-mixer-tab"><h5>Mixer</h5></label>
+            <input type="radio" id="radio-lights-tab" name="subsystem-tab" />
+            <label class="subsystem-tab" for="radio-lights-tab"><h5>Lights</h5></label>
+            <input type="radio" id="radio-spotlight-tab" name="subsystem-tab" />
+            <label class="subsystem-tab" for="radio-spotlight-tab"><h5>Spotlight</h5></label>
+            <input type="radio" id="radio-audio-tab" name="subsystem-tab" />
+            <label class="subsystem-tab" for="radio-audio-tab"><h5>Audio</h5></label>
+            <input type="radio" id="radio-scenery-tab" name="subsystem-tab" />
+            <label class="subsystem-tab" for="radio-scenery-tab"><h5>Scenery</h5></label>
+            <div class="tab-selector"></div>
+        </div>
+
+        <div class="available-commands">
+            <!-- TODO: switch from divs to buttons -->
+
+            <button class="available-command mixer-command"><p>Enable channels</p></button>
+            <button class="available-command mixer-command"><p>Disable channels</p></button>
+            <button class="available-command mixer-command"><p>Set faders on channels</p></button>
+            <button class="available-command mixer-command"><p>Mute group</p></button>
+            <button class="available-command mixer-command"><p>Unmute group</p></button>
+
+            <button class="available-command lights-command"><p>Jump to cue</p></button>
+            <button class="available-command lights-command"><p>Switch playback</p></button>
+
+            <button class="available-command spotlight-command"><p>Change guide</p></button>
+
+            <button class="available-command audio-command"><p>Play</p></button>
+            <button class="available-command audio-command"><p>Stop</p></button>
+        </div>
+
+        <button class="text-button" onclick="closeDialog('add-command-dialog');">Cancel</button>
     </div>
 
     <div class="dialog closed" id="quit-dialog">

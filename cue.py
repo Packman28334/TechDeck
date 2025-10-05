@@ -7,7 +7,6 @@ if TYPE_CHECKING:
 
 class Cue:
     def __init__(self, description: str, commands: list[dict], notes: str = "", blackout: bool = False):
-        print(description, notes)
         self.description: str = description
         self.notes: str = notes
         self.commands: list[dict] = commands

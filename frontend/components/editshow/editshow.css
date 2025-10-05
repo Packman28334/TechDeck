@@ -145,3 +145,152 @@
 #create-cue-dialog > input[type=text] {
     width: 90%;
 }
+
+#add-command-dialog {
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: flex-start;
+    align-items: stretch;
+}
+
+.subsystem-tab-bar {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-evenly;
+    align-items: center;
+
+    height: 1.5em;
+
+    padding: 0.25em 0.25em 0.25em 0.25em;
+
+    border-radius: 8px;
+
+    background-color: #212121;
+}
+
+.subsystem-tab {
+    padding-left: 0.75em;
+    padding-right: 0.75em;
+
+    border-radius: 8px;
+
+    width: 3.75em;
+
+    cursor: pointer;
+}
+
+.subsystem-tab > h5 {
+    position: relative; /* just for the z-index */
+    text-align: center;
+    line-height: 1.5em; /* we leave exactly 1.5em of space for this line, thus it must be vertically centered https://css-tricks.com/centering-css-complete-guide/ */
+    margin-top: 0px;
+    margin-bottom: 0px;
+    z-index: 1001;
+}
+
+.tab-selector {
+    position: absolute;
+
+    width: 3.75em;
+    height: 1.5em;
+
+    padding-left: 0.75em;
+    padding-right: 0.75em;
+
+    border-radius: 8px;
+
+    background-color: #333333;
+
+    transition: transform 0.2s ease-in-out;
+}
+
+input[type=radio] {
+    display: none;
+}
+
+.subsystem-tab-bar input#radio-mixer-tab:checked ~ .tab-selector {
+    transform: translateX(-200%);
+}
+
+.subsystem-tab-bar input#radio-lights-tab:checked ~ .tab-selector {
+    transform: translateX(-100%);
+}
+
+.subsystem-tab-bar input#radio-spotlight-tab:checked ~ .tab-selector {
+    transform: translateX(0);
+}
+
+.subsystem-tab-bar input#radio-audio-tab:checked ~ .tab-selector {
+    transform: translateX(100%);
+}
+
+.subsystem-tab-bar input#radio-scenery-tab:checked ~ .tab-selector {
+    transform: translateX(200%);
+}
+
+.available-commands {
+    overflow-y: auto;
+    margin-top: 0.5em;
+}
+
+.available-command {
+    background-color: transparent;
+    border: none;
+    width: 100%;
+    padding: 0.5em 0.5em 0.5em 0.5em;
+    border-radius: 8px;
+    transition: background-color 0.1s ease-in-out;
+}
+
+.available-command:hover {
+    background-color: #212121;
+}
+
+.available-command:active {
+    background-color: #333333;
+}
+
+.available-command p {
+    margin: 0px;
+    text-align: start;
+}
+
+.available-command.mixer-command {
+    display: none;
+}
+
+.available-command.lights-command {
+    display: none;
+}
+
+.available-command.spotlight-command {
+    display: none;
+}
+
+.available-command.audio-command {
+    display: none;
+}
+
+.available-command.scenery-command {
+    display: none;
+}
+
+#add-command-dialog:has(input#radio-mixer-tab:checked) .available-command.mixer-command {
+    display: block;
+}
+
+#add-command-dialog:has(input#radio-lights-tab:checked) .available-command.lights-command {
+    display: block;
+}
+
+#add-command-dialog:has(input#radio-spotlight-tab:checked) .available-command.spotlight-command {
+    display: block;
+}
+
+#add-command-dialog:has(input#radio-audio-tab:checked) .available-command.audio-command {
+    display: block;
+}
+
+#add-command-dialog:has(input#radio-scenery-tab:checked) .available-command.scenery-command {
+    display: block;
+}

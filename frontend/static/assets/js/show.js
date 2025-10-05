@@ -78,7 +78,7 @@ socket.on("cue_list_changed", (data) => {
         data["cue_list"].forEach(cue => {
             index++;
 
-            row = document.createElement("divnot (child..clas");
+            row = document.createElement("div");
             row.classList.add("row");
 
             row.innerHTML = `
