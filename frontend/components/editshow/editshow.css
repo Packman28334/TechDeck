@@ -142,10 +142,6 @@
     width: 33%;
 }
 
-#create-cue-dialog > input[type=text] {
-    width: 90%;
-}
-
 #add-command-dialog {
     display: flex;
     flex-flow: column nowrap;
@@ -209,23 +205,27 @@ input[type=radio] {
 }
 
 .subsystem-tab-bar input#radio-mixer-tab:checked ~ .tab-selector {
-    transform: translateX(-200%);
+    transform: translateX(-250%);
 }
 
 .subsystem-tab-bar input#radio-lights-tab:checked ~ .tab-selector {
-    transform: translateX(-100%);
+    transform: translateX(-150%);
 }
 
 .subsystem-tab-bar input#radio-spotlight-tab:checked ~ .tab-selector {
-    transform: translateX(0);
+    transform: translateX(-50%);
 }
 
 .subsystem-tab-bar input#radio-audio-tab:checked ~ .tab-selector {
-    transform: translateX(100%);
+    transform: translateX(50%);
 }
 
 .subsystem-tab-bar input#radio-scenery-tab:checked ~ .tab-selector {
-    transform: translateX(200%);
+    transform: translateX(150%);
+}
+
+.subsystem-tab-bar input#radio-misc-tab:checked ~ .tab-selector {
+    transform: translateX(250%);
 }
 
 .available-commands {
@@ -275,6 +275,10 @@ input[type=radio] {
     display: none;
 }
 
+.available-command.misc-command {
+    display: none;
+}
+
 #add-command-dialog:has(input#radio-mixer-tab:checked) .available-command.mixer-command {
     display: block;
 }
@@ -293,4 +297,16 @@ input[type=radio] {
 
 #add-command-dialog:has(input#radio-scenery-tab:checked) .available-command.scenery-command {
     display: block;
+}
+
+#add-command-dialog:has(input#radio-misc-tab:checked) .available-command.misc-command {
+    display: block;
+}
+
+#configure-command-dialog {
+    width: 45%;
+}
+
+#configure-command-dialog > #command-field-container {
+    width: 100%;
 }

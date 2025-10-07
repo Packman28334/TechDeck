@@ -23,11 +23,46 @@ class Show {
         var description = getShadowDOM().getElementById("new-cue-description").value;
         var notes = getShadowDOM().getElementById("new-cue-notes").value;
 
-        socket.emit("add_cue", {"description": description, "notes": notes, "blackout": false, "commands": []})
+        socket.emit("add_cue", {"description": description, "notes": notes, "blackout": false, "commands": cueConfiguredCommands});
     }
 }
 
 var show = undefined;
+
+var configureCommandNewCueMode = false;
+var cueConfiguredCommands = [];
+var currentCommandType = "";
+var currentCommandId = "";
+
+function populateConfigureCueDialog(commandType) {
+    currentCommandType = commandType;
+    commandFieldContainer = getShadowDOM().getElementById("command-field-container");
+    switch(commandType) {
+        case "mixer.enable_channels":
+            commandFieldContainer.innerHTML = `<input type="text" placeholder="Space-separated list of channels to enable" name="channels">`;
+            break;
+        case "mixer.disable_channels":
+            commandFieldContainer.innerHTML = `<input type="text" placeholder="Space-separated list of channels to disable" name="channels">`;
+            break;
+    }
+}
+
+function configureCommand() {
+    var commandConfiguration = Object.fromEntries(new FormData(getShadowDOM().getElementById("command-field-container")).entries());
+
+    commandConfiguration["subsystem"] = currentCommandType.split(".")[0];
+    commandConfiguration["action"] = currentCommandType.split(".")[1];
+    commandConfiguration["id"] = window.crypto.randomUUID();
+
+    if (configureCommandNewCueMode) {
+        cueConfiguredCommands.push(commandConfiguration);
+        closeDialog("configure-command-dialog");
+        closeDialog("add-command-dialog");
+    } else {
+        cueConfiguredCommands.find((command) => {command["id"] == currentCommandId})[0] = commandConfiguration;
+        closeDialog("configure-command-dialog");
+    }
+}
 
 socket.on("is_show_loaded", (state) => {
     if (state["master_node_present"]) {

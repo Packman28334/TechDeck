@@ -52,22 +52,39 @@ class MixerSubsystem:
             return
         match command["action"]:
             case "enable_channels": # Turns on any Input/Output Channel 
+                if isinstance(command["channels"], str):
+                    channels: list = command["channels"].split(" ")
+                else:
+                    channels: list = command["channels"]
                 requests = []
-                for channel in command["channels"]:
+                for channel in channels:
                     channel_type, channel_number = self.identify_channel(channel)
                     requests.append(f"set MIXER:Current/{channel_type}/Fader/On {channel_number} 0 1")
                 self.send_requests(requests)
 
             case "disable_channels": # Turns off any Input/Output Channel 
+                if isinstance(command["channels"], str):
+                    channels: list = command["channels"].split(" ")
+                else:
+                    channels: list = command["channels"]
                 requests = []
-                for channel in command["channels"]:
+                for channel in channels:
                     channel_type, channel_number = self.identify_channel(channel)
                     requests.append(f"set MIXER:Current/{channel_type}/Fader/On {channel_number} 0 0")
                 self.send_requests(requests)
 
             case "set_faders_on_channels":
+                if isinstance(command["channels"], str):
+                    pairs: dict[str, float | str] = {}
+                    for pair in command["channels"].split(" "):
+                        value: float | str = pair.split("=")[1]
+                        if value != "-inf":
+                            value = float(value)
+                        pairs[pair.split("=")[0]] = value
+                    else:
+                        pairs: dict[str, float | str] = command["channels"]
                 requests = []
-                for channel, value in command["channels"].items(): # ex. command["channels"] = {0: -inf, 5: -5, 8: 0, 17: -138} - provide a value in decibels from -138 to 10, or -inf
+                for channel, value in pairs.items(): # ex. command["channels"] = {0: -inf, 5: -5, 8: 0, 17: -138} - provide a value in decibels from -138 to 10, or -inf
                     channel_type, channel_number = self.identify_channel(channel)
                     requests.append(f"set MIXER:Current/{channel_type}/Fader/Level {channel_number} 0 {-32768 if value == '-inf' else value*100}")
                 self.send_requests(requests)

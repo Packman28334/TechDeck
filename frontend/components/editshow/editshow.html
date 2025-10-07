@@ -87,28 +87,39 @@
             <label class="subsystem-tab" for="radio-audio-tab"><h5>Audio</h5></label>
             <input type="radio" id="radio-scenery-tab" name="subsystem-tab" />
             <label class="subsystem-tab" for="radio-scenery-tab"><h5>Scenery</h5></label>
+            <input type="radio" id="radio-misc-tab" name="subsystem-tab" />
+            <label class="subsystem-tab" for="radio-misc-tab"><h5>Misc.</h5></label>
             <div class="tab-selector"></div>
         </div>
 
         <div class="available-commands">
-            <!-- TODO: switch from divs to buttons -->
+            <button class="available-command mixer-command" onclick="configureCommandNewCueMode=true; populateConfigureCueDialog('mixer.enable_channels'); openDialog('configure-command-dialog');"><p>Enable channels</p></button>
+            <button class="available-command mixer-command" onclick="configureCommandNewCueMode=true; populateConfigureCueDialog('mixer.disable_channels'); openDialog('configure-command-dialog');"><p>Disable channels</p></button>
+            <button class="available-command mixer-command" onclick="configureCommandNewCueMode=true; populateConfigureCueDialog('mixer.set_faders_on_channels'); openDialog('configure-command-dialog');"><p>Set faders on channels</p></button>
+            <button class="available-command mixer-command" onclick="configureCommandNewCueMode=true; populateConfigureCueDialog('mixer.mute_group'); openDialog('configure-command-dialog');"><p>Mute group</p></button>
+            <button class="available-command mixer-command" onclick="configureCommandNewCueMode=true; populateConfigureCueDialog('mixer.unmute_group'); openDialog('configure-command-dialog');"><p>Unmute group</p></button>
 
-            <button class="available-command mixer-command"><p>Enable channels</p></button>
-            <button class="available-command mixer-command"><p>Disable channels</p></button>
-            <button class="available-command mixer-command"><p>Set faders on channels</p></button>
-            <button class="available-command mixer-command"><p>Mute group</p></button>
-            <button class="available-command mixer-command"><p>Unmute group</p></button>
+            <button class="available-command lights-command" onclick="configureCommandNewCueMode=true; populateConfigureCueDialog('lights.jump_to_cue'); openDialog('configure-command-dialog');"><p>Jump to cue</p></button>
+            <button class="available-command lights-command" onclick="configureCommandNewCueMode=true; populateConfigureCueDialog('lights.switch_playback'); openDialog('configure-command-dialog');"><p>Switch playback</p></button>
 
-            <button class="available-command lights-command"><p>Jump to cue</p></button>
-            <button class="available-command lights-command"><p>Switch playback</p></button>
+            <button class="available-command spotlight-command" onclick="configureCommandNewCueMode=true; populateConfigureCueDialog('spotlight.change_guide'); openDialog('configure-command-dialog');"><p>Change guide</p></button>
 
-            <button class="available-command spotlight-command"><p>Change guide</p></button>
-
-            <button class="available-command audio-command"><p>Play</p></button>
-            <button class="available-command audio-command"><p>Stop</p></button>
+            <button class="available-command audio-command" onclick="configureCommandNewCueMode=true; populateConfigureCueDialog('audio.play'); openDialog('configure-command-dialog');"><p>Play</p></button>
+            <button class="available-command audio-command" onclick="configureCommandNewCueMode=true; populateConfigureCueDialog('audio.stop'); openDialog('configure-command-dialog');"><p>Stop</p></button>
         </div>
 
         <button class="text-button" onclick="closeDialog('add-command-dialog');">Cancel</button>
+    </div>
+
+    <div class="dialog closed" id="configure-command-dialog">
+        <h1>Configure command...</h1>
+
+        <form id="command-field-container"></form>
+
+        <div class="button-row">
+            <button class="text-button" onclick="closeDialog('configure-command-dialog');">Cancel</button>
+            <button class="text-button primary" onclick="configureCommand();">Configure</button>
+        </div>
     </div>
 
     <div class="dialog closed" id="quit-dialog">

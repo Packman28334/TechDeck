@@ -43,7 +43,7 @@ class Cue:
             match command["subsystem"]:
                 case "mixer":
                     self.show.mixer_subsystem.run_command(command)
-                case "lighting":
+                case "lights":
                     self.show.lighting_subsystem.run_command(command)
                 case "spotlight":
                     self.show.spotlight_subsystem.run_command(command)
