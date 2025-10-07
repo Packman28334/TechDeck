@@ -89,7 +89,7 @@ function populateConfigureCommandDialog(commandType) {
 }
 
 function populateCueCommandList() {
-    
+
 }
 
 socket.on("is_show_loaded", (state) => {
@@ -146,7 +146,7 @@ socket.on("cue_list_changed", (data) => {
 
             row.innerHTML = `
                 <div class="cell goto-button">
-                    <button class="icon-button">
+                    <button class="icon-button" onclick="socket.emit('jump_to_cue', $ID$);">
                         <span class="material-symbols-outlined">play_circle</span>
                     </button>
                 </div>
@@ -159,9 +159,9 @@ socket.on("cue_list_changed", (data) => {
                         <span class="material-symbols-outlined">edit</span>
                     </button>
                 </div>
-            `.replace("$DESCRIPTION$", cue["description"])
-            .replace("$NOTES$", cue["notes"])
-            .replace("$ID$", index);
+            `.replaceAll("$DESCRIPTION$", cue["description"])
+            .replaceAll("$NOTES$", cue["notes"])
+            .replaceAll("$ID$", index);
 
             cueTable.appendChild(row);
         });

@@ -35,8 +35,10 @@ class MixerSubsystem:
         #self.socket.recv(1500).decode()
 
     def identify_channel(self, channel: str) -> tuple[str, int]: # type, number
-        channel = str(channel) # just in case
-        if channel.startswith("ST"): # ST = Stereo
+        channel = str(channel).upper() # just in case
+        if channel.startswith("CH"): # CH = InCh = Input Channel
+            return "InCh", int(channel.removeprefix("CH"))-1
+        elif channel.startswith("ST"): # ST = Stereo
             return "StInCh", int(channel.removeprefix("ST"))
         elif channel.startswith("DCA"): # DCA = Groups
             return "DCA", int(channel.removeprefix("DCA"))

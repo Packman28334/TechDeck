@@ -1,2 +1,4 @@
 # Tech Deck
 Tech Deck is a work-in-progress piece of software which provides one unified cue list and trigger for Yamaha TF-series mixers and MagicQ lighting consoles, allowing for one single cue button to control your mix, call a lighting cue, play an audio file, and change an image on a projector. Tech Deck uses a FastAPI backend written in Python and includes a simple HTML/CSS/JS frontend.
+
+Tech Deck makes use of Socket.IO and Google Material Symbols. These are not owned by the maintainers of Tech Deck.

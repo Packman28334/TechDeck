@@ -35,7 +35,7 @@ def component(component: str):
                 const shadow = this.attachShadow({mode: "open"});
 
                 shadow.innerHTML = `
-                    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+                    <link href="/assets/css/material_symbols.css" rel="stylesheet" />
                     <link rel="stylesheet" href="/assets/css/global.css" />
                     <link rel="stylesheet" href="/component/$COMPONENT$.css" />
                     $CONTENT$
@@ -169,6 +169,13 @@ def add_cue(sid, data):
     global show
     if show:
         show.cue_list.append(Cue.deserialize(data))
+
+@sio.on("jump_to_cue") # jump to cue
+def jump_to_cue(sid, cue_index):
+    global show
+    print("jump to cue")
+    if show:
+        show.jump_to_cue(cue_index-1)
 
 app.mount("/", StaticFiles(directory="frontend/static"))
 

@@ -9,7 +9,8 @@ from config import DEBUG_MODE
 
 DEFAULT_CONFIGURATION = {
     "mixer_subsystem": {
-        "ip_address": "10.72.2.100",
+        #"ip_address": "10.72.2.100",
+        "ip_address": "192.168.0.200",
         "blackout_mute_group": 1
     },
     "lighting_subsystem": {
