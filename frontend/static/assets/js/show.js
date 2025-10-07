@@ -88,6 +88,10 @@ function populateConfigureCommandDialog(commandType) {
     }
 }
 
+function populateCueCommandList() {
+    
+}
+
 socket.on("is_show_loaded", (state) => {
     if (state["master_node_present"]) {
         if (state["loaded"]) {

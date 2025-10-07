@@ -139,10 +139,26 @@
 }
 
 #configure-cue-dialog {
-    width: 33%;
+    width: 35%;
+}
+
+.command-list {
+    width: 100%;
+}
+
+.command {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.command p {
+    font-size: 0.85em;
 }
 
 #add-command-dialog {
+    width: 40%;
     display: flex;
     flex-flow: column nowrap;
     justify-content: flex-start;
