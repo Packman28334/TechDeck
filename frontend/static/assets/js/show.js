@@ -19,22 +19,28 @@ class Show {
         socket.emit("blackout_change_state", {"action": "toggle"});
     }
 
-    addCueFromDialog() {
-        var description = getShadowDOM().getElementById("new-cue-description").value;
-        var notes = getShadowDOM().getElementById("new-cue-notes").value;
+    configureCue() {
+        var description = getShadowDOM().getElementById("configured-cue-description").value;
+        var notes = getShadowDOM().getElementById("configured-cue-notes").value;
 
-        socket.emit("add_cue", {"description": description, "notes": notes, "blackout": false, "commands": cueConfiguredCommands});
+        if (newCueMode) {
+            socket.emit("add_cue", {"description": description, "notes": notes, "blackout": false, "commands": cueConfiguredCommands});
+        } else {
+
+        }
     }
 }
 
 var show = undefined;
 
-var configureCommandNewCueMode = false;
+var newCueMode = false;
+var currentCueIndex = -1;
+var newCommandMode = false;
 var cueConfiguredCommands = [];
 var currentCommandType = "";
 var currentCommandId = "";
 
-function populateConfigureCueDialog(commandType) {
+function populateConfigureCommandDialog(commandType) {
     currentCommandType = commandType;
     commandFieldContainer = getShadowDOM().getElementById("command-field-container");
     switch(commandType) {
@@ -54,7 +60,7 @@ function configureCommand() {
     commandConfiguration["action"] = currentCommandType.split(".")[1];
     commandConfiguration["id"] = window.crypto.randomUUID();
 
-    if (configureCommandNewCueMode) {
+    if (newCommandMode) {
         cueConfiguredCommands.push(commandConfiguration);
         closeDialog("configure-command-dialog");
         closeDialog("add-command-dialog");
@@ -127,7 +133,7 @@ socket.on("cue_list_changed", (data) => {
                 <div class="cell description"><p>$DESCRIPTION$</p></div>
                 <div class="cell notes"><p>$NOTES$</p></div>
                 <div class="cell edit-button">
-                    <button class="icon-button">
+                    <button class="icon-button opens-dialog" onclick="newCueMode=false; toggleDialog('configure-cue-dialog');">
                         <span class="material-symbols-outlined">edit</span>
                     </button>
                 </div>
