@@ -4,6 +4,14 @@ class Show {
         this.title = title;
         this._blackout = false;
 
+        this.newCueMode = false;
+        this.configuringCueIndex = -1;
+        this.configuringCueCommands = [];
+
+        this.newCommandMode = false;
+        this.configuringCommandType = "";
+        this.configuringCommandId = "";
+
         socket.emit("get_cues");
     }
 
@@ -19,29 +27,56 @@ class Show {
         socket.emit("blackout_change_state", {"action": "toggle"});
     }
 
-    configureCue() {
+    addCue() {
+        this.newCueMode = true;
+    }
+
+    editCue() {
+        this.newCueMode = false;
+    }
+
+    applyCueConfiguration() {
         var description = getShadowDOM().getElementById("configured-cue-description").value;
         var notes = getShadowDOM().getElementById("configured-cue-notes").value;
 
-        if (newCueMode) {
-            socket.emit("add_cue", {"description": description, "notes": notes, "blackout": false, "commands": cueConfiguredCommands});
+        if (this.newCueMode) {
+            socket.emit("add_cue", {"description": description, "notes": notes, "blackout": false, "commands": this.configuringCueCommands});
         } else {
 
+        }
+    }
+
+    addCommand(commandType) {
+        this.newCommandMode = true;
+        this.configuringCommandType = commandType;
+        populateConfigureCommandDialog(commandType);
+    }
+
+    editCommand() {
+        this.newCommandMode = false;
+    }
+
+    applyCommandConfiguration() {
+        var commandConfiguration = Object.fromEntries(new FormData(getShadowDOM().getElementById("command-field-container")).entries());
+
+        commandConfiguration["subsystem"] = this.configuringCommandType.split(".")[0];
+        commandConfiguration["action"] = this.configuringCommandType.split(".")[1];
+        commandConfiguration["id"] = window.crypto.randomUUID();
+
+        if (this.newCommandMode) {
+            this.configuringCueCommands.push(commandConfiguration);
+            closeDialog("configure-command-dialog");
+            closeDialog("add-command-dialog");
+        } else {
+            this.configuringCueCommands.find((command) => {command["id"] == this.configuringCommandId})[0] = commandConfiguration;
+            closeDialog("configure-command-dialog");
         }
     }
 }
 
 var show = undefined;
 
-var newCueMode = false;
-var currentCueIndex = -1;
-var newCommandMode = false;
-var cueConfiguredCommands = [];
-var currentCommandType = "";
-var currentCommandId = "";
-
 function populateConfigureCommandDialog(commandType) {
-    currentCommandType = commandType;
     commandFieldContainer = getShadowDOM().getElementById("command-field-container");
     switch(commandType) {
         case "mixer.enable_channels":
@@ -50,23 +85,6 @@ function populateConfigureCommandDialog(commandType) {
         case "mixer.disable_channels":
             commandFieldContainer.innerHTML = `<input type="text" placeholder="Space-separated list of channels to disable" name="channels">`;
             break;
-    }
-}
-
-function configureCommand() {
-    var commandConfiguration = Object.fromEntries(new FormData(getShadowDOM().getElementById("command-field-container")).entries());
-
-    commandConfiguration["subsystem"] = currentCommandType.split(".")[0];
-    commandConfiguration["action"] = currentCommandType.split(".")[1];
-    commandConfiguration["id"] = window.crypto.randomUUID();
-
-    if (newCommandMode) {
-        cueConfiguredCommands.push(commandConfiguration);
-        closeDialog("configure-command-dialog");
-        closeDialog("add-command-dialog");
-    } else {
-        cueConfiguredCommands.find((command) => {command["id"] == currentCommandId})[0] = commandConfiguration;
-        closeDialog("configure-command-dialog");
     }
 }
 
@@ -133,7 +151,7 @@ socket.on("cue_list_changed", (data) => {
                 <div class="cell description"><p>$DESCRIPTION$</p></div>
                 <div class="cell notes"><p>$NOTES$</p></div>
                 <div class="cell edit-button">
-                    <button class="icon-button opens-dialog" onclick="newCueMode=false; toggleDialog('configure-cue-dialog');">
+                    <button class="icon-button opens-dialog" onclick="show?.editCue(); toggleDialog('configure-cue-dialog');">
                         <span class="material-symbols-outlined">edit</span>
                     </button>
                 </div>
