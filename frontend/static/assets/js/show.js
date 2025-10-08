@@ -4,6 +4,8 @@ class Show {
         this.title = title;
         this._blackout = false;
 
+        this.cues = [];
+
         this.newCueMode = false;
         this.configuringCueIndex = -1;
         this.configuringCueCommands = [];
@@ -29,10 +31,15 @@ class Show {
 
     addCue() {
         this.newCueMode = true;
+        this.configuringCueCommands = [];
+        populateCueCommandList();
     }
 
-    editCue() {
+    editCue(id) {
         this.newCueMode = false;
+        this.configuringCueIndex = id-1;
+        this.configuringCueCommands = this.cues[id-1]["commands"];
+        populateCueCommandList();
     }
 
     applyCueConfiguration() {
@@ -52,8 +59,13 @@ class Show {
         populateConfigureCommandDialog(commandType);
     }
 
-    editCommand() {
+    editCommand(commandId) {
         this.newCommandMode = false;
+        this.configuringCommandId = commandId;
+        var command = this.configuringCueCommands.find(command => command["id"] == commandId);
+        this.configuringCommandType = command["subsystem"] + "." + command["action"];
+        populateConfigureCommandDialog(this.configuringCommandType);
+        populateConfiguredCommandValues();
     }
 
     applyCommandConfiguration() {
@@ -65,10 +77,12 @@ class Show {
 
         if (this.newCommandMode) {
             this.configuringCueCommands.push(commandConfiguration);
+            populateCueCommandList();
             closeDialog("configure-command-dialog");
             closeDialog("add-command-dialog");
         } else {
-            this.configuringCueCommands.find((command) => {command["id"] == this.configuringCommandId})[0] = commandConfiguration;
+            this.configuringCueCommands[this.configuringCueCommands.findIndex(command => command["id"] == this.configuringCommandId)] = commandConfiguration;
+            populateCueCommandList();
             closeDialog("configure-command-dialog");
         }
     }
@@ -88,8 +102,67 @@ function populateConfigureCommandDialog(commandType) {
     }
 }
 
-function populateCueCommandList() {
+function populateConfiguredCommandValues() {
+    var commandFieldContainer = getShadowDOM().getElementById("command-field-container");
+    var command = show.configuringCueCommands.find(command => command["id"] == show.configuringCommandId);
+    switch(show.configuringCommandType) {
+        case "mixer.enable_channels":
+            commandFieldContainer.querySelector("input[name=channels]").value = command["channels"];
+            break;
+        case "mixer.disable_channels":
+            commandFieldContainer.querySelector("input[name=channels]").value = command["channels"];
+            break;
+    }
+}
 
+function formatCommandName(subsystem, action) {
+    var subsystemName = subsystem.at(0).toUpperCase() + subsystem.slice(1, subsystem.length);
+
+    var actionName = action.at(0).toUpperCase() + action.slice(1, action.length);
+
+    return subsystemName + ": " + actionName.replaceAll("_", " ");
+}
+
+function formatCommandParams(command) {
+    switch(command["subsystem"]) {
+        case "mixer":
+            switch(command["action"]) {
+                case "enable_channels":
+                    return command["channels"].split(" ").join(", ");
+                case "disable_channels":
+                    return command["channels"].split(" ").join(", ");
+            }
+            break;
+    }
+    return "";
+}
+
+function populateCueCommandList() {
+    commandList = getShadowDOMOf("editshow").querySelector(".command-list");
+
+    Array.from(commandList.children).forEach(child => {
+        commandList.removeChild(child);
+    });
+
+    show.configuringCueCommands.forEach(command => {
+        commandElement = document.createElement("div");
+        commandElement.classList.add("command");
+        commandElement.innerHTML = `
+            <p>$NAME$</p>
+            <p>$PARAMS$</p>
+            <div>
+                <button class="icon-button opens-dialog" onclick="show?.editCommand('$ID$'); openDialog('configure-command-dialog');">
+                    <span class="material-symbols-outlined">edit</span>
+                </button>
+                <button class="icon-button">
+                    <span class="material-symbols-outlined">delete</span>
+                </button>
+            </div>
+        `.replaceAll("$NAME$", formatCommandName(command["subsystem"], command["action"]))
+        .replaceAll("$PARAMS$", formatCommandParams(command))
+        .replaceAll("$ID$", command["id"]);
+        commandList.appendChild(commandElement);
+    });
 }
 
 socket.on("is_show_loaded", (state) => {
@@ -129,6 +202,8 @@ socket.on("blackout_state_changed", (data) => {
 
 socket.on("cue_list_changed", (data) => {
     if (show) {
+        show.cues = data["cue_list"];
+
         cueTable = getShadowDOMOf("editshow").querySelector(".cue-table");
         
         Array.from(cueTable.children).forEach(child => {
@@ -155,7 +230,7 @@ socket.on("cue_list_changed", (data) => {
                 <div class="cell description"><p>$DESCRIPTION$</p></div>
                 <div class="cell notes"><p>$NOTES$</p></div>
                 <div class="cell edit-button">
-                    <button class="icon-button opens-dialog" onclick="show?.editCue(); toggleDialog('configure-cue-dialog');">
+                    <button class="icon-button opens-dialog" onclick="show?.editCue($ID$); toggleDialog('configure-cue-dialog');">
                         <span class="material-symbols-outlined">edit</span>
                     </button>
                 </div>

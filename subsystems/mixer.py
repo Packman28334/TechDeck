@@ -38,8 +38,8 @@ class MixerSubsystem:
         channel = str(channel).upper() # just in case
         if channel.startswith("CH"): # CH = InCh = Input Channel
             return "InCh", int(channel.removeprefix("CH"))-1
-        elif channel.startswith("ST"): # ST = Stereo
-            return "StInCh", int(channel.removeprefix("ST"))
+        elif channel.startswith("STIN"): # STIN = Stereo In
+            return "StInCh", int(channel.removeprefix("STIN"))
         elif channel.startswith("DCA"): # DCA = Groups
             return "DCA", int(channel.removeprefix("DCA"))
         elif channel.startswith("MIX"): # MIX = Output
