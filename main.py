@@ -173,9 +173,11 @@ def add_cue(sid, data):
 @sio.on("jump_to_cue") # jump to cue
 def jump_to_cue(sid, cue_index):
     global show
-    print("jump to cue")
-    if show:
-        show.jump_to_cue(cue_index-1)
+    if p2p_network_manager.is_master_node:
+        if show:
+            show.jump_to_cue(cue_index-1)
+    else:
+        p2p_network_manager.master_node.send("jump_to_cue", cue_index)
 
 app.mount("/", StaticFiles(directory="frontend/static"))
 

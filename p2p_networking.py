@@ -9,7 +9,7 @@ from zeroconf import Zeroconf, ServiceBrowser, ServiceListener, ServiceInfo
 from pathlib import Path
 from socketio import SimpleClient, AsyncServer
 from threading import Thread
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from config import PREFERRED_ADAPTER, DEBUG_MODE, SOCKETIO_LOGGING
 
@@ -177,7 +177,8 @@ class P2PNetworkManager:
                 self.fallback_master = random.choice(self.peers) # pick a new fallback master
 
             self.broadcast_to_servers("master_node", {"master_uuid": self.master_node.uuid if self.master_node else "", "fallback_master_uuid": self.fallback_master.uuid if self.fallback_master else ""})
-            self.broadcast_to_client("master_node", {"master_uuid": self.master_node.uuid if self.master_node else "", "fallback_master_uuid": self.fallback_master.uuid if self.fallback_master else ""})
+        
+        self.broadcast_to_client("master_node", {"master_uuid": self.master_node.uuid if self.master_node else "", "fallback_master_uuid": self.fallback_master.uuid if self.fallback_master else ""})
 
         if DEBUG_MODE:
             print(f"Master node: {self.master_node.hostname if self.master_node else 'None'}")
@@ -187,14 +188,14 @@ class P2PNetworkManager:
     def is_master_node(self):
         return self.master_node == self.host
 
-    def broadcast_to_servers(self, event: str, data: dict | None = None) -> None:
+    def broadcast_to_servers(self, event: str, data: Any | None = None) -> None:
         for peer in self.peers:
             if data:
                 peer.send(event, data)
             else:
                 peer.send(event)
 
-    def broadcast_to_client(self, event: str, data: dict | None = None) -> None:
+    def broadcast_to_client(self, event: str, data: Any | None = None) -> None:
         try:
             asyncio.get_running_loop()
             if data:
@@ -207,7 +208,7 @@ class P2PNetworkManager:
             else:
                 asyncio.run(self.sio.emit(event))
 
-    async def broadcast_to_client_async(self, event: str, data: dict | None = None) -> None:
+    async def broadcast_to_client_async(self, event: str, data: Any | None = None) -> None:
         if data:
             await self.sio.emit(event, data)
         else:

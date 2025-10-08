@@ -80,6 +80,7 @@ class CueList:
         self.cues = self.deserialize(cues)
         for cue in self.cues:
             cue.show = self.show
+        self._cues_changed()
 
     def serialize(self) -> list[dict]:
         out: list[dict] = []
