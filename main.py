@@ -168,7 +168,10 @@ async def get_cues(sid, data=None):
 def add_cue(sid, data):
     global show
     if show:
-        show.cue_list.append(Cue.deserialize(data))
+        if p2p_network_manager.is_master_node:
+            show.cue_list.append(Cue.deserialize(data))
+        else:
+            p2p_network_manager.master_node.send("add_cue", data)
 
 @sio.on("jump_to_cue") # jump to cue
 def jump_to_cue(sid, cue_index):
