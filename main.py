@@ -173,12 +173,30 @@ def add_cue(sid, data):
         else:
             p2p_network_manager.master_node.send("add_cue", data)
 
+@sio.on("edit_cue") # edit a cue at an index
+def edit_cue(sid, data):
+    global show
+    if show:
+        if p2p_network_manager.is_master_node:
+            show.cue_list[data["index"]] = Cue.deserialize(data["cue"])
+        else:
+            p2p_network_manager.master_node.send("edit_cue", data)
+
+@sio.on("delete_cue") # delete cue at an index
+def delete_cue(sid, index):
+    global show
+    if show:
+        if p2p_network_manager.is_master_node:
+            show.cue_list.pop(index)
+        else:
+            p2p_network_manager.master_node.send("delete_cue", index)
+
 @sio.on("jump_to_cue") # jump to cue
 def jump_to_cue(sid, cue_index):
     global show
     if p2p_network_manager.is_master_node:
         if show:
-            show.jump_to_cue(cue_index-1)
+            show.jump_to_cue(cue_index)
     else:
         p2p_network_manager.master_node.send("jump_to_cue", cue_index)
 

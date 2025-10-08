@@ -37,9 +37,10 @@ class Show {
 
     editCue(id) {
         this.newCueMode = false;
-        this.configuringCueIndex = id-1;
-        this.configuringCueCommands = this.cues[id-1]["commands"];
+        this.configuringCueIndex = id;
+        this.configuringCueCommands = this.cues[id]["commands"];
         populateCueCommandList();
+        populateConfiguredCueValues();
     }
 
     applyCueConfiguration() {
@@ -49,8 +50,12 @@ class Show {
         if (this.newCueMode) {
             socket.emit("add_cue", {"description": description, "notes": notes, "blackout": false, "commands": this.configuringCueCommands});
         } else {
-
+            socket.emit("edit_cue", {"index": this.configuringCueIndex, "cue": {"description": description, "notes": notes, "blackout": false, "commands": this.configuringCueCommands}});
         }
+    }
+
+    deleteCue() {
+        socket.emit("delete_cue", this.configuringCueIndex);
     }
 
     addCommand(commandType) {
@@ -85,6 +90,11 @@ class Show {
             populateCueCommandList();
             closeDialog("configure-command-dialog");
         }
+    }
+
+    removeCommand(commandId) {
+        this.configuringCueCommands = this.configuringCueCommands.filter(command => command["id"] != commandId);
+        populateCueCommandList();
     }
 }
 
@@ -154,7 +164,7 @@ function populateCueCommandList() {
                 <button class="icon-button opens-dialog" onclick="show?.editCommand('$ID$'); openDialog('configure-command-dialog');">
                     <span class="material-symbols-outlined">edit</span>
                 </button>
-                <button class="icon-button">
+                <button class="icon-button opens-dialog" onclick="show?.removeCommand('$ID$');">
                     <span class="material-symbols-outlined">delete</span>
                 </button>
             </div>
@@ -163,6 +173,14 @@ function populateCueCommandList() {
         .replaceAll("$ID$", command["id"]);
         commandList.appendChild(commandElement);
     });
+}
+
+function populateConfiguredCueValues() {
+    var description = getShadowDOMOf("editshow").getElementById("configured-cue-description");
+    var notes = getShadowDOMOf("editshow").getElementById("configured-cue-notes");
+
+    description.value = show.cues[show.configuringCueIndex]["description"];
+    notes.value = show.cues[show.configuringCueIndex]["notes"];
 }
 
 socket.on("is_show_loaded", (state) => {
@@ -214,8 +232,6 @@ socket.on("cue_list_changed", (data) => {
 
         var index = 0;
         data["cue_list"].forEach(cue => {
-            index++;
-
             row = document.createElement("div");
             row.classList.add("row");
 
@@ -226,7 +242,7 @@ socket.on("cue_list_changed", (data) => {
                     </button>
                 </div>
                 <div class="cell select-checkbox"><input type="checkbox"></div>
-                <div class="cell cue-id"><p>$ID$</p></div>
+                <div class="cell cue-id"><p>$DISPLAY_ID$</p></div>
                 <div class="cell description"><p>$DESCRIPTION$</p></div>
                 <div class="cell notes"><p>$NOTES$</p></div>
                 <div class="cell edit-button">
@@ -236,9 +252,12 @@ socket.on("cue_list_changed", (data) => {
                 </div>
             `.replaceAll("$DESCRIPTION$", cue["description"])
             .replaceAll("$NOTES$", cue["notes"])
-            .replaceAll("$ID$", index);
+            .replaceAll("$ID$", index)
+            .replaceAll("$DISPLAY_ID$", index+1);
 
             cueTable.appendChild(row);
+
+            index++;
         });
     }
 });
