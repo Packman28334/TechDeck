@@ -77,6 +77,10 @@
     background-color: #333333;
 }
 
+.cue-table .row.active {
+    background-color: var(--light-purple);
+}
+
 .cue-table .row.header {
     background-color: #121212;
     border-radius: 12px 12px 0px 0px;

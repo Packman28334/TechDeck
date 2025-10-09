@@ -37,6 +37,14 @@ class CueList:
             self.show.save(self.show.title)
             self.show.p2p_network_manager.broadcast_to_client("cue_list_changed", {"cue_list": self.serialize()})
 
+    def _single_cue_changed(self, index: int):
+        if self.show:
+            if self.show.p2p_network_manager.is_master_node:
+                self.show.p2p_network_manager.broadcast_to_servers("cue_edited", {"index": index, "cue": self.cues[index].serialize()})
+            self.cues[index].show = self.show # make sure the cue has a show reference
+            self.show.save(self.show.title)
+            self.show.p2p_network_manager.broadcast_to_client("cue_edited", {"index": index, "cue": self.cues[index].serialize()})
+
     def __str__(self) -> str:
         return str([str(cue) for cue in self.cues])
 
@@ -45,7 +53,7 @@ class CueList:
     
     def __setitem__(self, index: int, value: Cue):
         self.cues[index] = value
-        self._cues_changed()
+        self._single_cue_changed(index)
 
     def __len__(self) -> int:
         return len(self.cues)
