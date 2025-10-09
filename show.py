@@ -140,6 +140,8 @@ class Show:
         if self.current_cue > len(self.cue_list)-1:
             self.current_cue = 0
         self.cue_list[self.current_cue].call()
+        self.p2p_network_manager.broadcast_to_servers("current_cue_changed", self.current_cue)
+        self.p2p_network_manager.broadcast_to_client("current_cue_changed", self.current_cue)
         return self.current_cue
 
     def previous_cue(self):
@@ -149,15 +151,20 @@ class Show:
         if self.current_cue < 0:
             self.current_cue = len(self.cue_list)-1
         self.cue_list[self.current_cue].call()
+        self.p2p_network_manager.broadcast_to_servers("current_cue_changed", self.current_cue)
+        self.p2p_network_manager.broadcast_to_client("current_cue_changed", self.current_cue)
         return self.current_cue
 
     def jump_to_cue(self, index: int):
+        print(f"jump to {index}")
         if not self.p2p_network_manager.is_master_node:
             return
         if index > len(self.cue_list)-1 or index < 0:
             return self.current_cue
         self.current_cue = index
         self.cue_list[self.current_cue].call()
+        self.p2p_network_manager.broadcast_to_servers("current_cue_changed", self.current_cue)
+        self.p2p_network_manager.broadcast_to_client("current_cue_changed", self.current_cue)
         return self.current_cue
 
     def update_polling_tasks(self):

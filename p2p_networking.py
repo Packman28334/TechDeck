@@ -38,15 +38,15 @@ class Peer:
                 self.send("selected_show", {"title": self.network_manager.show.title})
                 self.send("blackout_state_changed", {"new_state": self.network_manager.show.blackout})
                 self.send("cue_list_changed", {"cue_list": self.network_manager.show.cue_list.serialize()})
-                self.send("current_cue_changed", {"current_cue": self.network_manager.show.current_cue})
+                self.send("current_cue_changed", self.network_manager.show.current_cue)
                 # TODO: synchronize subsystem states
                 # TODO: synchronize audio and background libraries
                 # TODO: synchronize things like timed cues
 
-    def send(self, event: str, data: dict | None = None):
+    def send(self, event: str, data: Any | None = None):
         if DEBUG_MODE:
             print(f"Sending peer {self.hostname} message {event}: {data}")
-        if data:
+        if data != None:
             self.sio.emit(event, data)
         else:
             self.sio.emit(event)
@@ -65,7 +65,7 @@ class Host: # implements Peer class for the host for simplicity
         self.hostname: str = self.network_manager.get_hostname()
         self.uuid: str = self.network_manager.uuid
     
-    def send(self, event: str, data: dict | None = None):
+    def send(self, event: str, data: Any | None = None):
         pass
 
     def close(self):
@@ -190,25 +190,29 @@ class P2PNetworkManager:
 
     def broadcast_to_servers(self, event: str, data: Any | None = None) -> None:
         for peer in self.peers:
-            if data:
+            if data != None:
                 peer.send(event, data)
             else:
                 peer.send(event)
 
     def broadcast_to_client(self, event: str, data: Any | None = None) -> None:
+        if DEBUG_MODE:
+            print(f"Sending client message {event}: {data}")
         try:
             asyncio.get_running_loop()
-            if data:
+            if data != None:
                 asyncio.create_task(self.sio.emit(event, data))
             else:
                 asyncio.create_task(self.sio.emit(event))
         except RuntimeError:
-            if data:
+            if data != None:
                 asyncio.run(self.sio.emit(event, data))
             else:
                 asyncio.run(self.sio.emit(event))
 
     async def broadcast_to_client_async(self, event: str, data: Any | None = None) -> None:
+        if DEBUG_MODE:
+            print(f"Sending client message {event}: {data}")
         if data:
             await self.sio.emit(event, data)
         else:

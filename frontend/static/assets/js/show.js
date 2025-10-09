@@ -5,6 +5,7 @@ class Show {
         this._blackout = false;
 
         this.cues = [];
+        this.currentCue = -1;
 
         this.newCueMode = false;
         this.configuringCueIndex = -1;
@@ -15,6 +16,7 @@ class Show {
         this.configuringCommandId = "";
 
         socket.emit("get_cues");
+        socket.emit("get_current_cue");
     }
 
     get blackout() {
@@ -100,28 +102,49 @@ class Show {
 
 var show = undefined;
 
-function populateConfigureCommandDialog(commandType) {
-    commandFieldContainer = getShadowDOM().getElementById("command-field-container");
-    switch(commandType) {
-        case "mixer.enable_channels":
-            commandFieldContainer.innerHTML = `<input type="text" placeholder="Space-separated list of channels to enable" name="channels">`;
-            break;
-        case "mixer.disable_channels":
-            commandFieldContainer.innerHTML = `<input type="text" placeholder="Space-separated list of channels to disable" name="channels">`;
-            break;
-    }
-}
+function populateCueTable() {
+    if (show) {
+        cueTable = getShadowDOMOf("editshow").querySelector(".cue-table");
+        
+        Array.from(cueTable.children).forEach(child => {
+            if (!child.classList.contains("header")) {
+                cueTable.removeChild(child);
+            }
+        });
 
-function populateConfiguredCommandValues() {
-    var commandFieldContainer = getShadowDOM().getElementById("command-field-container");
-    var command = show.configuringCueCommands.find(command => command["id"] == show.configuringCommandId);
-    switch(show.configuringCommandType) {
-        case "mixer.enable_channels":
-            commandFieldContainer.querySelector("input[name=channels]").value = command["channels"];
-            break;
-        case "mixer.disable_channels":
-            commandFieldContainer.querySelector("input[name=channels]").value = command["channels"];
-            break;
+        var index = 0;
+        show.cues.forEach(cue => {
+            row = document.createElement("div");
+            row.classList.add("row");
+
+            if (index == show.currentCue) {
+                row.classList.add("active");
+            }
+
+            row.innerHTML = `
+                <div class="cell goto-button">
+                    <button class="icon-button" onclick="socket.emit('jump_to_cue', $ID$);">
+                        <span class="material-symbols-outlined">play_circle</span>
+                    </button>
+                </div>
+                <div class="cell select-checkbox"><input type="checkbox"></div>
+                <div class="cell cue-id"><p>$DISPLAY_ID$</p></div>
+                <div class="cell description"><p>$DESCRIPTION$</p></div>
+                <div class="cell notes"><p>$NOTES$</p></div>
+                <div class="cell edit-button">
+                    <button class="icon-button opens-dialog" onclick="show?.editCue($ID$); toggleDialog('configure-cue-dialog');">
+                        <span class="material-symbols-outlined">edit</span>
+                    </button>
+                </div>
+            `.replaceAll("$DESCRIPTION$", cue["description"])
+            .replaceAll("$NOTES$", cue["notes"])
+            .replaceAll("$ID$", index)
+            .replaceAll("$DISPLAY_ID$", index+1);
+
+            cueTable.appendChild(row);
+
+            index++;
+        });
     }
 }
 
@@ -183,6 +206,31 @@ function populateConfiguredCueValues() {
     notes.value = show.cues[show.configuringCueIndex]["notes"];
 }
 
+function populateConfigureCommandDialog(commandType) {
+    commandFieldContainer = getShadowDOM().getElementById("command-field-container");
+    switch(commandType) {
+        case "mixer.enable_channels":
+            commandFieldContainer.innerHTML = `<input type="text" placeholder="Space-separated list of channels to enable" name="channels">`;
+            break;
+        case "mixer.disable_channels":
+            commandFieldContainer.innerHTML = `<input type="text" placeholder="Space-separated list of channels to disable" name="channels">`;
+            break;
+    }
+}
+
+function populateConfiguredCommandValues() {
+    var commandFieldContainer = getShadowDOM().getElementById("command-field-container");
+    var command = show.configuringCueCommands.find(command => command["id"] == show.configuringCommandId);
+    switch(show.configuringCommandType) {
+        case "mixer.enable_channels":
+            commandFieldContainer.querySelector("input[name=channels]").value = command["channels"];
+            break;
+        case "mixer.disable_channels":
+            commandFieldContainer.querySelector("input[name=channels]").value = command["channels"];
+            break;
+    }
+}
+
 socket.on("is_show_loaded", (state) => {
     if (state["master_node_present"]) {
         if (state["loaded"]) {
@@ -195,28 +243,6 @@ socket.on("is_show_loaded", (state) => {
         loadPageview("nomaster");
     }
 });
-
-function formatCue(cue, index) {
-    return `
-                <div class="cell goto-button">
-                    <button class="icon-button" onclick="socket.emit('jump_to_cue', $ID$);">
-                        <span class="material-symbols-outlined">play_circle</span>
-                    </button>
-                </div>
-                <div class="cell select-checkbox"><input type="checkbox"></div>
-                <div class="cell cue-id"><p>$DISPLAY_ID$</p></div>
-                <div class="cell description"><p>$DESCRIPTION$</p></div>
-                <div class="cell notes"><p>$NOTES$</p></div>
-                <div class="cell edit-button">
-                    <button class="icon-button opens-dialog" onclick="show?.editCue($ID$); toggleDialog('configure-cue-dialog');">
-                        <span class="material-symbols-outlined">edit</span>
-                    </button>
-                </div>
-            `.replaceAll("$DESCRIPTION$", cue["description"])
-            .replaceAll("$NOTES$", cue["notes"])
-            .replaceAll("$ID$", index)
-            .replaceAll("$DISPLAY_ID$", index+1);
-}
 
 socket.on("master_node", (data) => {
     if (currentPageview == "nomaster" && data["master_uuid"]) {
@@ -243,33 +269,20 @@ socket.on("blackout_state_changed", (data) => {
 socket.on("cue_list_changed", (data) => {
     if (show) {
         show.cues = data["cue_list"];
-
-        cueTable = getShadowDOMOf("editshow").querySelector(".cue-table");
-        
-        Array.from(cueTable.children).forEach(child => {
-            if (!child.classList.contains("header")) {
-                cueTable.removeChild(child);
-            }
-        });
-
-        var index = 0;
-        data["cue_list"].forEach(cue => {
-            row = document.createElement("div");
-            row.classList.add("row");
-            row.innerHTML = formatCue(cue, index);
-            cueTable.appendChild(row);
-            index++;
-        });
+        populateCueTable();
     }
 });
 
 socket.on("cue_edited", (data) => {
     if (show) {
         show.cues[data["index"]] = data["cue"];
+        populateCueTable(); // TODO: re-optimize since i just unoptimized it for "cleanliness" (make it not repopulate the entire table for a single cue)
+    }
+});
 
-        cueTable = getShadowDOMOf("editshow").querySelector(".cue-table");
-
-        // index+1 because of the header row
-        cueTable.children[index+1].innerHTML = formatCue(data["cue"], data["index"]);
+socket.on("current_cue_changed", (index) => {
+    if (show) {
+        show.currentCue = index;
+        populateCueTable(); // TODO: actually code properly instead of just remaking the entire table on each cue change
     }
 });

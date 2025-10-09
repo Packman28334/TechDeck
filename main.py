@@ -146,10 +146,11 @@ def cue_list_changed(sid, data):
         show.cue_list.deserialize_to_self(data["cue_list"])
 
 @sio.on("current_cue_changed") # update local backend and client with current cue
-def current_cue_changed(sid, data):
+async def current_cue_changed(sid, index):
     global show
     if show:
-        show.current_cue = data["current_cue"]
+        show.current_cue = index
+        await p2p_network_manager.broadcast_to_client_async("current_cue_changed", index)
 
 @sio.on("cue_edited") # update local backend and client with new data for cue
 def cue_edited(sid, data):
@@ -163,6 +164,13 @@ async def get_cues(sid, data=None):
     if show:
         p2p_network_manager.broadcast_to_servers("cue_list_changed", {"cue_list": show.cue_list.serialize()})
         await p2p_network_manager.broadcast_to_client_async("cue_list_changed", {"cue_list": show.cue_list.serialize()})
+
+@sio.on("get_current_cue") # broadcast the current cue
+async def get_current_cue(sid, data=None):
+    global show
+    if show:
+        p2p_network_manager.broadcast_to_servers("current_cue_changed", show.current_cue)
+        await p2p_network_manager.broadcast_to_client_async("current_cue_changed", show.current_cue)
 
 @sio.on("add_cue") # add a cue to the list
 def add_cue(sid, data):
