@@ -3,7 +3,7 @@ import zipfile, shutil, pathlib, json, os
 
 from cue_list import CueList
 from cue import Cue
-from subsystems import MixerSubsystem, LightingSubsystem, SpotlightSubsystem, AudioSubsystem, BackgroundsSubsystem
+from subsystems import MixerSubsystem, LightingSubsystem, SpotlightSubsystem, AudioSubsystem, ScenerySubsystem
 from p2p_networking import p2p_network_manager, P2PNetworkManager
 from config import DEBUG_MODE
 
@@ -20,7 +20,7 @@ DEFAULT_CONFIGURATION = {
     },
     "spotlight_subsystem": {},
     "audio_subsystem": {},
-    "backgrounds_subsystem": {}
+    "scenery_subsystem": {}
 }
 
 class Show:
@@ -39,7 +39,7 @@ class Show:
         self.lighting_subsystem: LightingSubsystem = LightingSubsystem(**configuration["lighting_subsystem"])
         self.spotlight_subsystem: SpotlightSubsystem = SpotlightSubsystem(**configuration["spotlight_subsystem"])
         self.audio_subsystem: AudioSubsystem = AudioSubsystem(**configuration["audio_subsystem"])
-        self.backgrounds_subsystem: BackgroundsSubsystem = BackgroundsSubsystem(**configuration["backgrounds_subsystem"])
+        self.scenery_subsystem: ScenerySubsystem = ScenerySubsystem(**configuration["scenery_subsystem"])
 
     @classmethod
     def new(cls, title: str):
@@ -79,7 +79,7 @@ class Show:
             "lighting_subsystem": self.lighting_subsystem.get_configuration(),
             "spotlight_subsystem": self.spotlight_subsystem.get_configuration(),
             "audio_subsystem": self.audio_subsystem.get_configuration(),
-            "backgrounds_subsystem": self.backgrounds_subsystem.get_configuration()
+            "scenery_subsystem": self.scenery_subsystem.get_configuration()
         }
 
     def save(self, filename: str, backup: bool = False):
@@ -111,7 +111,7 @@ class Show:
         self.mixer_subsystem.enter_blackout()
         self.lighting_subsystem.enter_blackout()
         self.spotlight_subsystem.enter_blackout()
-        self.backgrounds_subsystem.enter_blackout()
+        self.scenery_subsystem.enter_blackout()
         self.blackout = True
         self.p2p_network_manager.broadcast_to_servers("blackout_state_changed", {"new_state": True})
         if DEBUG_MODE:
@@ -126,7 +126,7 @@ class Show:
         self.mixer_subsystem.exit_blackout()
         self.lighting_subsystem.exit_blackout()
         self.spotlight_subsystem.exit_blackout()
-        self.backgrounds_subsystem.exit_blackout()
+        self.scenery_subsystem.exit_blackout()
         self.blackout = False
         self.p2p_network_manager.broadcast_to_servers("blackout_state_changed", {"new_state": False})
         if DEBUG_MODE:

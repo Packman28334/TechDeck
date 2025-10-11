@@ -1,5 +1,5 @@
 
-class BackgroundsSubsystem:
+class ScenerySubsystem:
     def __init__(self):
         pass
 

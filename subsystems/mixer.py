@@ -83,19 +83,19 @@ class MixerSubsystem:
                         if value != "-inf":
                             value = float(value)
                         pairs[pair.split("=")[0]] = value
-                    else:
-                        pairs: dict[str, float | str] = command["channels"]
+                else:
+                    pairs: dict[str, float | str] = command["channels"]
                 requests = []
                 for channel, value in pairs.items(): # ex. command["channels"] = {0: -inf, 5: -5, 8: 0, 17: -138} - provide a value in decibels from -138 to 10, or -inf
                     channel_type, channel_number = self.identify_channel(channel)
-                    requests.append(f"set MIXER:Current/{channel_type}/Fader/Level {channel_number} 0 {-32768 if value == '-inf' else value*100}")
+                    requests.append(f"set MIXER:Current/{channel_type}/Fader/Level {channel_number} 0 {-32768 if value == '-inf' else int(value*100)}")
                 self.send_requests(requests)
                 
             case "mute_group":
-                self.send_requests([f"set MIXER:Current/MuteMaster/On {command['mute_group']-1} 0 1"])
+                self.send_requests([f"set MIXER:Current/MuteMaster/On {int(command['mute_group'])-1} 0 1"])
 
             case "unmute_group":
-                self.send_requests([f"set MIXER:Current/MuteMaster/On {command['mute_group']-1} 0 0"])
+                self.send_requests([f"set MIXER:Current/MuteMaster/On {int(command['mute_group'])-1} 0 0"])
 
             case "change_scene":
                 pass # TODO

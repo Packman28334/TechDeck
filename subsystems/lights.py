@@ -38,10 +38,10 @@ class LightingSubsystem:
             return
         match command["action"]:
             case "jump_to_cue":
-                self.client.send_message(f"/pb/{self.playback}/{command['cue']}", 1.0)
-                self.current_cue: float = command['cue']
+                self.client.send_message(f"/pb/{self.playback}/{float(command['cue'])}", 1.0)
+                self.current_cue: float = float(command['cue'])
             
             case "switch_playback":
                 self.client.send_message(f"/pb/{self.playback}", 0.0)
-                self.playback = command['playback']
+                self.playback = int(command['playback'])
                 self.client.send_message(f"/pb/{self.playback}", 0.0 if "start_in_blackout" in command and command["start_in_blackout"] else 1.0)

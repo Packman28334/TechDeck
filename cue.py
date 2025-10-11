@@ -49,8 +49,8 @@ class Cue:
                     self.show.spotlight_subsystem.run_command(command)
                 case "audio":
                     self.show.audio_subsystem.run_command(command)
-                case "backgrounds":
-                    self.show.backgrounds_subsystem.run_command(command)
+                case "scenery":
+                    self.show.scenery_subsystem.run_command(command)
                 case other:
                     print(f"Unknown subsystem {other} in command")
 

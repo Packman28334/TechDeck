@@ -215,6 +215,24 @@ function populateConfigureCommandDialog(commandType) {
         case "mixer.disable_channels":
             commandFieldContainer.innerHTML = `<input type="text" placeholder="Space-separated list of channels to disable" name="channels">`;
             break;
+        case "mixer.set_faders_on_channels":
+            commandFieldContainer.innerHTML = `<input type="text" placeholder="Space-separated list of channels=desired values" name="channels">`;
+            break;
+        case "mixer.mute_group":
+            commandFieldContainer.innerHTML = `<input type="text" placeholder="Numerical ID of mute group to mute" name="mute_group">`;
+            break;
+        case "mixer.unmute_group":
+            commandFieldContainer.innerHTML = `<input type="text" placeholder="Numerical ID of mute group to unmute" name="mute_group">`;
+            break;
+        case "lights.jump_to_cue":
+            commandFieldContainer.innerHTML = `<input type="text" placeholder="ID of cue to jump to" name="cue">`;
+            break;
+        case "lights.switch_playback":
+            commandFieldContainer.innerHTML = `<input type="text" placeholder="ID of playback to switch to" name="playback">`;
+            break;
+        case "spotlight.change_guide":
+            commandFieldContainer.innerHTML = `<input type="text" placeholder="New guide message" name="guide">`;
+            break;
     }
 }
 
