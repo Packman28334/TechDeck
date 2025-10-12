@@ -143,7 +143,7 @@
 }
 
 #configure-cue-dialog {
-    width: 35%;
+    width: 50%;
 }
 
 .command-list {
@@ -162,7 +162,7 @@
 }
 
 #add-command-dialog {
-    width: 40%;
+    width: 55%;
     display: flex;
     flex-flow: column nowrap;
     justify-content: flex-start;
@@ -325,7 +325,7 @@ input[type=radio] {
 }
 
 #configure-command-dialog {
-    width: 45%;
+    width: 60%;
 }
 
 #configure-command-dialog > #command-field-container {

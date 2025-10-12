@@ -164,6 +164,26 @@ function formatCommandParams(command) {
                     return command["channels"].split(" ").join(", ");
                 case "disable_channels":
                     return command["channels"].split(" ").join(", ");
+                case "set_faders_on_channels":
+                    return command["channels"].toUpperCase().split(" ").join("dB, ").concat("dB").replaceAll("=", " = ");
+                case "mute_group":
+                    return command["mute_group"];
+                case "unmute_group":
+                    return command["mute_group"];
+            }
+            break;
+        case "lights":
+            switch(command["action"]) {
+                case "jump_to_cue":
+                    return command["cue"];
+                case "switch_playback":
+                    return "PB" + command["playback"];
+            }
+            break;
+        case "spotlight":
+            switch(command["action"]) {
+                case "change_guide":
+                    return '"' + command["guide"] + '"';
             }
             break;
     }
@@ -245,6 +265,24 @@ function populateConfiguredCommandValues() {
             break;
         case "mixer.disable_channels":
             commandFieldContainer.querySelector("input[name=channels]").value = command["channels"];
+            break;
+        case "mixer.set_faders_on_channels":
+            commandFieldContainer.querySelector("input[name=channels]").value = command["channels"];
+            break;
+        case "mixer.mute_group":
+            commandFieldContainer.querySelector("input[name=mute_group]").value = command["mute_group"];
+            break;
+        case "mixer.unmute_group":
+            commandFieldContainer.querySelector("input[name=mute_group]").value = command["mute_group"];
+            break;
+        case "lights.jump_to_cue":
+            commandFieldContainer.querySelector("input[name=cue]").value = command["cue"];
+            break;
+        case "lights.switch_playback":
+            commandFieldContainer.querySelector("input[name=playback]").value = command["playback"];
+            break;
+        case "spotlight.change_guide":
+            commandFieldContainer.querySelector("input[name=guide]").value = command["guide"];
             break;
     }
 }
