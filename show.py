@@ -156,7 +156,6 @@ class Show:
         return self.current_cue
 
     def jump_to_cue(self, index: int):
-        print(f"jump to {index}")
         if not self.p2p_network_manager.is_master_node:
             return
         if index > len(self.cue_list)-1 or index < 0:

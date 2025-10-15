@@ -186,6 +186,14 @@ function formatCommandParams(command) {
                     return '"' + command["guide"] + '"';
             }
             break;
+        case "audio":
+            switch(command["action"]) {
+                case "play":
+                    return "Track #"+command["index"];
+                case "stop":
+                    return "";
+            }
+            break;
     }
     return "";
 }
@@ -239,19 +247,34 @@ function populateConfigureCommandDialog(commandType) {
             commandFieldContainer.innerHTML = `<input type="text" placeholder="Space-separated list of channels=desired values" name="channels">`;
             break;
         case "mixer.mute_group":
-            commandFieldContainer.innerHTML = `<input type="text" placeholder="Numerical ID of mute group to mute" name="mute_group">`;
+            commandFieldContainer.innerHTML = `<input type="number" placeholder="Numerical ID of mute group to mute" name="mute_group">`;
             break;
         case "mixer.unmute_group":
-            commandFieldContainer.innerHTML = `<input type="text" placeholder="Numerical ID of mute group to unmute" name="mute_group">`;
+            commandFieldContainer.innerHTML = `<input type="number" placeholder="Numerical ID of mute group to unmute" name="mute_group">`;
             break;
         case "lights.jump_to_cue":
-            commandFieldContainer.innerHTML = `<input type="text" placeholder="ID of cue to jump to" name="cue">`;
+            commandFieldContainer.innerHTML = `<input type="number" placeholder="ID of cue to jump to" name="cue">`;
             break;
         case "lights.switch_playback":
-            commandFieldContainer.innerHTML = `<input type="text" placeholder="ID of playback to switch to" name="playback">`;
+            commandFieldContainer.innerHTML = `<input type="number" placeholder="ID of playback to switch to" name="playback">`;
             break;
         case "spotlight.change_guide":
             commandFieldContainer.innerHTML = `<input type="text" placeholder="New guide message" name="guide">`;
+            break;
+        case "audio.play":
+            // here we go
+            commandFieldContainer.innerHTML = `
+                <input type="number" placeholder="Index of the desired track" name="index">
+                <input type="number" placeholder="*Desired number of loops, if any (-1 for infinite)" name="loops">
+                <input type="number" placeholder="*Start time (seconds)" name="start_time">
+                <input type="number" placeholder="*Stop time (seconds)" name="stop_time">
+                <input type="number" placeholder="*Fade in (ms)" name="fade_in">
+                <input type="number" placeholder="*Fade out (ms) - only if stop time is set" name="fade_out">
+            `;
+            // sorry.
+            break;
+        case "audio.stop":
+            commandFieldContainer.innerHTML = `<input type="number" placeholder="*Fade out(ms)" name="fade_out">`;
             break;
     }
 }
@@ -283,6 +306,17 @@ function populateConfiguredCommandValues() {
             break;
         case "spotlight.change_guide":
             commandFieldContainer.querySelector("input[name=guide]").value = command["guide"];
+            break;
+        case "audio.play":
+            commandFieldContainer.querySelector("input[name=index]").value = command["index"];
+            commandFieldContainer.querySelector("input[name=loops]").value = command["loops"];
+            commandFieldContainer.querySelector("input[name=start_time]").value = command["start_time"];
+            commandFieldContainer.querySelector("input[name=stop_time]").value = command["stop_time"];
+            commandFieldContainer.querySelector("input[name=fade_in]").value = command["fade_in"];
+            commandFieldContainer.querySelector("input[name=fade_out]").value = command["fade_out"];
+            break;
+        case "audio.stop":
+            commandFieldContainer.querySelector("input[name=fade_out]").value = command["fade_out"];
             break;
     }
 }
