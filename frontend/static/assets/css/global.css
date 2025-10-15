@@ -87,6 +87,54 @@ input[type=text], input[type=number] {
     border-radius: 8px;
 }
 
+label.checkbox {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-start;
+    align-items: center;
+    cursor: pointer;
+}
+
+label.checkbox input {
+    position: absolute;
+    opacity: 0%;
+    width: 0px;
+    height: 0px;
+    cursor: pointer;
+}
+
+label.checkbox span {
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    background-color: #212121;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    transition: background-color 0.1s ease-in-out;
+}
+
+label.checkbox:hover span {
+    background-color: #333333;
+}
+
+label.checkbox input:checked ~ span {
+    background-color: var(--purple);
+}
+
+label.checkbox span::after {
+    content: "";
+    position: absolute;
+    transform: translateX(85%) translateY(15%) rotate(40deg) scaleX(0%) scaleY(0%);
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0px 2.5px 2.5px 0px;
+    transition: transform 0.1s ease-in-out;
+}
+
+label.checkbox input:checked ~ span::after {
+    transform: translateX(85%) translateY(15%) rotate(40deg) scaleX(100%) scaleY(100%);
+}
+
 .scaffold {
     width: 100dvw;
     height: 100dvh;

@@ -80,7 +80,7 @@ class Show {
 
         commandConfiguration["subsystem"] = this.configuringCommandType.split(".")[0];
         commandConfiguration["action"] = this.configuringCommandType.split(".")[1];
-        commandConfiguration["id"] = window.crypto.randomUUID();
+        commandConfiguration["id"] = window.crypto.randomUUID(); // i love forcing secure contexts for absolutely zero reason
 
         if (this.newCommandMode) {
             this.configuringCueCommands.push(commandConfiguration);
@@ -127,7 +127,7 @@ function populateCueTable() {
                         <span class="material-symbols-outlined">play_circle</span>
                     </button>
                 </div>
-                <div class="cell select-checkbox"><input type="checkbox"></div>
+                <div class="cell select-checkbox"><label class="checkbox"><input type="checkbox"><span></span></label></div>
                 <div class="cell cue-id"><p>$DISPLAY_ID$</p></div>
                 <div class="cell description"><p>$DESCRIPTION$</p></div>
                 <div class="cell notes"><p>$NOTES$</p></div>

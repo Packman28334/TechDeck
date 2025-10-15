@@ -113,18 +113,28 @@
 }
 
 .cue-table .row .cell.goto-button {
-    width: 2.25em;
-    height: 2.25em;
+    min-width: 2.25em;
+    min-height: 2.25em;
+    max-width: 2.25em;
+    max-height: 2.25em;
 }
 
 .cue-table .row .cell.select-checkbox {
-    width: 2.25em;
-    height: 2.25em;
+    min-width: 2.25em;
+    min-height: 2.25em;
+    max-width: 2.25em;
+    max-height: 2.25em;
+
+    justify-content: center;
 }
 
 .cue-table .row .cell.cue-id {
-    width: 3em;
-    height: 2.25em;
+    min-width: 3em;
+    min-height: 2.25em;
+    max-width: 3em;
+    max-height: 2.25em;
+
+    padding-left: 0.5em;
 }
 
 .cue-table .row .cell.description {
@@ -138,8 +148,10 @@
 }
 
 .cue-table .row .cell.edit-button {
-    width: 2.25em;
-    height: 2.25em;
+    min-width: 2.25em;
+    min-height: 2.25em;
+    max-width: 2.25em;
+    max-height: 2.25em;
 }
 
 #configure-cue-dialog {
