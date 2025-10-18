@@ -15,6 +15,8 @@ class Show {
         this.configuringCommandType = "";
         this.configuringCommandId = "";
 
+        this.selectedCues = [];
+
         socket.emit("get_cues");
         socket.emit("get_current_cue");
     }
@@ -29,6 +31,32 @@ class Show {
 
     toggleBlackout() {
         socket.emit("blackout_change_state", {"action": "toggle"});
+    }
+
+    setCueSelected(id, value) {
+        if (value) { // selected
+            if (!this.selectedCues.includes(id)) {
+                this.selectedCues.push(id);
+            }
+        } else { // unselected
+            if (this.selectedCues.includes(id)) {
+                this.selectedCues.splice(this.selectedCues.indexOf(id), 1);
+            }
+        }
+
+        if (getShadowDOMOf("editshow").querySelector(".cue-table").children.length-1 == this.selectedCues.length) { // if all cues are selected, enable the select all checkbox
+            getShadowDOMOf("editshow").querySelector(".cue-table .row.header .cell input[type=checkbox]").checked = true;
+        } else { // if not all cues are selected, then disable the select all checkbox
+            getShadowDOMOf("editshow").querySelector(".cue-table .row.header .cell input[type=checkbox]").checked = false;
+        }
+
+        if (show.selectedCues.length == 0) {
+            getShadowDOMOf("editshow").querySelector(".toolbar").setAttribute("class", "toolbar none-selected");
+        } else if (show.selectedCues.length == 1) {
+            getShadowDOMOf("editshow").querySelector(".toolbar").setAttribute("class", "toolbar one-selected");
+        } else {
+            getShadowDOMOf("editshow").querySelector(".toolbar").setAttribute("class", "toolbar multiple-selected");
+        }
     }
 
     addCue() {
@@ -56,8 +84,9 @@ class Show {
         }
     }
 
-    deleteCue() {
-        socket.emit("delete_cue", this.configuringCueIndex);
+    deleteCue(id) {
+        this.setCueSelected(id, false);
+        socket.emit("delete_cue", id);
     }
 
     addCommand(commandType) {
@@ -127,15 +156,10 @@ function populateCueTable() {
                         <span class="material-symbols-outlined">play_circle</span>
                     </button>
                 </div>
-                <div class="cell select-checkbox"><label class="checkbox"><input type="checkbox"><span></span></label></div>
+                <div class="cell select-checkbox"><label class="checkbox"><input type="checkbox" data-cue-id="$ID$"><span></span></label></div>
                 <div class="cell cue-id"><p>$DISPLAY_ID$</p></div>
                 <div class="cell description"><p>$DESCRIPTION$</p></div>
                 <div class="cell notes"><p>$NOTES$</p></div>
-                <div class="cell edit-button">
-                    <button class="icon-button opens-dialog" onclick="show?.editCue($ID$); toggleDialog('configure-cue-dialog');">
-                        <span class="material-symbols-outlined">edit</span>
-                    </button>
-                </div>
             `.replaceAll("$DESCRIPTION$", cue["description"])
             .replaceAll("$NOTES$", cue["notes"])
             .replaceAll("$ID$", index)
@@ -145,6 +169,23 @@ function populateCueTable() {
 
             index++;
         });
+
+        Array.from(cueTable.children).forEach((child) => {
+            if (child.classList.contains("header")) {
+                child.querySelector("input[type=checkbox]").addEventListener("change", (ev) => { // when we click the header's checkbox
+                    var desiredCheckboxState = ev.target.checked;
+                    Array.from(cueTable.children).forEach((child) => { // loop over all cues
+                        if (child.querySelector("input[type=checkbox]").checked != desiredCheckboxState) { // if the checkbox isn't what we want it to be,
+                            child.querySelector("input[type=checkbox]").click(); // click it (we want to trigger the change event on it)
+                        }
+                    });
+                });
+            } else {
+                child.querySelector("input[type=checkbox]").addEventListener("change", (ev) => { // when we click a normal checkbox
+                    show.setCueSelected(parseInt(ev.target.dataset.cueId), ev.target.checked); // update it
+                });
+            }
+        });        
     }
 }
 
