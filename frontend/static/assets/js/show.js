@@ -74,8 +74,8 @@ class Show {
     }
 
     applyCueConfiguration() {
-        var description = getShadowDOM().getElementById("configured-cue-description").value;
-        var notes = getShadowDOM().getElementById("configured-cue-notes").value;
+        var description = getShadowDOMOf("editshow").getElementById("configured-cue-description").value;
+        var notes = getShadowDOMOf("editshow").getElementById("configured-cue-notes").value;
 
         if (this.newCueMode) {
             socket.emit("add_cue", {"description": description, "notes": notes, "blackout": false, "commands": this.configuringCueCommands});
@@ -86,7 +86,18 @@ class Show {
 
     deleteCue(id) {
         this.setCueSelected(id, false);
+        for(let i=0; i<this.selectedCues.length; i++) { // for each other selected cue,
+            if (this.selectedCues[i] > id) { // if the cue id is higher than the cue we just deleted,
+                this.selectedCues[i]--; // decrease the id (so the selected cue id still refers to the cue)
+            }
+        }
         socket.emit("delete_cue", id);
+    }
+
+    deleteSelectedCues() {
+        while(this.selectedCues.length > 0) { // we can't do for or foreach since we're changing the array with each deletion
+            this.deleteCue(this.selectedCues[0]);
+        }
     }
 
     addCommand(commandType) {
@@ -105,7 +116,7 @@ class Show {
     }
 
     applyCommandConfiguration() {
-        var commandConfiguration = Object.fromEntries(new FormData(getShadowDOM().getElementById("command-field-container")).entries());
+        var commandConfiguration = Object.fromEntries(new FormData(getShadowDOMOf("editshow").getElementById("command-field-container")).entries());
 
         commandConfiguration["subsystem"] = this.configuringCommandType.split(".")[0];
         commandConfiguration["action"] = this.configuringCommandType.split(".")[1];
@@ -276,7 +287,7 @@ function populateConfiguredCueValues() {
 }
 
 function populateConfigureCommandDialog(commandType) {
-    commandFieldContainer = getShadowDOM().getElementById("command-field-container");
+    commandFieldContainer = getShadowDOMOf("editshow").getElementById("command-field-container");
     switch(commandType) {
         case "mixer.enable_channels":
             commandFieldContainer.innerHTML = `<input type="text" placeholder="Space-separated list of channels to enable" name="channels">`;
@@ -321,7 +332,7 @@ function populateConfigureCommandDialog(commandType) {
 }
 
 function populateConfiguredCommandValues() {
-    var commandFieldContainer = getShadowDOM().getElementById("command-field-container");
+    var commandFieldContainer = getShadowDOMOF("editshow").getElementById("command-field-container");
     var command = show.configuringCueCommands.find(command => command["id"] == show.configuringCommandId);
     switch(show.configuringCommandType) {
         case "mixer.enable_channels":
