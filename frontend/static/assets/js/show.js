@@ -292,9 +292,11 @@ function populateCueCommandList() {
 function populateConfiguredCueValues() {
     var description = getShadowDOMOf("editshow").getElementById("configured-cue-description");
     var notes = getShadowDOMOf("editshow").getElementById("configured-cue-notes");
+    var blackout = getShadowDOMOf("editshow").getElementById("configured-cue-blackout");
 
     description.value = show.cues[show.configuringCueIndex]["description"];
     notes.value = show.cues[show.configuringCueIndex]["notes"];
+    blackout.checked = show.cues[show.configuringCueIndex]["blackout"];
 }
 
 function populateConfigureCommandDialog(commandType) {

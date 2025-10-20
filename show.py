@@ -110,6 +110,7 @@ class Show:
         self.scenery_subsystem.enter_blackout()
         self.blackout = True
         self.p2p_network_manager.broadcast_to_servers("blackout_state_changed", {"new_state": True})
+        self.p2p_network_manager.broadcast_to_client("blackout_state_changed", {"new_state": True})
         if DEBUG_MODE:
             print("Entered blackout")
         return True
@@ -125,6 +126,7 @@ class Show:
         self.scenery_subsystem.exit_blackout()
         self.blackout = False
         self.p2p_network_manager.broadcast_to_servers("blackout_state_changed", {"new_state": False})
+        self.p2p_network_manager.broadcast_to_client("blackout_state_changed", {"new_state": False})
         if DEBUG_MODE:
             print("Exited blackout")
         return True
