@@ -76,11 +76,12 @@ class Show {
     applyCueConfiguration() {
         var description = getShadowDOMOf("editshow").getElementById("configured-cue-description").value;
         var notes = getShadowDOMOf("editshow").getElementById("configured-cue-notes").value;
+        var blackout = getShadowDOMOf("editshow").getElementById("configured-cue-blackout").checked;
 
         if (this.newCueMode) {
-            socket.emit("add_cue", {"description": description, "notes": notes, "blackout": false, "commands": this.configuringCueCommands});
+            socket.emit("add_cue", {"description": description, "notes": notes, "blackout": blackout, "commands": this.configuringCueCommands});
         } else {
-            socket.emit("edit_cue", {"index": this.configuringCueIndex, "cue": {"description": description, "notes": notes, "blackout": false, "commands": this.configuringCueCommands}});
+            socket.emit("edit_cue", {"index": this.configuringCueIndex, "cue": {"description": description, "notes": notes, "blackout": blackout, "commands": this.configuringCueCommands}});
         }
     }
 
@@ -171,6 +172,16 @@ function populateCueTable() {
                 <div class="cell cue-id"><p>$DISPLAY_ID$</p></div>
                 <div class="cell description"><p>$DESCRIPTION$</p></div>
                 <div class="cell notes"><p>$NOTES$</p></div>
+                <div class="cell edit-cue">
+                        <button class="icon-button opens-dialog" onclick="show?.editCue($ID$); toggleDialog('configure-cue-dialog');">
+                            <span class="material-symbols-outlined">edit</span>
+                        </button>
+                </div>
+                <div class="cell delete-cue">
+                        <button class="icon-button" onclick="show?.deleteCue($ID$);">
+                            <span class="material-symbols-outlined">delete</span>
+                        </button>
+                </div>
             `.replaceAll("$DESCRIPTION$", cue["description"])
             .replaceAll("$NOTES$", cue["notes"])
             .replaceAll("$ID$", index)

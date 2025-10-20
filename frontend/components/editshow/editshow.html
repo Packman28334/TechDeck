@@ -45,6 +45,8 @@
             <div class="cell cue-id"><p>ID</p></div>
             <div class="cell description"><p>Description</p></div>
             <div class="cell notes"><p>Notes</p></div>
+            <div class="cell edit-cue"></div>
+            <div class="cell delete-cue"></div>
         </div>
     </div>
 
@@ -52,6 +54,12 @@
         <h1>Configure cue...</h1>
         <input type="text" placeholder="Description" id="configured-cue-description">
         <input type="text" placeholder="Notes" id="configured-cue-notes">
+
+        <label class="checkbox">
+            <input type="checkbox" id="configured-cue-blackout">
+            <span></span>
+            <p>Blackout cue</p>
+        </label>
 
         <div class="command-list"></div>
 
