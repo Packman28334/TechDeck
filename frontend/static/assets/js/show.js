@@ -343,7 +343,7 @@ function populateConfigureCommandDialog(commandType) {
 }
 
 function populateConfiguredCommandValues() {
-    var commandFieldContainer = getShadowDOMOF("editshow").getElementById("command-field-container");
+    var commandFieldContainer = getShadowDOMOf("editshow").getElementById("command-field-container");
     var command = show.configuringCueCommands.find(command => command["id"] == show.configuringCommandId);
     switch(show.configuringCommandType) {
         case "mixer.enable_channels":

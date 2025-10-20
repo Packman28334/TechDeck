@@ -1,20 +1,18 @@
 import socket
 
-from config import DUMMY_MODE
+from config import DUMMY_MODE, MIXER_IP
 
 class MixerSubsystem:
-    def __init__(self, ip_address: str, blackout_mute_group: int):
-        self.ip_address: str = ip_address
+    def __init__(self, blackout_mute_group: int):
         self.blackout_mute_group: int = blackout_mute_group
         
         if not DUMMY_MODE:
             self.socket: socket.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.settimeout(5)
-            self.socket.connect((self.ip_address, 49280))
+            self.socket.connect((MIXER_IP, 49280))
 
     def get_configuration(self) -> dict:
         return {
-            "ip_address": self.ip_address,
             "blackout_mute_group": self.blackout_mute_group
         }
 

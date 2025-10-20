@@ -2,6 +2,11 @@
 DUMMY_MODE: bool = False # dummy mode will disable all connections to audiovisual equipment (sound mixer/lighting console)
 DISABLE_AUDIO: bool = False # will completely disable the audio subsystem for use on systems without a compatible audio service
 
+MIXER_IP: str = "192.168.0.200" # the IP address of the Yamaha TF-series mixer
+
+LIGHTING_IP: str = "192.168.0.201" # the IP address of the MagicQ lighting console
+LIGHTING_PORT_TX: int = 8000 # the port to transmit OSC on to the console
+
 DEBUG_MODE: bool = False # debug mode will enable additional console logging
 SOCKETIO_LOGGING: bool = False # even more logging, specifically for troubleshooting underlying SocketIO and EngineIO issues
 
