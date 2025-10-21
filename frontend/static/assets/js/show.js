@@ -9,6 +9,7 @@ class Show {
 
         this.newCueMode = false;
         this.configuringCueIndex = -1;
+        this.configuringCueUuid = "";
         this.configuringCueCommands = [];
 
         this.newCommandMode = false;
@@ -33,16 +34,17 @@ class Show {
         socket.emit("blackout_change_state", {"action": "toggle"});
     }
 
-    setCueSelected(id, value) {
-        if (value) { // selected
-            if (!this.selectedCues.includes(id)) {
-                this.selectedCues.push(id);
+    updateSelectedCues() {
+        show.selectedCues = [];
+
+        Array.from(getShadowDOMOf("editshow").querySelector(".cue-table").children).forEach((row) => {
+            if (!row.classList.contains("header")) {
+                var checkbox = row.querySelector(".select-checkbox input");
+                if (checkbox?.checked) {
+                    show.selectedCues.push(parseInt(checkbox.dataset.cueId));
+                }
             }
-        } else { // unselected
-            if (this.selectedCues.includes(id)) {
-                this.selectedCues.splice(this.selectedCues.indexOf(id), 1);
-            }
-        }
+        });
 
         if (getShadowDOMOf("editshow").querySelector(".cue-table").children.length-1 == this.selectedCues.length) { // if all cues are selected, enable the select all checkbox
             getShadowDOMOf("editshow").querySelector(".cue-table .row.header .cell input[type=checkbox]").checked = true;
@@ -61,6 +63,7 @@ class Show {
 
     addCue() {
         this.newCueMode = true;
+        this.configuringCueUuid = null;
         this.configuringCueCommands = [];
         populateCueCommandList();
     }
@@ -68,6 +71,7 @@ class Show {
     editCue(id) {
         this.newCueMode = false;
         this.configuringCueIndex = id;
+        this.configuringCueUuid = this.cues[id]["uuid"];
         this.configuringCueCommands = this.cues[id]["commands"];
         populateCueCommandList();
         populateConfiguredCueValues();
@@ -78,20 +82,16 @@ class Show {
         var notes = getShadowDOMOf("editshow").getElementById("configured-cue-notes").value;
         var blackout = getShadowDOMOf("editshow").getElementById("configured-cue-blackout").checked;
 
+        var uuid = this.configuringCueUuid ? this.configuringCueUuid : window.crypto.randomUUID(); // just embracing the secure contexts atp
+
         if (this.newCueMode) {
-            socket.emit("add_cue", {"description": description, "notes": notes, "blackout": blackout, "commands": this.configuringCueCommands});
+            socket.emit("add_cue", {"description": description, "notes": notes, "blackout": blackout, "uuid": uuid, "commands": this.configuringCueCommands});
         } else {
-            socket.emit("edit_cue", {"index": this.configuringCueIndex, "cue": {"description": description, "notes": notes, "blackout": blackout, "commands": this.configuringCueCommands}});
+            socket.emit("edit_cue", {"index": this.configuringCueIndex, "cue": {"description": description, "notes": notes, "blackout": blackout, "uuid": uuid, "commands": this.configuringCueCommands}});
         }
     }
 
     deleteCue(id) {
-        this.setCueSelected(id, false);
-        for(let i=0; i<this.selectedCues.length; i++) { // for each other selected cue,
-            if (this.selectedCues[i] > id) { // if the cue id is higher than the cue we just deleted,
-                this.selectedCues[i]--; // decrease the id (so the selected cue id still refers to the cue)
-            }
-        }
         socket.emit("delete_cue", id);
     }
 
@@ -147,9 +147,14 @@ function populateCueTable() {
     if (show) {
         cueTable = getShadowDOMOf("editshow").querySelector(".cue-table");
         
+        var selectedCueUuids = new Object();
+        var index = 0;
         Array.from(cueTable.children).forEach(child => {
             if (!child.classList.contains("header")) {
+                console.log(index);
+                selectedCueUuids[show.cues[index]["uuid"]] = child.querySelector(".select-checkbox input").checked;
                 cueTable.removeChild(child);
+                index++;
             }
         });
 
@@ -187,6 +192,10 @@ function populateCueTable() {
             .replaceAll("$ID$", index)
             .replaceAll("$DISPLAY_ID$", index+1);
 
+            if (Object.keys(selectedCueUuids).includes(cue["uuid"]) && selectedCueUuids[cue["uuid"]]) {
+                row.querySelector(".select-checkbox input").checked = true;
+            }
+
             cueTable.appendChild(row);
 
             index++;
@@ -195,19 +204,19 @@ function populateCueTable() {
         Array.from(cueTable.children).forEach((child) => {
             if (child.classList.contains("header")) {
                 child.querySelector("input[type=checkbox]").addEventListener("change", (ev) => { // when we click the header's checkbox
-                    var desiredCheckboxState = ev.target.checked;
-                    Array.from(cueTable.children).forEach((child) => { // loop over all cues
-                        if (child.querySelector("input[type=checkbox]").checked != desiredCheckboxState) { // if the checkbox isn't what we want it to be,
-                            child.querySelector("input[type=checkbox]").click(); // click it (we want to trigger the change event on it)
-                        }
+                    Array.from(getShadowDOMOf("editshow").querySelector(".cue-table").children).forEach((row) => {
+                        row.querySelector(".select-checkbox input").checked = ev.target.checked;
                     });
+                    show?.updateSelectedCues();
                 });
             } else {
                 child.querySelector("input[type=checkbox]").addEventListener("change", (ev) => { // when we click a normal checkbox
-                    show.setCueSelected(parseInt(ev.target.dataset.cueId), ev.target.checked); // update it
+                    show?.updateSelectedCues();
                 });
             }
-        });        
+        });
+
+        show?.updateSelectedCues();
     }
 }
 
