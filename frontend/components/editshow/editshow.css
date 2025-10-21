@@ -230,6 +230,10 @@
     max-width: 2.25em;
 }
 
+.cue-uuid {
+    display: none;
+}
+
 #configure-cue-dialog {
     width: 50%;
 }

@@ -46,7 +46,7 @@ class Show {
             }
         });
 
-        if (getShadowDOMOf("editshow").querySelector(".cue-table").children.length-1 == this.selectedCues.length) { // if all cues are selected, enable the select all checkbox
+        if (getShadowDOMOf("editshow").querySelector(".cue-table").children.length-1 == this.selectedCues.length && this.selectedCues.length != 0) { // if all cues are selected, enable the select all checkbox
             getShadowDOMOf("editshow").querySelector(".cue-table .row.header .cell input[type=checkbox]").checked = true;
         } else { // if not all cues are selected, then disable the select all checkbox
             getShadowDOMOf("editshow").querySelector(".cue-table .row.header .cell input[type=checkbox]").checked = false;
@@ -92,6 +92,9 @@ class Show {
     }
 
     deleteCue(id) {
+        // deselect cue before deleting because the deleteSelectedCues loop will crash under normal delay from waiting for a cue to actually be deleted
+        getShadowDOMOf("editshow").querySelector(".cue-table").children[id+1].querySelector(".select-checkbox input").checked = false;
+        this.updateSelectedCues();
         socket.emit("delete_cue", id);
     }
 
@@ -151,8 +154,7 @@ function populateCueTable() {
         var index = 0;
         Array.from(cueTable.children).forEach(child => {
             if (!child.classList.contains("header")) {
-                console.log(index);
-                selectedCueUuids[show.cues[index]["uuid"]] = child.querySelector(".select-checkbox input").checked;
+                selectedCueUuids[child.querySelector(".cue-uuid").textContent] = child.querySelector(".select-checkbox input").checked;
                 cueTable.removeChild(child);
                 index++;
             }
@@ -187,10 +189,12 @@ function populateCueTable() {
                             <span class="material-symbols-outlined">delete</span>
                         </button>
                 </div>
+                <p class="cue-uuid">$UUID$</p>
             `.replaceAll("$DESCRIPTION$", cue["description"])
             .replaceAll("$NOTES$", cue["notes"])
             .replaceAll("$ID$", index)
-            .replaceAll("$DISPLAY_ID$", index+1);
+            .replaceAll("$DISPLAY_ID$", index+1)
+            .replaceAll("$UUID$", cue["uuid"]);
 
             if (Object.keys(selectedCueUuids).includes(cue["uuid"]) && selectedCueUuids[cue["uuid"]]) {
                 row.querySelector(".select-checkbox input").checked = true;
