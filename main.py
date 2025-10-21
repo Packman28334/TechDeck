@@ -207,6 +207,24 @@ def jump_to_cue(sid, cue_index):
     else:
         p2p_network_manager.master_node.send("jump_to_cue", cue_index)
 
+@sio.on("move_cues_up") # move cues up
+def move_cues_up(sid, cues):
+    global show
+    if p2p_network_manager.is_master_node:
+        if show:
+            show.cue_list.move_multiple_up(cues, 1)
+    else:
+        p2p_network_manager.master_node.send("move_cues_up", cues)
+
+@sio.on("move_cues_down") # move cues down
+def move_cues_down(sid, cues):
+    global show
+    if p2p_network_manager.is_master_node:
+        if show:
+            show.cue_list.move_multiple_down(cues, 1)
+    else:
+        p2p_network_manager.master_node.send("move_cues_down", cues)
+
 app.mount("/", StaticFiles(directory="frontend/static"))
 
 if __name__ == '__main__':

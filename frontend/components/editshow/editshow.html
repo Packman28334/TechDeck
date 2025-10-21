@@ -15,22 +15,34 @@
 
     <div class="toolbar none-selected">
         <div class="toolbar-mode none-selected">
-            <button class="icon-button opens-dialog" onclick="show?.addCue(); toggleDialog('configure-cue-dialog');">
+            <button class="icon-button opens-dialog" title="Add cue..." onclick="show?.addCue(); toggleDialog('configure-cue-dialog');">
                 <span class="material-symbols-outlined">add</span>
             </button>
         </div>
 
         <div class="toolbar-mode one-selected">
-            <button class="icon-button opens-dialog" onclick="show?.editCue(show.selectedCues[0]); toggleDialog('configure-cue-dialog');">
+            <button class="icon-button opens-dialog" title="Edit cue..." onclick="show?.editCue(show.selectedCues[0]); toggleDialog('configure-cue-dialog');">
                 <span class="material-symbols-outlined">edit</span>
             </button>
-            <button class="icon-button" onclick="show?.deleteCue(show.selectedCues[0]);">
+            <button class="icon-button" title="Move cue up" onclick="socket.emit('move_cues_up', show.selectedCues);">
+                <span class="material-symbols-outlined">arrow_upward</span>
+            </button>
+            <button class="icon-button" title="Move cue down" onclick="socket.emit('move_cues_down', show.selectedCues);">
+                <span class="material-symbols-outlined">arrow_downward</span>
+            </button>
+            <button class="icon-button" title="Delete cue" onclick="show?.deleteCue(show.selectedCues[0]);">
                 <span class="material-symbols-outlined">delete</span>
             </button>
         </div>
 
         <div class="toolbar-mode multiple-selected">
-            <button class="icon-button" onclick="show?.deleteSelectedCues();">
+            <button class="icon-button" title="Move cues up" onclick="socket.emit('move_cues_up', show.selectedCues);">
+                <span class="material-symbols-outlined">arrow_upward</span>
+            </button>
+            <button class="icon-button" title="Move cues down" onclick="socket.emit('move_cues_down', show.selectedCues);">
+                <span class="material-symbols-outlined">arrow_downward</span>
+            </button>
+            <button class="icon-button" title="Delete cues" onclick="show?.deleteSelectedCues();">
                 <span class="material-symbols-outlined">delete</span>
             </button>
         </div>

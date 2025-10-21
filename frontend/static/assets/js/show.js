@@ -100,6 +100,7 @@ class Show {
 
     deleteSelectedCues() {
         while(this.selectedCues.length > 0) { // we can't do for or foreach since we're changing the array with each deletion
+            this.selectedCues.sort((a, b) => {a - b}).reverse(); // deletions cascade through indices, so we need to do descending order to prevent that. this also gets reset on every updateSelectedCues call, hence the loop
             this.deleteCue(this.selectedCues[0]);
         }
     }

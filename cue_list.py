@@ -104,15 +104,28 @@ class CueList:
         self.cues.insert(new_position, copy.deepcopy(self.cues[old_position]))
         self._cues_changed()
     
-    def move(self, old_position: int, new_position: int) -> None:
+    def move(self, old_position: int, new_position: int, _suppress_change: bool = False) -> None:
         if new_position > old_position:
             self.cues.insert(new_position-1, self.cues.pop(old_position))
         elif new_position < old_position:
             self.cues.insert(new_position+1, self.cues.pop(old_position))
+        if not _suppress_change:
+            self._cues_changed()
+
+    def move_up(self, position: int, amount: int, _suppress_change: bool = False) -> None:
+        self.move(position, position-amount-1, _suppress_change=_suppress_change)
+
+    def move_down(self, position: int, amount: int, _suppress_change: bool = False) -> None:
+        self.move(position, position+amount+1, _suppress_change=_suppress_change)
+
+    def move_multiple_up(self, positions: list[int], amount: int) -> None:
+        positions = sorted(positions)
+        for position in positions:
+            self.move_up(position, amount, _suppress_change=True)
         self._cues_changed()
 
-    def move_up(self, position: int, amount: int) -> None:
-        self.move(position, position-amount)
-
-    def move_down(self, position: int, amount: int) -> None:
-        self.move(position, position+amount)
+    def move_multiple_down(self, positions: list[int], amount: int) -> None:
+        positions = sorted(positions, reverse=True)
+        for position in positions:
+            self.move_down(position, amount, _suppress_change=True)
+        self._cues_changed()
