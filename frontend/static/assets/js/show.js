@@ -271,6 +271,14 @@ function formatCommandParams(command) {
                     return "";
             }
             break;
+        case "scenery":
+            switch(command["action"]) {
+                case "change_backdrop_to_image":
+                    return "Image #"+command["index"];
+                case "change_backdrop_to_video":
+                    return "Video #"+command["index"];
+            }
+            break;
     }
     return "";
 }
@@ -355,6 +363,12 @@ function populateConfigureCommandDialog(commandType) {
         case "audio.stop":
             commandFieldContainer.innerHTML = `<input type="number" placeholder="*Fade out(ms)" name="fade_out">`;
             break;
+        case "scenery.change_backdrop_to_image":
+            commandFieldContainer.innerHTML = `<input type="number" placeholder="Index of the desired image" name="index">`;
+            break;
+        case "scenery.change_backdrop_to_video":
+            commandFieldContainer.innerHTML = `<input type="number" placeholder="Index of the desired video" name="index">`;
+            break;
     }
 }
 
@@ -396,6 +410,12 @@ function populateConfiguredCommandValues() {
             break;
         case "audio.stop":
             commandFieldContainer.querySelector("input[name=fade_out]").value = command["fade_out"];
+            break;
+        case "scenery.change_backdrop_to_image":
+            commandFieldContainer.querySelector("input[name=index]").value = command["index"];
+            break;
+        case "scenery.change_backdrop_to_video":
+            commandFieldContainer.querySelector("input[name=index]").value = command["index"];
             break;
     }
 }
@@ -454,4 +474,8 @@ socket.on("current_cue_changed", (index) => {
         show.currentCue = index;
         populateCueTable(); // TODO: actually code properly instead of just remaking the entire table on each cue change
     }
+});
+
+socket.on("backdrop_changed", (data) => {
+    console.log(data);
 });

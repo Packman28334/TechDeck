@@ -116,6 +116,9 @@
 
             <button class="available-command audio-command" onclick="show?.addCommand('audio.play'); openDialog('configure-command-dialog');"><p>Play</p></button>
             <button class="available-command audio-command" onclick="show?.addCommand('audio.stop'); openDialog('configure-command-dialog');"><p>Stop</p></button>
+
+            <button class="available-command scenery-command" onclick="show?.addCommand('scenery.change_backdrop_to_image'); openDialog('configure-command-dialog');"><p>Change backdrop to image</p></button>
+            <button class="available-command scenery-command" onclick="show?.addCommand('scenery.change_backdrop_to_video'); openDialog('configure-command-dialog');"><p>Change backdrop to video</p></button>
         </div>
 
         <button class="text-button" onclick="closeDialog('add-command-dialog');">Cancel</button>

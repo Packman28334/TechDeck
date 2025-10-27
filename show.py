@@ -19,6 +19,11 @@ DEFAULT_CONFIGURATION = {
     "scenery_subsystem": {}
 }
 
+if os.path.exists("_working_show/") and os.path.isdir("_working_show/"):
+    shutil.rmtree("_working_show")
+os.mkdir("_working_show")
+os.mkdir("_working_show/backdrop_library") # this must exist for the StaticFiles to be mounted
+
 class Show:
     def __init__(self, title: str, cue_list: CueList, configuration: dict):
         self.title: str = title
@@ -35,7 +40,7 @@ class Show:
         self.lighting_subsystem: LightingSubsystem = LightingSubsystem(**configuration["lighting_subsystem"])
         self.spotlight_subsystem: SpotlightSubsystem = SpotlightSubsystem(**configuration["spotlight_subsystem"])
         self.audio_subsystem: AudioSubsystem = AudioSubsystem(**configuration["audio_subsystem"])
-        self.scenery_subsystem: ScenerySubsystem = ScenerySubsystem(**configuration["scenery_subsystem"])
+        self.scenery_subsystem: ScenerySubsystem = ScenerySubsystem(self.p2p_network_manager, **configuration["scenery_subsystem"])
 
     @classmethod
     def new(cls, title: str):
@@ -44,7 +49,7 @@ class Show:
             shutil.rmtree("_working_show/")
         os.mkdir("_working_show")
         os.mkdir("_working_show/audio_library")
-        os.mkdir("_working_show/backgrounds_library")
+        os.mkdir("_working_show/backdrop_library")
         pathlib.Path("_working_show/cue_list.json").write_text('{"cues": []}')
         pathlib.Path("_working_show/configuration.json").write_text(json.dumps(DEFAULT_CONFIGURATION))
         obj.save(title)

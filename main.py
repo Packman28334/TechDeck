@@ -225,6 +225,7 @@ def move_cues_down(sid, cues):
     else:
         p2p_network_manager.master_node.send("move_cues_down", cues)
 
+app.mount("/backdrops", StaticFiles(directory="_working_show/backdrop_library"))
 app.mount("/", StaticFiles(directory="frontend/static"))
 
 if __name__ == '__main__':
