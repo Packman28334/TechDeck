@@ -20,6 +20,7 @@ class Show {
 
         socket.emit("get_cues");
         socket.emit("get_current_cue");
+        socket.emit("get_current_backdrop");
     }
 
     get blackout() {
@@ -477,5 +478,16 @@ socket.on("current_cue_changed", (index) => {
 });
 
 socket.on("backdrop_changed", (data) => {
-    console.log(data);
+    let backdropContainer = getShadowDOMOf("scenery").querySelector(".backdrop-container");
+    backdropContainer.innerHTML = "";
+
+    if (data["is-video"]) {
+        backdropContainer.innerHTML = `
+            <video nocontrols autoplay loop muted>
+                <source src="/backdrops/${data['filename']}">
+            </video>
+        `
+    } else {
+        backdropContainer.innerHTML = `<img src="/backdrops/${data['filename']}">`;
+    }
 });

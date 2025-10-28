@@ -1,0 +1,10 @@
+
+.backdrop-container {
+    width: 100dvw;
+    height: 100dvh;
+}
+
+img, video {
+    width: 100%;
+    height: 100%;
+}

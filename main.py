@@ -225,6 +225,11 @@ def move_cues_down(sid, cues):
     else:
         p2p_network_manager.master_node.send("move_cues_down", cues)
 
+@sio.on("get_current_backdrop") # broadcast the current backdrop
+def get_current_backdrop(sid, data=None):
+    if show:
+        p2p_network_manager.broadcast_to_client("backdrop_changed", {"is-video": show.scenery_subsystem.is_video, "filename": show.scenery_subsystem.media_filename})
+
 app.mount("/backdrops", StaticFiles(directory="_working_show/backdrop_library"))
 app.mount("/", StaticFiles(directory="frontend/static"))
 
