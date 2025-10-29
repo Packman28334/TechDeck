@@ -481,7 +481,7 @@ socket.on("backdrop_changed", (data) => {
     let backdropContainer = getShadowDOMOf("scenery").querySelector(".backdrop-container");
     // if the source isn't new, don't reload
     if (data["is-video"]) {
-        if ("/backdrops/"+data["filename"] != backdropContainer.querySelector("source").src) {
+        if ("/backdrops/"+data["filename"] != backdropContainer.querySelector("source")?.src) {
             backdropContainer.innerHTML = "";
             backdropContainer.innerHTML = `
                 <video nocontrols autoplay loop muted>
@@ -490,7 +490,7 @@ socket.on("backdrop_changed", (data) => {
             `
         }
     } else {
-        if ("/backdrops/"+data["filename"] != backdropContainer.querySelector("img").src) {
+        if ("/backdrops/"+data["filename"] != backdropContainer.querySelector("img")?.src) {
             backdropContainer.innerHTML = "";
             backdropContainer.innerHTML = `<img src="/backdrops/${data['filename']}">`;
         }
