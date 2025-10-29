@@ -38,8 +38,8 @@ class Peer:
                 self.send("selected_show", {"title": self.network_manager.show.title})
                 self.send("blackout_state_changed", {"new_state": self.network_manager.show.blackout})
                 self.send("cue_list_changed", {"cue_list": self.network_manager.show.cue_list.serialize()})
-                self.send("current_cue_changed", self.network_manager.show.current_cue)
-                # TODO: synchronize subsystem states
+                self.send("current_cue_changed", {"index": self.network_manager.show.current_cue})
+                self.send("subsystem_state_changed", self.network_manager.show.accumulate_subsystem_states())
                 # TODO: synchronize audio and background libraries
                 # TODO: synchronize things like timed cues
 

@@ -83,6 +83,22 @@ class Show:
             "scenery_subsystem": self.scenery_subsystem.get_configuration()
         }
 
+    def accumulate_subsystem_states(self) -> dict:
+        return {
+            "mixer_subsystem": self.mixer_subsystem.state,
+            "lighting_subsystem": self.lighting_subsystem.state,
+            "spotlight_subsystem": self.spotlight_subsystem.state,
+            "audio_subsystem": self.audio_subsystem.state,
+            "scenery_subsystem": self.scenery_subsystem.state
+        }
+    
+    def update_subsystem_states(self, states: dict):
+        self.mixer_subsystem.state = states["mixer_subsystem"]
+        self.lighting_subsystem.state = states["lighting_subsystem"]
+        self.spotlight_subsystem.state = states["spotlight_subsystem"]
+        self.audio_subsystem.state = states["audio_subsystem"]
+        self.scenery_subsystem.state = states["scenery_subsystem"]
+
     def save(self, filename: str, backup: bool = False):
         if not os.path.exists("_working_show/"):
             return
@@ -136,15 +152,19 @@ class Show:
             print("Exited blackout")
         return True
 
+    def trigger_cue(self):
+        self.cue_list[self.current_cue].call()
+        self.p2p_network_manager.broadcast_to_servers("subsystem_state_changed", self.accumulate_subsystem_states())
+        self.p2p_network_manager.broadcast_to_servers("current_cue_changed", {"index": self.current_cue})
+        self.p2p_network_manager.broadcast_to_client("current_cue_changed", {"index": self.current_cue})
+
     def next_cue(self):
         if not self.p2p_network_manager.is_master_node:
             return
         self.current_cue += 1
         if self.current_cue > len(self.cue_list)-1:
             self.current_cue = 0
-        self.cue_list[self.current_cue].call()
-        self.p2p_network_manager.broadcast_to_servers("current_cue_changed", self.current_cue)
-        self.p2p_network_manager.broadcast_to_client("current_cue_changed", self.current_cue)
+        self.trigger_cue()
         return self.current_cue
 
     def previous_cue(self):
@@ -153,9 +173,7 @@ class Show:
         self.current_cue -= 1
         if self.current_cue < 0:
             self.current_cue = len(self.cue_list)-1
-        self.cue_list[self.current_cue].call()
-        self.p2p_network_manager.broadcast_to_servers("current_cue_changed", self.current_cue)
-        self.p2p_network_manager.broadcast_to_client("current_cue_changed", self.current_cue)
+        self.trigger_cue()
         return self.current_cue
 
     def jump_to_cue(self, index: int):
@@ -164,9 +182,7 @@ class Show:
         if index > len(self.cue_list)-1 or index < 0:
             return self.current_cue
         self.current_cue = index
-        self.cue_list[self.current_cue].call()
-        self.p2p_network_manager.broadcast_to_servers("current_cue_changed", self.current_cue)
-        self.p2p_network_manager.broadcast_to_client("current_cue_changed", self.current_cue)
+        self.trigger_cue()
         return self.current_cue
 
     def update_polling_tasks(self):

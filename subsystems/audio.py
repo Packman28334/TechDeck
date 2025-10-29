@@ -14,6 +14,15 @@ class AudioSubsystem:
     def get_configuration(self) -> dict:
         return {}
     
+    @property
+    def state(self) -> dict:
+        return {"stop_at": self.stop_at, "fade_out": self.fade_out}
+
+    @state.setter
+    def state(self, new_state: dict):
+        self.stop_at = new_state["stop_at"]
+        self.fade_out = new_state["fade_out"]
+
     # def update_polling_tasks(self):
     #     if pygame.mixer.music.get_busy() and self.stop_at > 0:
     #         if time.time() > self.stop_at:

@@ -16,6 +16,14 @@ class MixerSubsystem:
             "blackout_mute_group": self.blackout_mute_group
         }
 
+    @property
+    def state(self) -> dict:
+        return {}
+
+    @state.setter
+    def state(self, new_state: dict):
+        pass
+
     def enter_blackout(self):
         if DUMMY_MODE:
             return

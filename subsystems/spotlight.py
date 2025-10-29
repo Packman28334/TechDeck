@@ -6,6 +6,14 @@ class SpotlightSubsystem:
     def get_configuration(self) -> dict:
         return {}
 
+    @property
+    def state(self) -> dict:
+        return {}
+    
+    @state.setter
+    def state(self, new_state: dict):
+        pass
+
     def enter_blackout(self):
         pass
 

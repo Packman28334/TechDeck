@@ -20,6 +20,7 @@ class Show {
 
         socket.emit("get_cues");
         socket.emit("get_current_cue");
+        socket.emit("get_blackout_state");
         socket.emit("get_current_backdrop");
     }
 
@@ -448,10 +449,12 @@ socket.on("selected_show", (title) => {
 socket.on("blackout_state_changed", (data) => {
     if (show) {
         show._blackout = data["new_state"];
-        if (data["new_state"]) {
+        if (data["new_state"]) { // blackout
             getShadowDOMOf("editshow").querySelector(".main-bar > #blackout-button").classList.add("toggle-enabled");
-        } else {
+            getShadowDOMOf("scenery").querySelector(".backdrop-container").classList.add("blackout");
+        } else { // not blackout
             getShadowDOMOf("editshow").querySelector(".main-bar > #blackout-button").classList.remove("toggle-enabled");
+            getShadowDOMOf("scenery").querySelector(".backdrop-container").classList.remove("blackout");
         }
     }
 });
@@ -470,28 +473,29 @@ socket.on("cue_edited", (data) => {
     }
 });
 
-socket.on("current_cue_changed", (index) => {
+socket.on("current_cue_changed", (data) => {
     if (show) {
-        show.currentCue = index;
+        show.currentCue = data["index"];
         populateCueTable(); // TODO: actually code properly instead of just remaking the entire table on each cue change
     }
 });
 
 socket.on("backdrop_changed", (data) => {
     let backdropContainer = getShadowDOMOf("scenery").querySelector(".backdrop-container");
+    if (!data["filename"]) { // if there's no file, get rid of the backdrop
+        backdropContainer.innerHTML = "";
+        return;
+    }
     // if the source isn't new, don't reload
     if (data["is-video"]) {
         if ("/backdrops/"+data["filename"] != backdropContainer.querySelector("source")?.src) {
-            backdropContainer.innerHTML = "";
             backdropContainer.innerHTML = `
                 <video nocontrols autoplay loop muted>
                     <source src="/backdrops/${data['filename']}">
-                </video>
-            `
+                </video>   `
         }
     } else {
         if ("/backdrops/"+data["filename"] != backdropContainer.querySelector("img")?.src) {
-            backdropContainer.innerHTML = "";
             backdropContainer.innerHTML = `<img src="/backdrops/${data['filename']}">`;
         }
     }

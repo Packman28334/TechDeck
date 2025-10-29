@@ -37,11 +37,6 @@ class Cue:
     def call(self):
         if not self.show:
             return
-
-        if self.blackout:
-            self.show.enter_blackout() # if the blackout flag is set, we want to enter blackout
-        else:
-            self.show.exit_blackout() # if the blackout flag is not set, we want to exit blackout automatically if we're in it
         
         for command in self.commands:
             match command["subsystem"]:
@@ -57,6 +52,11 @@ class Cue:
                     self.show.scenery_subsystem.run_command(command)
                 case other:
                     print(f"Unknown subsystem {other} in command")
+
+        if self.blackout:
+            self.show.enter_blackout() # if the blackout flag is set, we want to enter blackout
+        else:
+            self.show.exit_blackout() # if the blackout flag is not set, we want to exit blackout automatically if we're in it
 
     def __str__(self) -> str:
         if self.blackout:

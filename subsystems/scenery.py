@@ -17,6 +17,19 @@ class ScenerySubsystem:
     def get_configuration(self) -> dict:
         return {}
 
+    @property
+    def state(self) -> dict:
+        return {"media_filename": self.media_filename, "is_video": self.is_video}
+    
+    @state.setter
+    def state(self, new_state: dict):
+        self.media_filename = new_state["media_filename"]
+        self.is_video = new_state["is_video"]
+
+    @state.setter
+    def state(self, new_state: dict):
+        pass
+
     def enter_blackout(self):
         pass
 
@@ -46,6 +59,7 @@ class ScenerySubsystem:
             return self.find_filename_by_index(int(command["index"]))
 
     def broadcast_new_backdrop(self):
+        self.p2p_network_manager.broadcast_to_servers("backdrop_changed", {"filename": self.media_filename, "is-video": self.is_video})
         self.p2p_network_manager.broadcast_to_client("backdrop_changed", {"filename": self.media_filename, "is-video": self.is_video})
 
     def run_command(self, command: dict):

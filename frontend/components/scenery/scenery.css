@@ -2,6 +2,11 @@
 .backdrop-container {
     width: 100dvw;
     height: 100dvh;
+    background-color: black;
+}
+
+.backdrop-container.blackout img, .backdrop-container.blackout video {
+    display: none;
 }
 
 img, video {

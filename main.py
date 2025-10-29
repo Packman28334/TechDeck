@@ -114,6 +114,12 @@ async def is_show_loaded(sid, data=None):
     else:
         await p2p_network_manager.broadcast_to_client_async("is_show_loaded", {"loaded": False, "master_node_present": False})
 
+@sio.on("subsystem_state_changed")
+def subsystem_state_changed(sid, states):
+    global show
+    if show:
+        show.update_subsystem_states(states)
+
 @sio.on("blackout_change_state") # request state change for blackout
 async def blackout_change_state(sid, data):
     if p2p_network_manager.is_master_node:
@@ -137,6 +143,10 @@ async def blackout_state_changed(sid, data):
     show.blackout = data["new_state"]
     await p2p_network_manager.broadcast_to_client_async("blackout_state_changed", data)
 
+@sio.on("get_blackout_state") # get the state of the blackout for the client
+async def get_blackout_state(sid, data=None):
+    await p2p_network_manager.broadcast_to_client_async("blackout_state_changed", {"new_state": show.blackout})
+
 @sio.on("cue_list_changed") # update local backend and client with cue list
 def cue_list_changed(sid, data):
     global show
@@ -145,11 +155,11 @@ def cue_list_changed(sid, data):
         show.cue_list.deserialize_to_self(data["cue_list"])
 
 @sio.on("current_cue_changed") # update local backend and client with current cue
-async def current_cue_changed(sid, index):
+async def current_cue_changed(sid, data):
     global show
     if show:
-        show.current_cue = index
-        await p2p_network_manager.broadcast_to_client_async("current_cue_changed", index)
+        show.current_cue = data["index"]
+        await p2p_network_manager.broadcast_to_client_async("current_cue_changed", data)
 
 @sio.on("cue_edited") # update local backend and client with new data for cue
 def cue_edited(sid, data):
@@ -168,8 +178,8 @@ async def get_cues(sid, data=None):
 async def get_current_cue(sid, data=None):
     global show
     if show:
-        p2p_network_manager.broadcast_to_servers("current_cue_changed", show.current_cue)
-        await p2p_network_manager.broadcast_to_client_async("current_cue_changed", show.current_cue)
+        p2p_network_manager.broadcast_to_servers("current_cue_changed", {"index": show.current_cue})
+        await p2p_network_manager.broadcast_to_client_async("current_cue_changed", {"index": show.current_cue})
 
 @sio.on("add_cue") # add a cue to the list
 def add_cue(sid, data):
@@ -225,10 +235,18 @@ def move_cues_down(sid, cues):
     else:
         p2p_network_manager.master_node.send("move_cues_down", cues)
 
+@sio.on("backdrop_changed") # change the backdrop
+async def backdrop_changed(sid, data):
+    p2p_network_manager.broadcast_to_client_async("backdrop_changed", data)
+
 @sio.on("get_current_backdrop") # broadcast the current backdrop
 def get_current_backdrop(sid, data=None):
-    if show:
-        p2p_network_manager.broadcast_to_client("backdrop_changed", {"is-video": show.scenery_subsystem.is_video, "filename": show.scenery_subsystem.media_filename})
+    if p2p_network_manager.is_master_node:
+        if show:
+            p2p_network_manager.broadcast_to_servers("backdrop_changed", {"is-video": show.scenery_subsystem.is_video, "filename": show.scenery_subsystem.media_filename})
+            p2p_network_manager.broadcast_to_client("backdrop_changed", {"is-video": show.scenery_subsystem.is_video, "filename": show.scenery_subsystem.media_filename})
+    else:
+        p2p_network_manager.master_node.send("get_current_backdrop")
 
 app.mount("/backdrops", StaticFiles(directory="_working_show/backdrop_library"))
 app.mount("/", StaticFiles(directory="frontend/static"))
