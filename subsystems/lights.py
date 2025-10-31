@@ -24,20 +24,30 @@ class LightingSubsystem:
 
     @property
     def state(self) -> dict:
-        return {"current_cue": self.current_cue, "playback": self.playback, "blackout": self.blackout}
+        return {
+            "current_cue": self.current_cue,
+            "playback": self.playback,
+            "blackout": self.blackout,
+            "switch_to_playback_after_blackout": self.switch_to_playback_after_blackout,
+            "jump_to_cue_after_blackout": self.jump_to_cue_after_blackout
+        }
 
     @state.setter
     def state(self, new_state: dict):
         self.current_cue = new_state["current_cue"]
         self.playback = new_state["playback"]
         self.blackout = new_state["blackout"]
+        self.switch_to_playback_after_blackout = new_state["switch_to_playback_after_blackout"]
+        self.jump_to_cue_after_blackout = new_state["jump_to_cue_after_blackout"]
 
     def enter_blackout(self):
+        self.blackout = True
         if DUMMY_MODE:
             return
         self.client.send_message(f"/pb/{self.playback}/0.1", 1.0) # jump to blackout cue (0.1)
 
-    def exit_blackout(self): # doesn't seem to result in flash of incorrect lighting
+    def exit_blackout(self):
+        self.blackout = False
         if DUMMY_MODE:
             return
         

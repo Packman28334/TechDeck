@@ -26,10 +26,7 @@ class ScenerySubsystem:
         self.media_filename = new_state["media_filename"]
         self.is_video = new_state["is_video"]
 
-    @state.setter
-    def state(self, new_state: dict):
-        pass
-
+    # these functions are unsed as blackout handles itself on the frontend
     def enter_blackout(self):
         pass
 

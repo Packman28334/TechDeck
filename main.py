@@ -237,7 +237,7 @@ def move_cues_down(sid, cues):
 
 @sio.on("backdrop_changed") # change the backdrop
 async def backdrop_changed(sid, data):
-    p2p_network_manager.broadcast_to_client_async("backdrop_changed", data)
+    await p2p_network_manager.broadcast_to_client_async("backdrop_changed", data)
 
 @sio.on("get_current_backdrop") # broadcast the current backdrop
 def get_current_backdrop(sid, data=None):
