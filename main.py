@@ -1,13 +1,14 @@
 
 from pathlib import Path
 import os
+import requests
 
 from show import Show
 from cue import Cue
 from p2p_networking import p2p_network_manager
 from config import DUMMY_MODE, SOCKETIO_LOGGING
 
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import Response, HTMLResponse
 from fastapi_utils.tasks import repeat_every
@@ -49,6 +50,18 @@ def component(component: str):
 @app.get("/component/{component}.css")
 def component_style(component: str):
     return Response(content=Path(f"frontend/components/{component}/{component}.css").read_text(), media_type="text/css")
+
+@app.post("/import-cue-sheet")
+def import_cue_sheet(sheet: UploadFile):
+    contents: str = sheet.file.read().decode("utf-8")
+    if p2p_network_manager.is_master_node:
+        if show:
+            show.cue_list.import_cue_sheet(contents)
+    else:
+        requests.post(f"http://{p2p_network_manager.master_node.ip_address}:{p2p_network_manager.master_node.port}/import-cue-sheet",
+            files={"sheet": sheet.file},
+            headers={"Content-Type": "multipart/form-data"}
+        )
 
 @app.on_event("startup")
 @repeat_every(seconds=0.1)

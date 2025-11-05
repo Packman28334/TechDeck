@@ -1,6 +1,7 @@
 python-osc
 fastapi[standard]
 fastapi-utils
+python-multipart
 typing_inspect
 pygame-ce
 zeroconf

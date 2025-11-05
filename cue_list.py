@@ -129,3 +129,6 @@ class CueList:
         for position in positions:
             self.move_down(position, amount, _suppress_change=True)
         self._cues_changed()
+    
+    def import_cue_sheet(self, cue_sheet_contents: str):
+        pass

@@ -87,6 +87,13 @@ input[type=text], input[type=number] {
     border-radius: 8px;
 }
 
+input[type=file] {
+    color: #ffffff;
+    background-color: transparent;
+    margin-top: 5%;
+    margin-bottom: 10%;
+}
+
 label.checkbox {
     display: flex;
     flex-flow: row nowrap;

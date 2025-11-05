@@ -145,6 +145,20 @@ class Show {
         this.configuringCueCommands = this.configuringCueCommands.filter(command => command["id"] != commandId);
         populateCueCommandList();
     }
+
+    save() {
+        socket.emit("save");
+    }
+
+    importCueSheet() {
+        let file = getShadowDOMOf("editshow").querySelector("#import-dialog input[type=file]").files[0];
+        let formData = new FormData();
+        formData.append("sheet", file);
+
+        let r = new XMLHttpRequest();
+        r.open("POST", "/import-cue-sheet");
+        r.send(formData);
+    }
 }
 
 var show = undefined;

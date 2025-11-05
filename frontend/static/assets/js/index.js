@@ -36,6 +36,8 @@ function resetInputsOfChildren(element) {
                 case "text":
                     child.value = "";
                     break;
+                case "file":
+                    child.value = "";
             }
         }
     });

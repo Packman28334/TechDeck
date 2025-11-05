@@ -5,8 +5,11 @@
         </button>
         <h1 id="title"></h1>
         <div id="push-right"></div>
-        <button class="icon-button" id="save-button" title="Save" onclick="socket.emit('save');">
+        <button class="icon-button" id="save-button" title="Save" onclick="show?.save();">
             <span class="material-symbols-outlined">save</span>
+        </button>
+        <button class="icon-button opens-dialog" id="import-button" title="Import cue sheet..." onclick="toggleDialog('import-dialog');">
+            <span class="material-symbols-outlined">upload_file</span>
         </button>
         <button class="icon-button" id="scenery-button" title="Scenery View" onclick="loadPageview('scenery');">
             <span class="material-symbols-outlined">photo_frame</span>
@@ -152,4 +155,13 @@
         <p id="client-ping">Ping to host: pending...</p>
         <button class="text-button primary" onclick="socket.emit('promote');">Promote this node to master</button>
     </div>
+
+    <div class="dialog closed" id="import-dialog">
+        <h1>Import cue sheet...</h1>
+        <input type="file">
+        <div class="button-row">
+            <button class="text-button" onclick="closeDialog('import-dialog');">Cancel</button>
+            <button class="text-button primary" onclick="show?.importCueSheet(); closeDialog('import-dialog');">Import</button>
+        </div>
+    </div> 
 </div>
