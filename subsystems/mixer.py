@@ -76,7 +76,7 @@ class MixerSubsystem:
                 else:
                     channels: list = command["channels"]
                 requests = []
-                for channel in channels:
+                for channel in self.expand_aliases(channels):
                     channel_type, channel_number = self.identify_channel(channel)
                     requests.append(f"set MIXER:Current/{channel_type}/Fader/On {channel_number} 0 1")
                 self.send_requests(requests)
@@ -87,7 +87,7 @@ class MixerSubsystem:
                 else:
                     channels: list = command["channels"]
                 requests = []
-                for channel in channels:
+                for channel in self.expand_aliases(channels):
                     channel_type, channel_number = self.identify_channel(channel)
                     requests.append(f"set MIXER:Current/{channel_type}/Fader/On {channel_number} 0 0")
                 self.send_requests(requests)
@@ -104,8 +104,13 @@ class MixerSubsystem:
                     pairs: dict[str, float | str] = command["channels"]
                 requests = []
                 for channel, value in pairs.items(): # ex. command["channels"] = {0: -inf, 5: -5, 8: 0, 17: -138} - provide a value in decibels from -138 to 10, or -inf
-                    channel_type, channel_number = self.identify_channel(channel)
-                    requests.append(f"set MIXER:Current/{channel_type}/Fader/Level {channel_number} 0 {-32768 if value == '-inf' else int(value*100)}")
+                    if channel in self.aliases:
+                        for actual_channel in self.aliases[channel]:
+                            channel_type, channel_number = self.identify_channel(actual_channel)
+                            requests.append(f"set MIXER:Current/{channel_type}/Fader/Level {channel_number} 0 {-32768 if value == '-inf' else int(value*100)}")
+                    else:
+                        channel_type, channel_number = self.identify_channel(channel)
+                        requests.append(f"set MIXER:Current/{channel_type}/Fader/Level {channel_number} 0 {-32768 if value == '-inf' else int(value*100)}")
                 self.send_requests(requests)
                 
             case "mute_group":
