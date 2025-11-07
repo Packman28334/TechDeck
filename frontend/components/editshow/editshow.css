@@ -68,7 +68,7 @@
 
 .cue-table {
     width: 100%;
-    max-height: 90%;
+    max-height: 80dvh;
     margin-top: 1%;
     padding-left: 5%;
     padding-right: 5%;
@@ -78,10 +78,13 @@
     flex-flow: column nowrap;
     justify-content: flex-start;
     align-items: stretch;
+
+    overflow-y: auto;
 }
 
 .cue-table .row {
-    height: 2.75em;
+    min-height: 2.75em;
+    max-height: 2.75em;
 
     padding-left: 1%;
     padding-right: 1%;

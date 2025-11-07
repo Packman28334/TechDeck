@@ -1,6 +1,6 @@
 
 import copy
-import csv
+import re
 from typing import TYPE_CHECKING
 
 from cue import Cue
@@ -133,12 +133,14 @@ class CueList:
     
     def import_cue_sheet(self, cue_sheet_contents: str):
         self.cues = []
-        cells: list[str] = cue_sheet_contents.replace("\r", "").replace("\n", "").split(",")
+        #cells: list[str] = re.split(''',(?=(?:[^'"]|'[^']*'|"[^"]*")*$)''', cue_sheet_contents.replace("\r\n", ",")) # https://stackoverflow.com/a/2787979
+        cells = cue_sheet_contents.replace("\r\n", "\t").split("\t")
         if len(cells) % 12:
             print("ERROR: Malformed cue sheet. Import cannot continue.")
             return
-        rows: list[list[str]] = [cells[idx:idx+12] for idx in range(0, len(cells), 12)]
+        rows: list[list[str]] = [cells[idx:idx+12] for idx in range(12, len(cells), 12)]
         for row in rows:
+            print(row)
             cue = Cue(row[3], [], row[10], row[9] == "TRUE")
             self.cues.append(cue)
         self._cues_changed()

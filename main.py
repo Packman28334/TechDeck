@@ -1,6 +1,7 @@
 
 from pathlib import Path
 import os
+import csv
 import requests
 
 from show import Show
