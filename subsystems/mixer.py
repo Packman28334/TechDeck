@@ -3,8 +3,9 @@ import socket
 from config import DUMMY_MODE, MIXER_IP
 
 class MixerSubsystem:
-    def __init__(self, blackout_mute_group: int):
+    def __init__(self, blackout_mute_group: int, aliases: dict[str, list[str]]):
         self.blackout_mute_group: int = blackout_mute_group
+        self.aliases: dict[str, list[str]] = {}
         
         if not DUMMY_MODE:
             self.socket: socket.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -13,7 +14,8 @@ class MixerSubsystem:
 
     def get_configuration(self) -> dict:
         return {
-            "blackout_mute_group": self.blackout_mute_group
+            "blackout_mute_group": self.blackout_mute_group,
+            "aliases": self.aliases
         }
 
     @property
@@ -39,6 +41,15 @@ class MixerSubsystem:
             return
         self.socket.sendall(("\n ".join(requests)+"\n").encode())
         #self.socket.recv(1500).decode()
+
+    def expand_aliases(self, channels: list[str]) -> list[str]:
+        out: list[str] = []
+        for channel in channels:
+            if channel in self.aliases:
+                out.extend(self.aliases[channel])
+            else:
+                out.append(channel)
+        return out
 
     def identify_channel(self, channel: str) -> tuple[str, int]: # type, number
         channel = str(channel).upper() # just in case

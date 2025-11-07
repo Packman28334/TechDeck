@@ -133,14 +133,29 @@ class CueList:
     
     def import_cue_sheet(self, cue_sheet_contents: str):
         self.cues = []
-        #cells: list[str] = re.split(''',(?=(?:[^'"]|'[^']*'|"[^"]*")*$)''', cue_sheet_contents.replace("\r\n", ",")) # https://stackoverflow.com/a/2787979
         cells = cue_sheet_contents.replace("\r\n", "\t").split("\t")
         if len(cells) % 12:
             print("ERROR: Malformed cue sheet. Import cannot continue.")
             return
         rows: list[list[str]] = [cells[idx:idx+12] for idx in range(12, len(cells), 12)]
         for row in rows:
-            print(row)
+            if not row[3]: # if there's no description, skip
+                continue
             cue = Cue(row[3], [], row[10], row[9] == "TRUE")
+
+            enable_channels: list[str] = []
+            for term in row[4].strip().split():
+                if not term.startswith("-"):
+                    enable_channels.append(term)
+            if enable_channels:
+                cue.commands.append({"subsystem": "mixer", "action": "enable_channels", "channels": " ".join(enable_channels)})
+
+            disable_channels: list[str] = []
+            for term in row[4].strip().split():
+                if term.startswith("-"):
+                    disable_channels.append(term.removeprefix("-"))
+            if disable_channels:
+                cue.commands.append({"subsystem": "mixer", "action": "disable_channels", "channels": " ".join(disable_channels)})
+
             self.cues.append(cue)
         self._cues_changed()

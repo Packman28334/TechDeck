@@ -2,14 +2,17 @@
 import zipfile, shutil, pathlib, json, os
 
 from cue_list import CueList
-from cue import Cue
 from subsystems import MixerSubsystem, LightingSubsystem, SpotlightSubsystem, AudioSubsystem, ScenerySubsystem
 from p2p_networking import p2p_network_manager, P2PNetworkManager
 from config import DEBUG_MODE
 
 DEFAULT_CONFIGURATION = {
     "mixer_subsystem": {
-        "blackout_mute_group": 1
+        "blackout_mute_group": 1,
+        "aliases": {
+            "WL": [13, 14],
+            "HANG": [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        }
     },
     "lighting_subsystem": {
         "initial_playback": 1
