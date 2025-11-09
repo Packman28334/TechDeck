@@ -169,6 +169,17 @@ async def blackout_state_changed(sid, data):
 async def get_blackout_state(sid, data=None):
     await p2p_network_manager.broadcast_to_client_async("blackout_state_changed", {"new_state": show.blackout})
 
+@sio.on("save_state_changed") # update local backend and client with save state
+async def save_state_changed(sid, new_state):
+    show.cue_list.unsaved = new_state
+    await p2p_network_manager.broadcast_to_client_async("save_state_changed", new_state)
+
+@sio.on("get_save_state") # get the save state
+async def get_save_state(sid, data=None):
+    if show:
+        p2p_network_manager.broadcast_to_servers("save_state_changed", show.cue_list.unsaved)
+        await p2p_network_manager.broadcast_to_client_async("save_state_changed", show.cue_list.unsaved)
+
 @sio.on("cue_list_changed") # update local backend and client with cue list
 def cue_list_changed(sid, data):
     global show

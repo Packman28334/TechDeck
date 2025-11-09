@@ -22,6 +22,7 @@ class Show {
         socket.emit("get_current_cue");
         socket.emit("get_blackout_state");
         socket.emit("get_current_backdrop");
+        socket.emit("get_save_state");
     }
 
     get blackout() {
@@ -494,6 +495,14 @@ socket.on("current_cue_changed", (data) => {
     if (show) {
         show.currentCue = data["index"];
         populateCueTable(); // TODO: actually code properly instead of just remaking the entire table on each cue change
+    }
+});
+
+socket.on("save_state_changed", (new_state) => {
+    if (new_state) {
+        getShadowDOMOf("editshow").querySelector("#save-button").classList.add("toggle-enabled");
+    } else {
+        getShadowDOMOf("editshow").querySelector("#save-button").classList.remove("toggle-enabled");
     }
 });
 

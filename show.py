@@ -116,6 +116,9 @@ class Show:
         pathlib.Path("_working_show/configuration.json").write_text(json.dumps(self.accumulate_subsystem_configuration()))
         shutil.make_archive(f"shows/{filename}", "zip", "_working_show/")
         os.rename(f"shows/{filename}.zip", full_filename)
+        self.p2p_network_manager.broadcast_to_servers("save_state_changed", False)
+        self.p2p_network_manager.broadcast_to_client("save_state_changed", False)
+        self.cue_list.unsaved = False
 
     @staticmethod
     def list_shows() -> list[str]:

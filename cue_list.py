@@ -22,6 +22,7 @@ class CueListIterator:
 class CueList:
     def __init__(self, cues: list[Cue] = []):
         self.cues: list[Cue] = cues
+        self.unsaved: bool = False
         self.show: "Show" | None = None
 
     def set_show(self, show: "Show"):
@@ -35,7 +36,9 @@ class CueList:
                 self.show.p2p_network_manager.broadcast_to_servers("cue_list_changed", {"cue_list": self.serialize()})
             for cue in self.cues: # if the cues were changed, it's possible that there is a cue without a show reference. that is catastrophic. fix it.
                 cue.show = self.show
-            #self.show.save(self.show.title)
+            self.unsaved = True
+            self.show.p2p_network_manager.broadcast_to_servers("save_state_changed", True)
+            self.show.p2p_network_manager.broadcast_to_client("save_state_changed", True)
             self.show.p2p_network_manager.broadcast_to_client("cue_list_changed", {"cue_list": self.serialize()})
 
     def _single_cue_changed(self, index: int):
@@ -43,7 +46,9 @@ class CueList:
             if self.show.p2p_network_manager.is_master_node:
                 self.show.p2p_network_manager.broadcast_to_servers("cue_edited", {"index": index, "cue": self.cues[index].serialize()})
             self.cues[index].show = self.show # make sure the cue has a show reference
-            #self.show.save(self.show.title)
+            self.unsaved = True
+            self.show.p2p_network_manager.broadcast_to_servers("save_state_changed", True)
+            self.show.p2p_network_manager.broadcast_to_client("save_state_changed", True)
             self.show.p2p_network_manager.broadcast_to_client("cue_edited", {"index": index, "cue": self.cues[index].serialize()})
 
     def __str__(self) -> str:
