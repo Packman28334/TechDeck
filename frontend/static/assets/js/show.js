@@ -276,6 +276,9 @@ function formatCommandParams(command) {
         case "spotlight":
             switch(command["action"]) {
                 case "change_guide":
+                    if (command["icon"]) {
+                        return '(' + command["icon"] + ') "' + command["guide"] + '"';
+                    }
                     return '"' + command["guide"] + '"';
             }
             break;

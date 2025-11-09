@@ -5,16 +5,17 @@ from typing import Literal, TYPE_CHECKING
 if TYPE_CHECKING:
     from ..p2p_networking import P2PNetworkManager
 
-ICONS: tuple[str] = ("SL", "SR", "CS")
+ICONS: tuple[str] = ("SL", "SR", "CS", "BS", "BO", "FA", "PL")
+IconLiteral = Literal["SL"] | Literal["SR"] | Literal["CS"] | Literal["BS"] | Literal["BO"] | Literal["FA"] | Literal["PL"] | Literal[""]
 
 class SpotlightSubsystem:
     def __init__(self, p2p_network_manager: "P2PNetworkManager"):
         self.p2p_network_manager: "P2PNetworkManager" = p2p_network_manager
-        self.current_icon: Literal["SL"] | Literal["SR"] | Literal["CS"] | Literal[""] = ""
+        self.current_icon: IconLiteral = ""
         self.current_guide: str = ""
 
         self.blackout: bool = False
-        self.icon_after_blackout: Literal["SL"] | Literal["SR"] | Literal["CS"] | Literal[""] | None = None
+        self.icon_after_blackout: IconLiteral | None = None
         self.guide_after_blackout: str | None = None
 
     def get_configuration(self) -> dict:

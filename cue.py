@@ -34,6 +34,48 @@ class Cue:
             "uuid": self.uuid
         }
 
+    @classmethod
+    def parse_from_spreadsheet(cls, row: list[str]):
+        cue = cls(row[3], [], row[10], row[9] == "TRUE")
+
+        enable_channels: list[str] = []
+        for term in row[4].strip().split():
+            if not term.startswith("-"):
+                enable_channels.append(term)
+        if enable_channels:
+            cue.commands.append({"subsystem": "mixer", "action": "enable_channels", "channels": " ".join(enable_channels)})
+
+        disable_channels: list[str] = []
+        for term in row[4].strip().split():
+            if term.startswith("-"):
+                disable_channels.append(term.removeprefix("-"))
+        if disable_channels:
+            cue.commands.append({"subsystem": "mixer", "action": "disable_channels", "channels": " ".join(disable_channels)})
+
+        if row[5].strip().startswith("#"):
+            if row[5].startswith("#BO"):
+                cue.commands.append({"subsystem": "lights", "action": "jump_to_cue", "cue": "0.1"})
+            else:
+                cue.commands.append({"subsystem": "lights", "action": "jump_to_cue", "cue": row[5].strip().split()[0].removeprefix("#")})
+
+        if row[6].strip().startswith("#"):
+            cue.commands.append({"subsystem": "spotlight", "action": "change_guide", "icon": row[6].strip().split()[0].removeprefix("#"), "guide": " ".join(row[6].strip().split()[1:])})
+        elif row[6]:
+            cue.commands.append({"subsystem": "spotlight", "action": "change_guide", "guide": row[6]})
+
+        if row[7].startswith("#BO"):
+            # TODO: support individual scenery blackouts
+            pass
+        elif row[7].startswith("V#"):
+            cue.commands.append({"subsystem": "scenery", "action": "change_backdrop_to_video", "index": row[7].strip().split()[0].removeprefix("V#")})
+        elif row[7].startswith("#"):
+            cue.commands.append({"subsystem": "scenery", "action": "change_backdrop_to_image", "index": row[7].strip().split()[0].removeprefix("#")})
+
+        if row[8].startswith("#"):
+            cue.commands.append({"subsystem": "audio", "action": "play", "index": row[8].strip().split()[0].removeprefix("#")})
+
+        return cue
+
     def call(self):
         if not self.show:
             return

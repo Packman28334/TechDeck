@@ -141,21 +141,5 @@ class CueList:
         for row in rows:
             if not row[3]: # if there's no description, skip
                 continue
-            cue = Cue(row[3], [], row[10], row[9] == "TRUE")
-
-            enable_channels: list[str] = []
-            for term in row[4].strip().split():
-                if not term.startswith("-"):
-                    enable_channels.append(term)
-            if enable_channels:
-                cue.commands.append({"subsystem": "mixer", "action": "enable_channels", "channels": " ".join(enable_channels)})
-
-            disable_channels: list[str] = []
-            for term in row[4].strip().split():
-                if term.startswith("-"):
-                    disable_channels.append(term.removeprefix("-"))
-            if disable_channels:
-                cue.commands.append({"subsystem": "mixer", "action": "disable_channels", "channels": " ".join(disable_channels)})
-
-            self.cues.append(cue)
+            self.cues.append(Cue.parse_from_spreadsheet(row))
         self._cues_changed()
