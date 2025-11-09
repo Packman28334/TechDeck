@@ -66,13 +66,23 @@
     margin-right: 1.5em;
 }
 
+.cue-table-container {
+    width: 90%;
+    max-height: 80dvh;
+
+    margin-top: 1%;
+    margin-left: 5%;
+    margin-right: 5%;
+
+    box-sizing: border-box;
+
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
 .cue-table {
     width: 100%;
     max-height: 80dvh;
-    margin-top: 1%;
-    padding-left: 5%;
-    padding-right: 5%;
-    box-sizing: border-box;
 
     display: flex;
     flex-flow: column nowrap;
@@ -92,9 +102,6 @@
     padding-bottom: 0.25em;
 
     box-sizing: border-box;
-
-    border-left: 1px solid rgba(255, 255, 255, 0.15);
-    border-right: 1px solid rgba(255, 255, 255, 0.15);
 
     display: flex;
     flex-flow: row nowrap;
@@ -121,7 +128,6 @@
 .cue-table .row.header {
     background-color: #121212;
     border-radius: 12px 12px 0px 0px;
-    border-top: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .cue-table .row.header .cell p {
@@ -130,7 +136,6 @@
 
 .cue-table .row:nth-last-child(1) {
     border-radius: 0px 0px 12px 12px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .cue-table .row.header:nth-last-child(1) {
