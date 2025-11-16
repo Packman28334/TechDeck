@@ -1,7 +1,8 @@
 
 from pathlib import Path
 import os
-import csv
+import hashlib
+import base64
 import requests
 
 from show import Show
@@ -22,6 +23,9 @@ p2p_network_manager.sio = sio
 deploy_app = ASGIApp(sio, app)
 
 show: Show | None = None
+
+def hash_of_file(path: str) -> str:
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 @app.get("/")
 def index():
@@ -126,6 +130,7 @@ async def select_show(sid, title):
 async def selected_show(sid, title):
     global show
     show = Show.load_or_create(title)
+    p2p_network_manager.master_node.send("get_audio_library_entries")
     await p2p_network_manager.broadcast_to_client_async("selected_show", show.title)
 
 @sio.on("is_show_loaded") # inform client of whether a show is loaded
@@ -280,6 +285,43 @@ def get_current_backdrop(sid, data=None):
             p2p_network_manager.broadcast_to_client("backdrop_changed", {"is-video": show.scenery_subsystem.is_video, "filename": show.scenery_subsystem.media_filename})
     else:
         p2p_network_manager.master_node.send("get_current_backdrop")
+
+@sio.on("get_audio_library_entries") # broadcast audio library entries
+def get_audio_library_entries(sid, data=None):
+    if p2p_network_manager.is_master_node:
+        if show:
+            p2p_network_manager.broadcast_to_servers("audio_library_entries", {filename: hash_of_file(f"_working_show/audio_library/{filename}") for filename in os.listdir("_working_show/audio_library")})
+    else:
+        p2p_network_manager.master_node.send("get_audio_library_entries")
+
+@sio.on("audio_library_entries") # compare audio library entries and update necessary files
+def audio_library_entries(sid, entries):
+    if p2p_network_manager.is_master_node: # this shouldn't be able to happen, but we stop it just in case
+        return
+    for filename in entries:
+        if os.path.exists(f"_working_show/audio_library/{filename}") and hash_of_file(f"_working_show/audio_library/{filename}") == entries[filename]:
+            continue # file matches, don't request
+        p2p_network_manager.master_node.send("get_audio_file", filename) # no match, request
+
+@sio.on("get_audio_file") # request contents of audio file by filename
+def get_audio_file(sid, filename):
+    if not p2p_network_manager.is_master_node: # this also shouldn't be able to happen, but we stop it just in case
+        pass
+    if not os.path.exists(f"_working_show/audio_library/{filename}"): # again, impossible, but we still stop it
+        return
+    p2p_network_manager.broadcast_to_servers("audio_file", {
+        "filename": filename,
+        "hash": hash_of_file(f"_working_show/audio_library/{filename}"),
+        "contents": base64.b64encode(Path(f"_working_show/audio_library/{filename}").read_bytes()).decode("utf-8")
+    })
+
+@sio.on("audio_file") # update an audio file
+def audio_file(sid, data):
+    if os.path.exists(f"_working_show/audio_library{data['filename']}"):
+        if hash_of_file(f"_working_show/audio_library{data['filename']}") == data["hash"]:
+            return # if the file path and hash match, don't update
+        os.remove(f"_working_show/audio_library{data['filename']}") # if the file exists but is outdated, delete it
+    Path(f"_working_show/audio_library{data['filename']}").write_bytes(base64.b64decode(data["contents"].encode("utf-8")))
 
 app.mount("/backdrops", StaticFiles(directory="_working_show/backdrop_library"))
 app.mount("/", StaticFiles(directory="frontend/static"))
