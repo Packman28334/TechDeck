@@ -302,6 +302,9 @@ def audio_library_entries(sid, entries):
         if os.path.exists(f"_working_show/audio_library/{filename}") and hash_of_file(f"_working_show/audio_library/{filename}") == entries[filename]:
             continue # file matches, don't request
         p2p_network_manager.master_node.send("get_audio_file", filename) # no match, request
+    for file in os.listdir("_working_show/audio_library"):
+        if file not in entries:
+            os.remove(f"_working_show/audio_library/{file}")
 
 @sio.on("get_audio_file") # request contents of audio file by filename
 def get_audio_file(sid, filename):
@@ -317,11 +320,11 @@ def get_audio_file(sid, filename):
 
 @sio.on("audio_file") # update an audio file
 def audio_file(sid, data):
-    if os.path.exists(f"_working_show/audio_library{data['filename']}"):
-        if hash_of_file(f"_working_show/audio_library{data['filename']}") == data["hash"]:
+    if os.path.exists(f"_working_show/audio_library/{data['filename']}"):
+        if hash_of_file(f"_working_show/audio_library/{data['filename']}") == data["hash"]:
             return # if the file path and hash match, don't update
-        os.remove(f"_working_show/audio_library{data['filename']}") # if the file exists but is outdated, delete it
-    Path(f"_working_show/audio_library{data['filename']}").write_bytes(base64.b64decode(data["contents"].encode("utf-8")))
+        os.remove(f"_working_show/audio_library/{data['filename']}") # if the file exists but is outdated, delete it
+    Path(f"_working_show/audio_library/{data['filename']}").write_bytes(base64.b64decode(data["contents"].encode("utf-8")))
 
 app.mount("/backdrops", StaticFiles(directory="_working_show/backdrop_library"))
 app.mount("/", StaticFiles(directory="frontend/static"))
