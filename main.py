@@ -9,7 +9,7 @@ from math import ceil
 from show import Show
 from cue import Cue
 from p2p_networking import p2p_network_manager
-from config import DUMMY_MODE, SOCKETIO_LOGGING
+from config import DUMMY_MODE, DEBUG_MODE, SOCKETIO_LOGGING
 
 from fastapi import FastAPI, UploadFile
 from fastapi.staticfiles import StaticFiles
@@ -318,6 +318,8 @@ def get_audio_file(sid, filename):
         return
     file_data: bytes = Path(f"_working_show/audio_library/{filename}").read_bytes()
     n_chunks: int = ceil(len(file_data) / 512000)
+    if DEBUG_MODE:
+        print(f"Sharing audio file {filename}: size {len(file_data)} bytes, {n_chunks} chunks")
     for chunk_idx in range(n_chunks):
         chunk_data = file_data[chunk_idx*512000:(chunk_idx+1)*512000]
         p2p_network_manager.broadcast_to_servers("audio_file", {
@@ -339,7 +341,11 @@ def audio_file(sid, data):
         current_audio_transfers[data['filename']] = [data['total_chunks'], set(), {}]
     current_audio_transfers[data['filename']][2].add(data['chunk_idx'])
     current_audio_transfers[data['filename']][3][data['chunk_idx']] = base64.b64decode(data["contents"].encode("utf-8"))
+    if DEBUG_MODE:
+        print(f"Recieved chunk {data['chunk_idx']} of {data['total_chunks']} for audio file {data['filename']}")
     if len(current_audio_transfers[data['filename']][2]) == data['total_chunks']:
+        if DEBUG_MODE:
+            print(f"Recieved all chunks for audio file {data['filename']}, writing file now...")
         full_file: bytearray = bytearray()
         for i in range(data['total_chunks']):
             full_file.append(current_audio_transfers[data['filename']][3][i])
