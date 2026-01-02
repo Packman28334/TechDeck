@@ -349,8 +349,8 @@ def audio_file(sid, data):
         full_file: bytes = bytes()
         for i in range(data['total_chunks']):
             full_file = b"".join([full_file, current_audio_transfers[data['filename']][2][i]])
-    Path(f"_working_show/audio_library/{data['filename']}").write_bytes(full_file)
-    del current_audio_transfers[data['filename']]
+        Path(f"_working_show/audio_library/{data['filename']}").write_bytes(full_file)
+        del current_audio_transfers[data['filename']]
 
 app.mount("/backdrops", StaticFiles(directory="_working_show/backdrop_library"))
 app.mount("/", StaticFiles(directory="frontend/static"))
