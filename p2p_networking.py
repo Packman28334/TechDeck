@@ -155,7 +155,7 @@ class P2PNetworkManager:
                 ips = [ip.ip for ip in adapter.ips if isinstance(ip.ip, str) and ip.is_IPv4]
                 ips.extend([ip.ip[0] for ip in adapter.ips if isinstance(ip.ip, tuple) and ip.is_IPv4])
                 return ips
-            raise Exception("No network adapter found.") # if no external network adapter is found
+        raise Exception("No network adapter found.") # if no external network adapter is found
 
     def get_hostname(self):
         return "".join([char for char in Path('/etc/hostname').read_text() if char.isalnum()])

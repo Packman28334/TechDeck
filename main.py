@@ -4,6 +4,7 @@ import os
 import hashlib
 import base64
 import requests
+from math import ceil
 
 from show import Show
 from cue import Cue
@@ -18,9 +19,12 @@ from socketio import AsyncServer, ASGIApp
 import uvicorn
 
 app = FastAPI()
-sio = AsyncServer(async_mode="asgi", logger=SOCKETIO_LOGGING, engineio_logger=SOCKETIO_LOGGING, max_http_buffer_size=10^9)
+sio = AsyncServer(async_mode="asgi", logger=SOCKETIO_LOGGING, engineio_logger=SOCKETIO_LOGGING)
 p2p_network_manager.sio = sio
 deploy_app = ASGIApp(sio, app)
+
+# i need to rebuild everything asap this code is awful and i hate it
+current_audio_transfers: dict[str, list[int | set[int] | dict[int, bytes]]] = {} # {filename: [total # of chunks, list of chunks that we have, values of each chunk]}
 
 show: Show | None = None
 
@@ -312,19 +316,35 @@ def get_audio_file(sid, filename):
         pass
     if not os.path.exists(f"_working_show/audio_library/{filename}"): # again, impossible, but we still stop it
         return
-    p2p_network_manager.broadcast_to_servers("audio_file", {
-        "filename": filename,
-        "hash": hash_of_file(f"_working_show/audio_library/{filename}"),
-        "contents": base64.b64encode(Path(f"_working_show/audio_library/{filename}").read_bytes()).decode("utf-8")
-    })
+    file_data: bytes = Path(f"_working_show/audio_library/{filename}").read_bytes()
+    n_chunks: int = ceil(len(file_data) / 512000)
+    for chunk_idx in range(n_chunks):
+        chunk_data = file_data[chunk_idx*512000:(chunk_idx+1)*512000]
+        p2p_network_manager.broadcast_to_servers("audio_file", {
+            "filename": filename,
+            "hash": hash_of_file(f"_working_show/audio_library/{filename}"),
+            "total_chunks": n_chunks,
+            "chunk_idx": chunk_idx,
+            "contents": base64.b64encode(chunk_data).decode("utf-8")
+        })
 
 @sio.on("audio_file") # update an audio file
 def audio_file(sid, data):
+    global current_audio_transfers
     if os.path.exists(f"_working_show/audio_library/{data['filename']}"):
         if hash_of_file(f"_working_show/audio_library/{data['filename']}") == data["hash"]:
             return # if the file path and hash match, don't update
         os.remove(f"_working_show/audio_library/{data['filename']}") # if the file exists but is outdated, delete it
-    Path(f"_working_show/audio_library/{data['filename']}").write_bytes(base64.b64decode(data["contents"].encode("utf-8")))
+    if data['filename'] not in current_audio_transfers:
+        current_audio_transfers[data['filename']] = [data['total_chunks'], set(), {}]
+    current_audio_transfers[data['filename']][2].add(data['chunk_idx'])
+    current_audio_transfers[data['filename']][3][data['chunk_idx']] = base64.b64decode(data["contents"].encode("utf-8"))
+    if len(current_audio_transfers[data['filename']][2]) == data['total_chunks']:
+        full_file: bytearray = bytearray()
+        for i in range(data['total_chunks']):
+            full_file.append(current_audio_transfers[data['filename']][3][i])
+    Path(f"_working_show/audio_library/{data['filename']}").write_bytes(full_file)
+    del current_audio_transfers[data['filename']]
 
 app.mount("/backdrops", StaticFiles(directory="_working_show/backdrop_library"))
 app.mount("/", StaticFiles(directory="frontend/static"))
