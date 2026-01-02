@@ -339,8 +339,8 @@ def audio_file(sid, data):
         os.remove(f"_working_show/audio_library/{data['filename']}") # if the file exists but is outdated, delete it
     if data['filename'] not in current_audio_transfers:
         current_audio_transfers[data['filename']] = [data['total_chunks'], set(), {}]
-    current_audio_transfers[data['filename']][2].add(data['chunk_idx'])
-    current_audio_transfers[data['filename']][3][data['chunk_idx']] = base64.b64decode(data["contents"].encode("utf-8"))
+    current_audio_transfers[data['filename']][1].add(data['chunk_idx'])
+    current_audio_transfers[data['filename']][2][data['chunk_idx']] = base64.b64decode(data["contents"].encode("utf-8"))
     if DEBUG_MODE:
         print(f"Recieved chunk {data['chunk_idx']} of {data['total_chunks']} for audio file {data['filename']}")
     if len(current_audio_transfers[data['filename']][2]) == data['total_chunks']:
@@ -348,7 +348,7 @@ def audio_file(sid, data):
             print(f"Recieved all chunks for audio file {data['filename']}, writing file now...")
         full_file: bytearray = bytearray()
         for i in range(data['total_chunks']):
-            full_file.append(current_audio_transfers[data['filename']][3][i])
+            full_file.append(current_audio_transfers[data['filename']][2][i])
     Path(f"_working_show/audio_library/{data['filename']}").write_bytes(full_file)
     del current_audio_transfers[data['filename']]
 
