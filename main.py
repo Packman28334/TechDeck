@@ -346,9 +346,9 @@ def audio_file(sid, data):
     if len(current_audio_transfers[data['filename']][2]) == data['total_chunks']:
         if DEBUG_MODE:
             print(f"Recieved all chunks for audio file {data['filename']}, writing file now...")
-        full_file: bytearray = bytearray()
+        full_file: bytes = bytes()
         for i in range(data['total_chunks']):
-            full_file.append(current_audio_transfers[data['filename']][2][i])
+            full_file = b"".join(full_file, current_audio_transfers[data['filename']][2][i])
     Path(f"_working_show/audio_library/{data['filename']}").write_bytes(full_file)
     del current_audio_transfers[data['filename']]
 
