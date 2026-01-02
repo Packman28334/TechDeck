@@ -342,7 +342,7 @@ def audio_file(sid, data):
     current_audio_transfers[data['filename']][1].add(data['chunk_idx'])
     current_audio_transfers[data['filename']][2][data['chunk_idx']] = base64.b64decode(data["contents"].encode("utf-8"))
     if DEBUG_MODE:
-        print(f"Recieved chunk {data['chunk_idx']} of {data['total_chunks']} for audio file {data['filename']}")
+        print(f"Recieved chunk {data['chunk_idx']+1} of {data['total_chunks']} for audio file {data['filename']}")
     if len(current_audio_transfers[data['filename']][2]) == data['total_chunks']:
         if DEBUG_MODE:
             print(f"Recieved all chunks for audio file {data['filename']}, writing file now...")
