@@ -5,7 +5,7 @@ from config import DUMMY_MODE, MIXER_IP
 class MixerSubsystem:
     def __init__(self, blackout_mute_group: int, aliases: dict[str, list[str]]):
         self.blackout_mute_group: int = blackout_mute_group
-        self.aliases: dict[str, list[str]] = {}
+        self.aliases: dict[str, list[str]] = aliases
         
         if not DUMMY_MODE:
             self.socket: socket.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
