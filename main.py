@@ -135,6 +135,7 @@ async def selected_show(sid, title):
     global show
     show = Show.load_or_create(title)
     p2p_network_manager.master_node.send("get_audio_library_entries")
+    p2p_network_manager.master_node.send("get_backdrop_library_entries")
     await p2p_network_manager.broadcast_to_client_async("selected_show", show.title)
 
 @sio.on("is_show_loaded") # inform client of whether a show is loaded
