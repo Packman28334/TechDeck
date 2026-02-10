@@ -115,11 +115,10 @@ def shutdown_now(sid, data=None):
 
 @sio.on("save") # save the show
 def save(sid, data=None):
-    if p2p_network_manager.is_master_node:
-        if show:
-            show.save(show.title)
-    else:
+    if not p2p_network_manager.is_master_node:
         p2p_network_manager.master_node.send("save")
+    if show:
+        show.save(show.title)
 
 @sio.on("select_show") # ask to load or create a different show
 async def select_show(sid, title):
