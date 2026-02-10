@@ -180,7 +180,8 @@ async def get_blackout_state(sid, data=None):
 
 @sio.on("save_state_changed") # update local backend and client with save state
 async def save_state_changed(sid, new_state):
-    show.cue_list.unsaved = new_state
+    if show:
+        show.cue_list.unsaved = new_state
     await p2p_network_manager.broadcast_to_client_async("save_state_changed", new_state)
 
 @sio.on("get_save_state") # get the save state
