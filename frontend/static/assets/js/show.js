@@ -297,6 +297,10 @@ function formatCommandParams(command) {
                     return "Image #"+command["index"];
                 case "change_backdrop_to_video":
                     return "Video #"+command["index"];
+                case "enter_scenery_blackout":
+                    return "";
+                case "exit_scenery_blackout":
+                    return "";
             }
             break;
     }
@@ -389,6 +393,12 @@ function populateConfigureCommandDialog(commandType) {
         case "scenery.change_backdrop_to_video":
             commandFieldContainer.innerHTML = `<input type="number" placeholder="Index of the desired video" name="index">`;
             break;
+        case "scenery.enter_scenery_blackout":
+            commandFieldContainer.innerHTML = `<p>No configuration is required.</p>`;
+            break;
+        case "scenery.exit_scenery_blackout":
+            commandFieldContainer.innerHTML = `<p>No configuration is required.</p>`;
+            break;
     }
 }
 
@@ -436,6 +446,10 @@ function populateConfiguredCommandValues() {
             break;
         case "scenery.change_backdrop_to_video":
             commandFieldContainer.querySelector("input[name=index]").value = command["index"];
+            break;
+        case "scenery.enter_scenery_blackout":
+            break;
+        case "scenery.exit_scenery_blackout":
             break;
     }
 }
@@ -512,6 +526,13 @@ socket.on("backdrop_changed", (data) => {
         backdropContainer.innerHTML = "";
         return;
     }
+
+    if (data["blackout"]) {
+        backdropContainer.classList.add("blackout");
+    } else {
+        backdropContainer.classList.remove("blackout");
+    }
+
     // if the source isn't new, don't reload
     if (data["is-video"]) {
         if ("/backdrops/"+data["filename"] != backdropContainer.querySelector("source")?.src) {

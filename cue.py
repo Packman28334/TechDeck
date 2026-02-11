@@ -64,8 +64,7 @@ class Cue:
             cue.commands.append({"subsystem": "spotlight", "action": "change_guide", "guide": row[6]})
 
         if row[7].startswith("#BO"):
-            # TODO: support individual scenery blackouts
-            pass
+            cue.commands.append({"subsystem": "scenery", "action": "enter_scenery_blackout"})
         elif row[7].startswith("V#"):
             cue.commands.append({"subsystem": "scenery", "action": "change_backdrop_to_video", "index": row[7].strip().split()[0].removeprefix("V#")})
         elif row[7].startswith("#"):

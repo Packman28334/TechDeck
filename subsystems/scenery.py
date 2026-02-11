@@ -13,25 +13,29 @@ class ScenerySubsystem:
         self.p2p_network_manager: "P2PNetworkManager" = p2p_network_manager
         self.media_filename: str = ""
         self.is_video: bool = False
+        self.scenery_blackout: bool = False
 
     def get_configuration(self) -> dict:
         return {}
 
     @property
     def state(self) -> dict:
-        return {"media_filename": self.media_filename, "is_video": self.is_video}
+        return {"media_filename": self.media_filename, "is_video": self.is_video, "scenery_blackout": self.scenery_blackout}
     
     @state.setter
     def state(self, new_state: dict):
         self.media_filename = new_state["media_filename"]
         self.is_video = new_state["is_video"]
+        self.scenery_blackout = new_state["scenery_blackout"]
 
-    # these functions are unsed as blackout handles itself on the frontend
+    # don't broadcast the new backdrop since the frontend'll handle it during the master blackout message for speed
     def enter_blackout(self):
-        pass
+        self.scenery_blackout = True
+        #self.broadcast_new_backdrop()
 
     def exit_blackout(self):
-        pass
+        self.scenery_blackout = False
+        #self.broadcast_new_backdrop()
 
     def list_backdrops(self) -> list[str]:
         if os.path.exists("_working_show") and os.path.isdir("_working_show"):
@@ -56,17 +60,27 @@ class ScenerySubsystem:
             return self.find_filename_by_index(int(command["index"]))
 
     def broadcast_new_backdrop(self):
-        self.p2p_network_manager.broadcast_to_servers("backdrop_changed", {"filename": self.media_filename, "is-video": self.is_video})
-        self.p2p_network_manager.broadcast_to_client("backdrop_changed", {"filename": self.media_filename, "is-video": self.is_video})
+        self.p2p_network_manager.broadcast_to_servers("backdrop_changed", {"filename": self.media_filename, "is-video": self.is_video, "blackout": self.scenery_blackout})
+        self.p2p_network_manager.broadcast_to_client("backdrop_changed", {"filename": self.media_filename, "is-video": self.is_video, "blackout": self.scenery_blackout})
 
     def run_command(self, command: dict):
         match command["action"]:
             case "change_backdrop_to_image":
                 self.is_video = False
+                self.scenery_blackout = False
                 self.media_filename = self.find_backdrop_from_command(command)
                 self.broadcast_new_backdrop()
             
             case "change_backdrop_to_video":
                 self.is_video = True
+                self.scenery_blackout = False
                 self.media_filename = self.find_backdrop_from_command(command)
+                self.broadcast_new_backdrop()
+
+            case "enter_scenery_blackout":
+                self.scenery_blackout = True
+                self.broadcast_new_backdrop()
+
+            case "exit_scenery_blackout":
+                self.scenery_blackout = False
                 self.broadcast_new_backdrop()

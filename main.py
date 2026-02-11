@@ -287,8 +287,9 @@ async def backdrop_changed(sid, data):
 def get_current_backdrop(sid, data=None):
     if p2p_network_manager.is_master_node:
         if show:
-            p2p_network_manager.broadcast_to_servers("backdrop_changed", {"is-video": show.scenery_subsystem.is_video, "filename": show.scenery_subsystem.media_filename})
-            p2p_network_manager.broadcast_to_client("backdrop_changed", {"is-video": show.scenery_subsystem.is_video, "filename": show.scenery_subsystem.media_filename})
+            #p2p_network_manager.broadcast_to_servers("backdrop_changed", {"is-video": show.scenery_subsystem.is_video, "filename": show.scenery_subsystem.media_filename})
+            #p2p_network_manager.broadcast_to_client("backdrop_changed", {"is-video": show.scenery_subsystem.is_video, "filename": show.scenery_subsystem.media_filename})
+            show.scenery_subsystem.broadcast_new_backdrop()
     else:
         p2p_network_manager.master_node.send("get_current_backdrop")
 
