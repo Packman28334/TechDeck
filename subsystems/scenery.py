@@ -28,15 +28,6 @@ class ScenerySubsystem:
         self.is_video = new_state["is_video"]
         self.scenery_blackout = new_state["scenery_blackout"]
 
-    # don't broadcast the new backdrop since the frontend'll handle it during the master blackout message for speed
-    def enter_blackout(self):
-        self.scenery_blackout = True
-        #self.broadcast_new_backdrop()
-
-    def exit_blackout(self):
-        self.scenery_blackout = False
-        #self.broadcast_new_backdrop()
-
     def list_backdrops(self) -> list[str]:
         if os.path.exists("_working_show") and os.path.isdir("_working_show"):
             if os.path.exists("_working_show/backdrop_library") and os.path.isdir("_working_show/backdrop_library"):

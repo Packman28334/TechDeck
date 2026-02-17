@@ -3,8 +3,7 @@ import socket
 from config import DUMMY_MODE, MIXER_IP
 
 class MixerSubsystem:
-    def __init__(self, blackout_mute_group: int, aliases: dict[str, list[str]]):
-        self.blackout_mute_group: int = blackout_mute_group
+    def __init__(self, aliases: dict[str, list[str]]):
         self.aliases: dict[str, list[str]] = aliases
         
         if not DUMMY_MODE:
@@ -14,7 +13,6 @@ class MixerSubsystem:
 
     def get_configuration(self) -> dict:
         return {
-            "blackout_mute_group": self.blackout_mute_group,
             "aliases": self.aliases
         }
 
@@ -25,16 +23,6 @@ class MixerSubsystem:
     @state.setter
     def state(self, new_state: dict):
         pass
-
-    def enter_blackout(self):
-        if DUMMY_MODE:
-            return
-        self.send_requests([f"set MIXER:Current/MuteMaster/On {self.blackout_mute_group-1} 0 1"])
-
-    def exit_blackout(self):
-        if DUMMY_MODE:
-            return
-        self.send_requests([f"set MIXER:Current/MuteMaster/On {self.blackout_mute_group-1} 0 0"])
 
     def send_requests(self, requests: list[str]):
         if DUMMY_MODE:

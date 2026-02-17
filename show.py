@@ -8,7 +8,6 @@ from config import DEBUG_MODE
 
 DEFAULT_CONFIGURATION = {
     "mixer_subsystem": {
-        "blackout_mute_group": 1,
         "aliases": {
             "WL": [13, 14],
             "HANG": [1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -37,8 +36,6 @@ class Show:
         self.cue_list.set_show(self)
         self.current_cue: int = -1
 
-        self.blackout: bool = False
-
         self.mixer_subsystem: MixerSubsystem = MixerSubsystem(**configuration["mixer_subsystem"])
         self.lighting_subsystem: LightingSubsystem = LightingSubsystem(**configuration["lighting_subsystem"])
         self.spotlight_subsystem: SpotlightSubsystem = SpotlightSubsystem(self.p2p_network_manager, **configuration["spotlight_subsystem"])
@@ -57,7 +54,7 @@ class Show:
         pathlib.Path("_working_show/configuration.json").write_text(json.dumps(DEFAULT_CONFIGURATION))
         obj.save(title)
         return obj
-    
+   
     @classmethod
     def load(cls, filename: str):
         if os.path.exists("_working_show/") and os.path.isdir("_working_show/"):
@@ -125,38 +122,6 @@ class Show:
         if not os.path.exists("shows/"):
             os.mkdir("shows")
         return [show_name.removesuffix(".tdshw") for show_name in os.listdir("shows") if show_name.endswith(".tdshw")]
-
-    def enter_blackout(self):
-        if not self.p2p_network_manager.is_master_node:
-            return
-        if self.blackout:
-            return False
-        self.mixer_subsystem.enter_blackout()
-        self.lighting_subsystem.enter_blackout()
-        self.spotlight_subsystem.enter_blackout()
-        self.scenery_subsystem.enter_blackout()
-        self.blackout = True
-        self.p2p_network_manager.broadcast_to_servers("blackout_state_changed", {"new_state": True})
-        self.p2p_network_manager.broadcast_to_client("blackout_state_changed", {"new_state": True})
-        if DEBUG_MODE:
-            print("Entered blackout")
-        return True
-    
-    def exit_blackout(self):
-        if not self.p2p_network_manager.is_master_node:
-            return
-        if not self.blackout:
-            return False
-        self.mixer_subsystem.exit_blackout()
-        self.lighting_subsystem.exit_blackout()
-        self.spotlight_subsystem.exit_blackout()
-        self.scenery_subsystem.exit_blackout()
-        self.blackout = False
-        self.p2p_network_manager.broadcast_to_servers("blackout_state_changed", {"new_state": False})
-        self.p2p_network_manager.broadcast_to_client("blackout_state_changed", {"new_state": False})
-        if DEBUG_MODE:
-            print("Exited blackout")
-        return True
 
     def trigger_cue(self):
         self.cue_list[self.current_cue].call()

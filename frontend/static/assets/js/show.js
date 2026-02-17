@@ -2,7 +2,6 @@
 class Show {
     constructor(title) {
         this.title = title;
-        this._blackout = false;
 
         this.cues = [];
         this.currentCue = -1;
@@ -20,21 +19,8 @@ class Show {
 
         socket.emit("get_cues");
         socket.emit("get_current_cue");
-        socket.emit("get_blackout_state");
         socket.emit("get_current_backdrop");
         socket.emit("get_save_state");
-    }
-
-    get blackout() {
-        return this._blackout;
-    }
-
-    set blackout(value) {
-        socket.emit("blackout_change_state", {"action": value ? "enter": "exit"});
-    }
-
-    toggleBlackout() {
-        socket.emit("blackout_change_state", {"action": "toggle"});
     }
 
     updateSelectedCues() {
@@ -83,14 +69,13 @@ class Show {
     applyCueConfiguration() {
         var description = getShadowDOMOf("editshow").getElementById("configured-cue-description").value;
         var notes = getShadowDOMOf("editshow").getElementById("configured-cue-notes").value;
-        var blackout = getShadowDOMOf("editshow").getElementById("configured-cue-blackout").checked;
 
         var uuid = this.configuringCueUuid ? this.configuringCueUuid : window.crypto.randomUUID(); // just embracing the secure contexts atp
 
         if (this.newCueMode) {
-            socket.emit("add_cue", {"description": description, "notes": notes, "blackout": blackout, "uuid": uuid, "commands": this.configuringCueCommands});
+            socket.emit("add_cue", {"description": description, "notes": notes, "uuid": uuid, "commands": this.configuringCueCommands});
         } else {
-            socket.emit("edit_cue", {"index": this.configuringCueIndex, "cue": {"description": description, "notes": notes, "blackout": blackout, "uuid": uuid, "commands": this.configuringCueCommands}});
+            socket.emit("edit_cue", {"index": this.configuringCueIndex, "cue": {"description": description, "notes": notes, "uuid": uuid, "commands": this.configuringCueCommands}});
         }
     }
 
@@ -338,11 +323,9 @@ function populateCueCommandList() {
 function populateConfiguredCueValues() {
     var description = getShadowDOMOf("editshow").getElementById("configured-cue-description");
     var notes = getShadowDOMOf("editshow").getElementById("configured-cue-notes");
-    var blackout = getShadowDOMOf("editshow").getElementById("configured-cue-blackout");
 
     description.value = show.cues[show.configuringCueIndex]["description"];
     notes.value = show.cues[show.configuringCueIndex]["notes"];
-    blackout.checked = show.cues[show.configuringCueIndex]["blackout"];
 }
 
 function populateConfigureCommandDialog(commandType) {
@@ -476,19 +459,6 @@ socket.on("master_node", (data) => {
 socket.on("selected_show", (title) => {
     show = new Show(title);
     loadPageview("editshow");
-});
-
-socket.on("blackout_state_changed", (data) => {
-    if (show) {
-        show._blackout = data["new_state"];
-        if (data["new_state"]) { // blackout
-            getShadowDOMOf("editshow").querySelector(".main-bar > #blackout-button").classList.add("toggle-enabled");
-            getShadowDOMOf("scenery").querySelector(".backdrop-container").classList.add("blackout");
-        } else { // not blackout
-            getShadowDOMOf("editshow").querySelector(".main-bar > #blackout-button").classList.remove("toggle-enabled");
-            getShadowDOMOf("scenery").querySelector(".backdrop-container").classList.remove("blackout");
-        }
-    }
 });
 
 socket.on("cue_list_changed", (data) => {

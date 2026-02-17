@@ -7,11 +7,10 @@ if TYPE_CHECKING:
     from show import Show
 
 class Cue:
-    def __init__(self, description: str, commands: list[dict], notes: str = "", blackout: bool = False, uuid: str = ""):
+    def __init__(self, description: str, commands: list[dict], notes: str = "", uuid: str = ""):
         self.description: str = description
         self.notes: str = notes
         self.commands: list[dict] = commands
-        self.blackout: bool = blackout
         self.uuid: str = uuid if uuid else str(uuid4())
         self.show: "Show" | None = None
 
@@ -21,7 +20,6 @@ class Cue:
             serialized["description"],
             serialized["commands"],
             notes=serialized["notes"],
-            blackout=serialized["blackout"],
             uuid=serialized["uuid"]
         )
 
@@ -30,13 +28,12 @@ class Cue:
             "description": self.description,
             "commands": self.commands,
             "notes": self.notes,
-            "blackout": self.blackout,
             "uuid": self.uuid
         }
 
     @classmethod
     def parse_from_spreadsheet(cls, row: list[str]):
-        cue = cls(row[3], [], row[10], row[9] == "TRUE")
+        cue = cls(row[3], [], row[9])
 
         enable_channels: list[str] = []
         for term in row[4].strip().split():
@@ -94,13 +91,5 @@ class Cue:
                 case other:
                     print(f"Unknown subsystem {other} in command")
 
-        if self.blackout:
-            self.show.enter_blackout() # if the blackout flag is set, we want to enter blackout
-        else:
-            self.show.exit_blackout() # if the blackout flag is not set, we want to exit blackout automatically if we're in it
-
     def __str__(self) -> str:
-        if self.blackout:
-            return f"Blackout cue \"{self.description}\" ({self.uuid})"
-        else:
-            return f"Cue \"{self.description}\" ({self.uuid})"
+        return f"Cue \"{self.description}\" ({self.uuid})"

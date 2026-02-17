@@ -139,10 +139,10 @@ class CueList:
     def import_cue_sheet(self, cue_sheet_contents: str):
         self.cues = []
         cells = cue_sheet_contents.replace("\r\n", "\t").split("\t")
-        if len(cells) % 12:
+        if len(cells) % 10:
             print("ERROR: Malformed cue sheet. Import cannot continue.")
             return
-        rows: list[list[str]] = [cells[idx:idx+12] for idx in range(12, len(cells), 12)]
+        rows: list[list[str]] = [cells[idx:idx+10] for idx in range(10, len(cells), 10)]
         for row in rows:
             if not row[3]: # if there's no description, skip
                 continue

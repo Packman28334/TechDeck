@@ -20,9 +20,6 @@
         <button class="icon-button opens-dialog" id="netmon-button" title="Network Monitor" onclick="toggleDialog('netmon-dialog');">
             <span class="material-symbols-outlined">vital_signs</span>
         </button>
-        <button class="icon-button" id="blackout-button" title="Toggle blackout" onclick="show?.toggleBlackout();">
-            <span class="material-symbols-outlined">dark_mode</span>
-        </button>
     </div>
 
     <div class="toolbar none-selected">
@@ -80,12 +77,6 @@
         <h1>Configure cue...</h1>
         <input type="text" placeholder="Description" id="configured-cue-description">
         <input type="text" placeholder="Notes" id="configured-cue-notes">
-
-        <label class="checkbox">
-            <input type="checkbox" id="configured-cue-blackout">
-            <span></span>
-            <p>Blackout cue</p>
-        </label>
 
         <div class="command-list"></div>
 

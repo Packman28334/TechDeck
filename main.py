@@ -152,33 +152,6 @@ def subsystem_state_changed(sid, states):
     if show:
         show.update_subsystem_states(states)
 
-@sio.on("blackout_change_state") # request state change for blackout
-async def blackout_change_state(sid, data):
-    if p2p_network_manager.is_master_node:
-        if not show:
-            return
-        match data["action"]:
-            case "enter":
-                show.enter_blackout()
-            case "exit":
-                show.exit_blackout()
-            case "toggle":
-                if show.blackout:
-                    show.exit_blackout()
-                else:
-                    show.enter_blackout()
-    else:
-        p2p_network_manager.master_node.send("blackout_change_state", data)
-
-@sio.on("blackout_state_changed") # update local backend and client with blackout state
-async def blackout_state_changed(sid, data):
-    show.blackout = data["new_state"]
-    await p2p_network_manager.broadcast_to_client_async("blackout_state_changed", data)
-
-@sio.on("get_blackout_state") # get the state of the blackout for the client
-async def get_blackout_state(sid, data=None):
-    await p2p_network_manager.broadcast_to_client_async("blackout_state_changed", {"new_state": show.blackout})
-
 @sio.on("save_state_changed") # update local backend and client with save state
 async def save_state_changed(sid, new_state):
     if show:
