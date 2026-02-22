@@ -1,6 +1,7 @@
 
-from pydantic import BaseModel
 from uuid import uuid4
+
+from config import DEBUG_MODE
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -74,9 +75,16 @@ class Cue:
 
     def call(self):
         if not self.show:
+            print("!!! CUE WITHOUT A SHOW REFERENCE")
             return
         
+        if DEBUG_MODE:
+            print(f"Cue \"{self.description}\" triggered ({self.uuid})")
+
         for command in self.commands:
+            if DEBUG_MODE:
+                print(f"Running command {command}")
+
             match command["subsystem"]:
                 case "mixer":
                     self.show.mixer_subsystem.run_command(command)
@@ -90,6 +98,9 @@ class Cue:
                     self.show.scenery_subsystem.run_command(command)
                 case other:
                     print(f"Unknown subsystem {other} in command")
+
+        if DEBUG_MODE:
+            print(f"Cue execution completed")
 
     def __str__(self) -> str:
         return f"Cue \"{self.description}\" ({self.uuid})"
