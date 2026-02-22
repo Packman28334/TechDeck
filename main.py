@@ -188,7 +188,7 @@ def cue_edited(sid, data):
 async def get_cues(sid, data=None):
     global show
     if show:
-        p2p_network_manager.broadcast_to_servers("cue_list_changed", {"cue_list": show.cue_list.serialize()})
+        #p2p_network_manager.broadcast_to_servers("cue_list_changed", {"cue_list": show.cue_list.serialize()})
         await p2p_network_manager.broadcast_to_client_async("cue_list_changed", {"cue_list": show.cue_list.serialize()})
 
 @sio.on("get_current_cue") # broadcast the current cue
