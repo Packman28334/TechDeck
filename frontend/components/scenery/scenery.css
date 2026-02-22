@@ -3,6 +3,7 @@
     width: 100dvw;
     height: 100dvh;
     background-color: black;
+    cursor: none !important;
 }
 
 .backdrop-container.blackout img, .backdrop-container.blackout video {

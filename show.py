@@ -24,7 +24,8 @@ DEFAULT_CONFIGURATION = {
 if os.path.exists("_working_show/") and os.path.isdir("_working_show/"):
     shutil.rmtree("_working_show")
 os.mkdir("_working_show")
-os.mkdir("_working_show/backdrop_library") # this must exist for the StaticFiles to be mounted
+os.mkdir("_working_show/audio_library") # this must exist for the StaticFiles to be mounted
+os.mkdir("_working_show/backdrop_library") # ditto
 
 class Show:
     def __init__(self, title: str, cue_list: CueList, configuration: dict):

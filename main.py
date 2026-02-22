@@ -281,52 +281,14 @@ def audio_library_entries(sid, entries):
     for filename in entries:
         if os.path.exists(f"_working_show/audio_library/{filename}") and hash_of_file(f"_working_show/audio_library/{filename}") == entries[filename]:
             continue # file matches, don't request
-        p2p_network_manager.master_node.send("get_audio_file", filename) # no match, request
+        with requests.get(f"http://{p2p_network_manager.master_node.ip_address}:{p2p_network_manager.master_node.port}/audio/{filename}", stream=True) as r:
+            if r.status_code == 200:
+                with open(f"_working_show/audio_library/{filename}", "wb") as f:
+                    for chunk in r.iter_content(chunk_size=8192):
+                        f.write(chunk)
     for file in os.listdir("_working_show/audio_library"):
         if file not in entries:
             os.remove(f"_working_show/audio_library/{file}")
-
-@sio.on("get_audio_file") # request contents of audio file by filename
-def get_audio_file(sid, filename):
-    if not p2p_network_manager.is_master_node: # this also shouldn't be able to happen, but we stop it just in case
-        pass
-    if not os.path.exists(f"_working_show/audio_library/{filename}"): # again, impossible, but we still stop it
-        return
-    file_data: bytes = Path(f"_working_show/audio_library/{filename}").read_bytes()
-    n_chunks: int = ceil(len(file_data) / 512000)
-    if DEBUG_MODE:
-        print(f"Sharing audio file {filename}: size {len(file_data)} bytes, {n_chunks} chunks")
-    for chunk_idx in range(n_chunks):
-        chunk_data = file_data[chunk_idx*512000:(chunk_idx+1)*512000]
-        p2p_network_manager.broadcast_to_servers("audio_file", {
-            "filename": filename,
-            "hash": hash_of_file(f"_working_show/audio_library/{filename}"),
-            "total_chunks": n_chunks,
-            "chunk_idx": chunk_idx,
-            "contents": base64.b64encode(chunk_data).decode("utf-8")
-        })
-
-@sio.on("audio_file") # update an audio file
-def audio_file(sid, data):
-    global current_audio_transfers
-    if os.path.exists(f"_working_show/audio_library/{data['filename']}"):
-        if hash_of_file(f"_working_show/audio_library/{data['filename']}") == data["hash"]:
-            return # if the file path and hash match, don't update
-        os.remove(f"_working_show/audio_library/{data['filename']}") # if the file exists but is outdated, delete it
-    if data['filename'] not in current_audio_transfers:
-        current_audio_transfers[data['filename']] = [data['total_chunks'], set(), {}]
-    current_audio_transfers[data['filename']][1].add(data['chunk_idx'])
-    current_audio_transfers[data['filename']][2][data['chunk_idx']] = base64.b64decode(data["contents"].encode("utf-8"))
-    if DEBUG_MODE:
-        print(f"Recieved chunk {data['chunk_idx']+1} of {data['total_chunks']} for audio file {data['filename']}")
-    if len(current_audio_transfers[data['filename']][2]) == data['total_chunks']:
-        if DEBUG_MODE:
-            print(f"Recieved all chunks for audio file {data['filename']}, writing file now...")
-        full_file: bytes = bytes()
-        for i in range(data['total_chunks']):
-            full_file = b"".join([full_file, current_audio_transfers[data['filename']][2][i]])
-        Path(f"_working_show/audio_library/{data['filename']}").write_bytes(full_file)
-        del current_audio_transfers[data['filename']]
 
 @sio.on("get_backdrop_library_entries") # broadcast backdrop library entries
 def get_backdrop_library_entries(sid, data=None):
@@ -343,53 +305,16 @@ def backdrop_library_entries(sid, entries):
     for filename in entries:
         if os.path.exists(f"_working_show/backdrop_library/{filename}") and hash_of_file(f"_working_show/backdrop_library/{filename}") == entries[filename]:
             continue # file matches, don't request
-        p2p_network_manager.master_node.send("get_backdrop_file", filename) # no match, request
+        with requests.get(f"http://{p2p_network_manager.master_node.ip_address}:{p2p_network_manager.master_node.port}/backdrops/{filename}", stream=True) as r:
+            if r.status_code == 200:
+                with open(f"_working_show/backdrop_library/{filename}", "wb") as f:
+                    for chunk in r.iter_content(chunk_size=8192):
+                        f.write(chunk)                    
     for file in os.listdir("_working_show/backdrop_library"):
         if file not in entries:
             os.remove(f"_working_show/backdrop_library/{file}")
 
-@sio.on("get_backdrop_file") # request contents of backdrop file by filename
-def get_backdrop_file(sid, filename):
-    if not p2p_network_manager.is_master_node: # this also shouldn't be able to happen, but we stop it just in case
-        pass
-    if not os.path.exists(f"_working_show/backdrop_library/{filename}"): # again, impossible, but we still stop it
-        return
-    file_data: bytes = Path(f"_working_show/backdrop_library/{filename}").read_bytes()
-    n_chunks: int = ceil(len(file_data) / 512000)
-    if DEBUG_MODE:
-        print(f"Sharing backdrop file {filename}: size {len(file_data)} bytes, {n_chunks} chunks")
-    for chunk_idx in range(n_chunks):
-        chunk_data = file_data[chunk_idx*512000:(chunk_idx+1)*512000]
-        p2p_network_manager.broadcast_to_servers("backdrop_file", {
-            "filename": filename,
-            "hash": hash_of_file(f"_working_show/backdrop_library/{filename}"),
-            "total_chunks": n_chunks,
-            "chunk_idx": chunk_idx,
-            "contents": base64.b64encode(chunk_data).decode("utf-8")
-        })
-
-@sio.on("backdrop_file") # update a backdrop file
-def backdrop_file(sid, data):
-    global current_backdrop_transfers
-    if os.path.exists(f"_working_show/backdrop_library/{data['filename']}"):
-        if hash_of_file(f"_working_show/backdrop_library/{data['filename']}") == data["hash"]:
-            return # if the file path and hash match, don't update
-        os.remove(f"_working_show/backdrop_library/{data['filename']}") # if the file exists but is outdated, delete it
-    if data['filename'] not in current_backdrop_transfers:
-        current_backdrop_transfers[data['filename']] = [data['total_chunks'], set(), {}]
-    current_backdrop_transfers[data['filename']][1].add(data['chunk_idx'])
-    current_backdrop_transfers[data['filename']][2][data['chunk_idx']] = base64.b64decode(data["contents"].encode("utf-8"))
-    if DEBUG_MODE:
-        print(f"Recieved chunk {data['chunk_idx']+1} of {data['total_chunks']} for backdrop file {data['filename']}")
-    if len(current_backdrop_transfers[data['filename']][2]) == data['total_chunks']:
-        if DEBUG_MODE:
-            print(f"Recieved all chunks for backdrop file {data['filename']}, writing file now...")
-        full_file: bytes = bytes()
-        for i in range(data['total_chunks']):
-            full_file = b"".join([full_file, current_backdrop_transfers[data['filename']][2][i]])
-        Path(f"_working_show/backdrop_library/{data['filename']}").write_bytes(full_file)
-        del current_backdrop_transfers[data['filename']]
-
+app.mount("/audio", StaticFiles(directory="_working_show/audio_library"))
 app.mount("/backdrops", StaticFiles(directory="_working_show/backdrop_library"))
 app.mount("/", StaticFiles(directory="frontend/static"))
 
