@@ -134,6 +134,10 @@ async def select_show(sid, title):
 async def selected_show(sid, title):
     global show
     show = Show.load_or_create(title)
+    p2p_network_manager.master_node.send("get_cues")
+    p2p_network_manager.master_node.send("get_current_cue")
+    p2p_network_manager.master_node.send("get_subsystem_state")
+    p2p_network_manager.master_node.send("get_save_state")
     p2p_network_manager.master_node.send("get_audio_library_entries")
     p2p_network_manager.master_node.send("get_backdrop_library_entries")
     await p2p_network_manager.broadcast_to_client_async("selected_show", show.title)
@@ -151,6 +155,14 @@ def subsystem_state_changed(sid, states):
     global show
     if show:
         show.update_subsystem_states(states)
+
+@sio.on("get_subsystem_state")
+def get_subsystem_state(sid, data=None):
+    global show
+    if p2p_network_manager.is_master_node:
+        p2p_network_manager.broadcast_to_servers("subsystem_state_changed", show.accumulate_subsystem_states())
+    else:
+        p2p_network_manager.master_node.send("get_subsystem_state")
 
 @sio.on("save_state_changed") # update local backend and client with save state
 async def save_state_changed(sid, new_state):
@@ -187,9 +199,12 @@ def cue_edited(sid, data):
 @sio.on("get_cues") # broadcast current cue list
 async def get_cues(sid, data=None):
     global show
-    if show:
-        #p2p_network_manager.broadcast_to_servers("cue_list_changed", {"cue_list": show.cue_list.serialize()})
-        await p2p_network_manager.broadcast_to_client_async("cue_list_changed", {"cue_list": show.cue_list.serialize()})
+    if p2p_network_manager.is_master_node:
+        if show:
+            p2p_network_manager.broadcast_to_servers("cue_list_changed", {"cue_list": show.cue_list.serialize()})
+            await p2p_network_manager.broadcast_to_client_async("cue_list_changed", {"cue_list": show.cue_list.serialize()})
+    else:
+        p2p_network_manager.master_node.send("get_cues")
 
 @sio.on("get_current_cue") # broadcast the current cue
 async def get_current_cue(sid, data=None):

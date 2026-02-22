@@ -43,8 +43,6 @@ class Show:
         self.audio_subsystem: AudioSubsystem = AudioSubsystem(**configuration["audio_subsystem"])
         self.scenery_subsystem: ScenerySubsystem = ScenerySubsystem(self.p2p_network_manager, **configuration["scenery_subsystem"])
 
-        self.share_show() # send new show data to peers
-
     @classmethod
     def new(cls, title: str):
         obj = cls(title, CueList(), DEFAULT_CONFIGURATION)
@@ -125,20 +123,6 @@ class Show:
         if not os.path.exists("shows/"):
             os.mkdir("shows")
         return [show_name.removesuffix(".tdshw") for show_name in os.listdir("shows") if show_name.endswith(".tdshw")]
-
-    def share_show(self):
-        if not self.p2p_network_manager.is_master_node:
-            return
-        self.p2p_network_manager.broadcast_to_servers("selected_show", {"title": self.title})
-        self.p2p_network_manager.broadcast_to_client("selected_show", {"title": self.title})
-        self.p2p_network_manager.broadcast_to_servers("cue_list_changed", {"cue_list": self.cue_list.serialize()})
-        self.p2p_network_manager.broadcast_to_client("cue_list_changed", {"cue_list": self.cue_list.serialize()})
-        self.p2p_network_manager.broadcast_to_servers("current_cue_changed", {"index": self.current_cue})
-        self.p2p_network_manager.broadcast_to_client("current_cue_changed", {"index": self.current_cue})
-        self.p2p_network_manager.broadcast_to_servers("subsystem_state_changed", self.accumulate_subsystem_states())
-        self.p2p_network_manager.broadcast_to_client("subsystem_state_changed", self.accumulate_subsystem_states())
-        self.p2p_network_manager.broadcast_to_servers("save_state_changed", self.cue_list.unsaved)
-        self.p2p_network_manager.broadcast_to_client("save_state_changed", self.cue_list.unsaved)
 
     def trigger_cue(self):
         self.cue_list[self.current_cue].call()

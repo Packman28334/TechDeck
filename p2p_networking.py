@@ -36,12 +36,6 @@ class Peer:
             self.send("master_node", {"master_uuid": self.network_manager.master_node.uuid if self.network_manager.master_node else "", "fallback_master_uuid": self.network_manager.fallback_master.uuid if self.network_manager.fallback_master else ""})
             if self.network_manager.show:
                 self.send("selected_show", {"title": self.network_manager.show.title})
-                self.send("cue_list_changed", {"cue_list": self.network_manager.show.cue_list.serialize()})
-                self.send("current_cue_changed", {"index": self.network_manager.show.current_cue})
-                self.send("subsystem_state_changed", self.network_manager.show.accumulate_subsystem_states())
-                self.send("save_state_changed", self.network_manager.show.cue_list.unsaved)
-                # TODO: synchronize audio and background libraries
-                # TODO: synchronize things like timed cues
 
     def send(self, event: str, data: Any | None = None):
         if DEBUG_MODE:
@@ -196,7 +190,7 @@ class P2PNetworkManager:
                 peer.send(event)
 
     def broadcast_to_client(self, event: str, data: Any | None = None) -> None:
-        if DEBUG_MODE:
+        if DEBUG_MODE and event not in ["client_ping"]:
             print(f"Sending client message {event}: {data}")
         try:
             asyncio.get_running_loop()
@@ -211,7 +205,7 @@ class P2PNetworkManager:
                 asyncio.run(self.sio.emit(event))
 
     async def broadcast_to_client_async(self, event: str, data: Any | None = None) -> None:
-        if DEBUG_MODE:
+        if DEBUG_MODE and event not in ["client_ping"]:
             print(f"Sending client message {event}: {data}")
         if data:
             await self.sio.emit(event, data)
