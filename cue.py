@@ -75,6 +75,9 @@ class Cue:
         else:
             cue.commands.append({"subsystem": "audio", "action": "stop"})
 
+        for command in cue.commands: # add UUIDs for frontend manipulation
+            command["id"] = str(uuid4())
+
         return cue
 
     def call(self):
