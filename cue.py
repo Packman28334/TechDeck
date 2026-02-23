@@ -68,8 +68,12 @@ class Cue:
         elif row[7].startswith("#"):
             cue.commands.append({"subsystem": "scenery", "action": "change_backdrop_to_image", "index": row[7].strip().split()[0].removeprefix("#")})
 
+        if row[8].startswith("#CONT'D"):
+            pass
         if row[8].startswith("#"):
             cue.commands.append({"subsystem": "audio", "action": "play", "index": row[8].strip().split()[0].removeprefix("#")})
+        else:
+            cue.commands.append({"subsystem": "audio", "action": "stop"})
 
         return cue
 
