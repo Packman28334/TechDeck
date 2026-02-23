@@ -73,7 +73,7 @@ class Cue:
         if row[8].startswith("#"):
             cue.commands.append({"subsystem": "audio", "action": "play", "index": row[8].strip().split()[0].removeprefix("#")})
         else:
-            cue.commands.append({"subsystem": "audio", "action": "stop"})
+            cue.commands.append({"subsystem": "audio", "action": "stop", "fade_out": "1250"})
 
         for command in cue.commands: # add UUIDs for frontend manipulation
             command["id"] = str(uuid4())
