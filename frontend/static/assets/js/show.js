@@ -480,6 +480,7 @@ socket.on("current_cue_changed", (data) => {
         show.currentCue = data["index"];
         populateCueTable(); // TODO: actually code properly instead of just remaking the entire table on each cue change
     }
+    getShadowDOMOf("editshow").querySelector(".cue-table div.row.active")?.scrollIntoView({behavior: "smooth", block: "center"});
 });
 
 socket.on("save_state_changed", (new_state) => {
