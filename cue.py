@@ -50,11 +50,12 @@ class Cue:
         if disable_channels:
             cue.commands.append({"subsystem": "mixer", "action": "disable_channels", "channels": " ".join(disable_channels)})
 
-        if row[5].strip().startswith("#"):
-            if row[5].startswith("#BO"):
-                cue.commands.append({"subsystem": "lights", "action": "jump_to_cue", "cue": "0.1"})
-            else:
-                cue.commands.append({"subsystem": "lights", "action": "jump_to_cue", "cue": row[5].strip().split()[0].removeprefix("#")})
+        if row[5].strip().startswith("PB#"):
+            cue.commands.append({"subsystem": "lights", "action": "switch_playback", "playback": row[5].strip().split()[0].removeprefix("PB#")})
+        elif row[5].strip().startswith("#BO"):
+            cue.commands.append({"subsystem": "lights", "action": "jump_to_cue", "cue": "0.1"})
+        elif row[5].strip().startswith("#"):
+            cue.commands.append({"subsystem": "lights", "action": "jump_to_cue", "cue": row[5].strip().split()[0].removeprefix("#")})
 
         if row[6].strip().startswith("#"):
             cue.commands.append({"subsystem": "spotlight", "action": "change_guide", "icon": row[6].strip().split()[0].removeprefix("#"), "guide": " ".join(row[6].strip().split()[1:])})
