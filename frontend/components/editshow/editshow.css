@@ -242,6 +242,53 @@
     display: none;
 }
 
+.keyboard-mode {
+    position: fixed;
+    right: 2em;
+    bottom: 2em;
+
+    width: 6em;
+    height: 6em;
+    padding: 0.5em 0.5em 0.5em 0.5em;
+    border-radius: 1000px;
+
+    border: 1px solid rgba(255, 255, 255, 0.15);
+
+    background-color: #212121;
+
+    cursor: pointer;
+
+    transition: transform 0.1s ease-in-out, background-color 0.5s ease-in-out;
+}
+
+.keyboard-mode:active {
+    transform: scale(0.92);
+}
+
+.keyboard-mode.active {
+    background-color: var(--light-purple);
+}
+
+.keyboard-mode p {
+    margin: 0px;
+}
+
+.keyboard-mode p:not(#active) {
+    display: inline;
+}
+
+.keyboard-mode p#active {
+    display: none;
+}
+
+.keyboard-mode.active p:not(#active) {
+    display: none;
+}
+
+.keyboard-mode.active p#active {
+    display: inline;
+}
+
 #configure-cue-dialog {
     width: 50%;
 }

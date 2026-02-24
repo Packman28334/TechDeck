@@ -437,6 +437,17 @@ function populateConfiguredCommandValues() {
     }
 }
 
+document.addEventListener("keypress", (ev) => {
+    if (currentPageview == "editshow" && getShadowDOMOf("editshow").querySelector(".keyboard-mode").classList.contains("active") && ev.key == " ") {
+        ev.preventDefault();
+        if (ev.shiftKey) {
+            socket.emit("jump_to_cue", show?.currentCue-1);
+        } else {
+            socket.emit("jump_to_cue", show?.currentCue+1);
+        }
+    }
+});
+
 socket.on("is_show_loaded", (state) => {
     if (state["master_node_present"]) {
         if (state["loaded"]) {
