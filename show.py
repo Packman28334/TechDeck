@@ -101,6 +101,8 @@ class Show:
         self.scenery_subsystem.state = states["scenery_subsystem"]
 
     def save(self, filename: str, backup: bool = False):
+        if DEBUG_MODE:
+            print("Commencing save...")
         if not os.path.exists("_working_show/"):
             return
         if not os.path.exists("shows/"):
@@ -117,6 +119,8 @@ class Show:
         self.p2p_network_manager.broadcast_to_servers("save_state_changed", False)
         self.p2p_network_manager.broadcast_to_client("save_state_changed", False)
         self.cue_list.unsaved = False
+        if DEBUG_MODE:
+            print("Save completed.")
 
     @staticmethod
     def list_shows() -> list[str]:
