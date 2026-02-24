@@ -33,16 +33,20 @@ img, video {
 
 .backdrop-container.primary-to-secondary .primary {
     animation: fadeout 1.25s ease-in-out 1;
+    z-index: 0;
 }
 
 .backdrop-container.primary-to-secondary .secondary {
     animation: fadein 1.25s ease-in-out 1;
+    z-index: 1000;
 }
 
 .backdrop-container.secondary-to-primary .primary {
     animation: fadein 1.25s ease-in-out 1;
+    z-index: 1000;
 }
 
 .backdrop-container.secondary-to-primary .secondary {
     animation: fadeout 1.25s ease-in-out 1;
+    z-index: 0;
 }
