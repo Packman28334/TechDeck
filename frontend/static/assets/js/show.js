@@ -491,30 +491,43 @@ socket.on("save_state_changed", (new_state) => {
     }
 });
 
+var currentlyUsingSecondaryBackdrop = false;
+
 socket.on("backdrop_changed", (data) => {
-    let backdropContainer = getShadowDOMOf("scenery").querySelector(".backdrop-container");
+    let masterBackdropContainer = getShadowDOMOf("scenery").querySelector(".backdrop-container");
+    let primaryBackdropContainer = masterBackdropContainer.querySelector(".primary");
+    let secondaryBackdropContainer = masterBackdropContainer.querySelector(".secondary");
+
+    currentlyUsingSecondaryBackdrop = !currentlyUsingSecondaryBackdrop;
+
+    let newBackdropContainer = currentlyUsingSecondaryBackdrop ? secondaryBackdropContainer : primaryBackdropContainer;
+    let oldBackdropContainer = !currentlyUsingSecondaryBackdrop ? secondaryBackdropContainer : primaryBackdropContainer;
+
     if (!data["filename"]) { // if there's no file, get rid of the backdrop
-        backdropContainer.innerHTML = "";
+        newBackdropContainer.innerHTML = "";
         return;
     }
 
     if (data["blackout"]) {
-        backdropContainer.classList.add("blackout");
+        newBackdropContainer.innerHTML = ``;
+    } else if (data["is-video"]) {
+        newBackdropContainer.innerHTML = `
+            <video nocontrols autoplay loop muted>
+                <source src="/backdrops/${data['filename']}">
+            </video>   `;
     } else {
-        backdropContainer.classList.remove("blackout");
+        newBackdropContainer.innerHTML = `<img src="/backdrops/${data['filename']}">`;
     }
 
-    // if the source isn't new, don't reload
-    if (data["is-video"]) {
-        if ("/backdrops/"+data["filename"] != backdropContainer.querySelector("source")?.src) {
-            backdropContainer.innerHTML = `
-                <video nocontrols autoplay loop muted>
-                    <source src="/backdrops/${data['filename']}">
-                </video>   `
-        }
+    if (currentlyUsingSecondaryBackdrop) {
+        masterBackdropContainer.classList.remove("secondary-to-primary");
+        masterBackdropContainer.classList.add("primary-to-secondary");
     } else {
-        if ("/backdrops/"+data["filename"] != backdropContainer.querySelector("img")?.src) {
-            backdropContainer.innerHTML = `<img src="/backdrops/${data['filename']}">`;
-        }
+        masterBackdropContainer.classList.remove("primary-to-secondary");
+        masterBackdropContainer.classList.add("secondary-to-primary");
     }
+
+    setTimeout(() => {
+        oldBackdropContainer.innerHTML = ``;
+    }, 1250);
 });
