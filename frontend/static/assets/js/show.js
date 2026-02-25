@@ -503,8 +503,11 @@ socket.on("save_state_changed", (new_state) => {
 });
 
 var currentlyUsingSecondaryBackdrop = false;
+var currentBackdropFadeTimeoutId = undefined;
 
 socket.on("backdrop_changed", (data) => {
+    clearTimeout(currentBackdropFadeTimeoutId);
+
     let masterBackdropContainer = getShadowDOMOf("scenery").querySelector(".backdrop-container");
     let primaryBackdropContainer = masterBackdropContainer.querySelector(".primary");
     let secondaryBackdropContainer = masterBackdropContainer.querySelector(".secondary");
@@ -514,12 +517,12 @@ socket.on("backdrop_changed", (data) => {
     let newBackdropContainer = currentlyUsingSecondaryBackdrop ? secondaryBackdropContainer : primaryBackdropContainer;
     let oldBackdropContainer = !currentlyUsingSecondaryBackdrop ? secondaryBackdropContainer : primaryBackdropContainer;
 
-    if (!data["filename"]) { // if there's no file, get rid of the backdrop
-        newBackdropContainer.innerHTML = "";
-        return;
-    }
+    // if (!data["filename"]) { // if there's no file, get rid of the backdrop
+    //     newBackdropContainer.innerHTML = "";
+    //     return;
+    // }
 
-    if (data["blackout"]) {
+    if (data["blackout"] || !data["filename"]) {
         newBackdropContainer.innerHTML = ``;
     } else if (data["is-video"]) {
         newBackdropContainer.innerHTML = `
@@ -531,14 +534,12 @@ socket.on("backdrop_changed", (data) => {
     }
 
     if (currentlyUsingSecondaryBackdrop) {
-        masterBackdropContainer.classList.remove("secondary-to-primary");
-        masterBackdropContainer.classList.add("primary-to-secondary");
+        masterBackdropContainer.classList.add("switch-to-secondary");
     } else {
-        masterBackdropContainer.classList.remove("primary-to-secondary");
-        masterBackdropContainer.classList.add("secondary-to-primary");
+        masterBackdropContainer.classList.remove("switch-to-secondary");
     }
 
-    setTimeout(() => {
+    currentBackdropFadeTimeoutId = setTimeout(() => {
         oldBackdropContainer.innerHTML = ``;
     }, 1250);
 });
