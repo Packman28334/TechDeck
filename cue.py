@@ -69,12 +69,10 @@ class Cue:
         elif row[7].startswith("#"):
             cue.commands.append({"subsystem": "scenery", "action": "change_backdrop_to_image", "index": row[7].strip().split()[0].removeprefix("#")})
 
-        if row[8].startswith("#CONT'D"):
-            pass
-        if row[8].startswith("#"):
-            cue.commands.append({"subsystem": "audio", "action": "play", "index": row[8].strip().split()[0].removeprefix("#")})
-        else:
-            cue.commands.append({"subsystem": "audio", "action": "stop", "fade_out": "1250"})
+        if not row[8].startswith("#CONT'D"): # if we don't explicity want to continue sound,
+            cue.commands.append({"subsystem": "audio", "action": "stop", "fade_out": "1250"}) # we stop it.
+            if row[8].startswith("#"): # if we're requesting another sound,
+                cue.commands.append({"subsystem": "audio", "action": "play", "index": row[8].strip().split()[0].removeprefix("#")}) # we play it.
 
         for command in cue.commands: # add UUIDs for frontend manipulation
             command["id"] = str(uuid4())
