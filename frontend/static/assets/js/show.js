@@ -17,6 +17,8 @@ class Show {
 
         this.selectedCues = [];
 
+        this.cueChangeDebounceInhibit = false;
+
         socket.emit("get_cues");
         socket.emit("get_current_cue");
         socket.emit("get_current_backdrop");
@@ -145,6 +147,16 @@ class Show {
         r.open("POST", "/import-cue-sheet");
         r.send(formData);
     }
+
+    jumpToCue(cue) {
+        if (!this.cueChangeDebounceInhibit) {
+            socket.emit("jump_to_cue", cue);
+            this.cueChangeDebounceInhibit = true;
+            setTimeout(() => {
+                this.cueChangeDebounceInhibit = false;
+            }, 200);
+        }
+    }
 }
 
 var show = undefined;
@@ -174,7 +186,7 @@ function populateCueTable() {
 
             row.innerHTML = `
                 <div class="cell goto-button">
-                    <button class="icon-button" onclick="socket.emit('jump_to_cue', $ID$);">
+                    <button class="icon-button" onclick="show?.jumpToCue($ID$);">
                         <span class="material-symbols-outlined">play_circle</span>
                     </button>
                 </div>
@@ -438,12 +450,12 @@ function populateConfiguredCommandValues() {
 }
 
 document.addEventListener("keypress", (ev) => {
-    if (currentPageview == "editshow" && getShadowDOMOf("editshow").querySelector(".keyboard-mode").classList.contains("active") && ev.key == " ") {
+    if (currentPageview == "editshow" && getShadowDOMOf("editshow").querySelector(".keyboard-mode").classList.contains("active")) {
         ev.preventDefault();
-        if (ev.shiftKey) {
-            socket.emit("jump_to_cue", show?.currentCue-1);
-        } else {
-            socket.emit("jump_to_cue", show?.currentCue+1);
+        if (ev.key == " ") {
+            show?.jumpToCue(show?.currentCue+1);
+        } else if (ev.key == "p") {
+            show?.jumpToCue(show?.currentCue-1);
         }
     }
 });
