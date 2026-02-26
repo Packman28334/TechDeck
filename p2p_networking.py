@@ -35,7 +35,7 @@ class Peer:
         if self.network_manager.master_node == self.network_manager.host: # if this host is the master node, fill in the new peer
             self.send("master_node", {"master_uuid": self.network_manager.master_node.uuid if self.network_manager.master_node else "", "fallback_master_uuid": self.network_manager.fallback_master.uuid if self.network_manager.fallback_master else ""})
             if self.network_manager.show:
-                self.send("selected_show", {"title": self.network_manager.show.title})
+                self.send("selected_show", {"title": self.network_manager.show.title, "configuration": self.network_manager.show.accumulate_subsystem_configuration()})
 
     def send(self, event: str, data: Any | None = None):
         if DEBUG_MODE:

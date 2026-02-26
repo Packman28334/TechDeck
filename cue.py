@@ -36,6 +36,11 @@ class Cue:
     def parse_from_spreadsheet(cls, row: list[str]):
         cue = cls(row[3], [], row[9])
 
+        if not row[8].startswith("#CONT'D"): # if we don't explicity want to continue an audio file,
+            cue.commands.append({"subsystem": "audio", "action": "stop", "fade_out": "1250"}) # we stop it.
+        # the fade out takes 1.25s and is blocking, so we want to make sure we don't put it between stage lights and the backdrop, for example.
+        # therefore we do it right now before anything else.
+
         enable_channels: list[str] = []
         for term in row[4].strip().split():
             if not term.startswith("-"):
@@ -69,10 +74,11 @@ class Cue:
         elif row[7].startswith("#"):
             cue.commands.append({"subsystem": "scenery", "action": "change_backdrop_to_image", "index": row[7].strip().split()[0].removeprefix("#")})
 
-        if not row[8].startswith("#CONT'D"): # if we don't explicity want to continue sound,
-            cue.commands.append({"subsystem": "audio", "action": "stop", "fade_out": "1250"}) # we stop it.
+        if not row[8].startswith("#CONT'D"): # if we're not continuing a previous sound,
             if row[8].startswith("#"): # if we're requesting another sound,
                 cue.commands.append({"subsystem": "audio", "action": "play", "index": row[8].strip().split()[0].removeprefix("#")}) # we play it.
+            if row[8].startswith("L#"): # if we're requesting another sound but looping this time,
+                cue.commands.append({"subsystem": "audio", "action": "play", "index": row[8].strip().split()[0].removeprefix("L#"), "loops": -1}) # we play it (but looping).
 
         for command in cue.commands: # add UUIDs for frontend manipulation
             command["id"] = str(uuid4())

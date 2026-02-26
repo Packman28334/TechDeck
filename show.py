@@ -32,6 +32,7 @@ class Show:
         self.title: str = title
 
         self.p2p_network_manager: P2PNetworkManager = p2p_network_manager
+        self.p2p_network_manager.show = self
 
         self.cue_list: CueList = cue_list
         self.cue_list.set_show(self)
