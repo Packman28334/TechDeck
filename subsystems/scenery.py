@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from ..p2p_networking import P2PNetworkManager
 
 IMAGE_FILE_EXTENSIONS: tuple[str] = (".jpg", ".jpeg", ".png", ".gif", ".webp")
-VIDEO_FILE_EXTENSIONS: tuple[str] = (".mp4", ".m4v", ".avi")
+VIDEO_FILE_EXTENSIONS: tuple[str] = (".mp4", ".m4v", ".avi", ".webm")
 
 class ScenerySubsystem:
     def __init__(self, p2p_network_manager: "P2PNetworkManager"):
