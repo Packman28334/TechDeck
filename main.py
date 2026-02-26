@@ -329,6 +329,18 @@ def backdrop_library_entries(sid, entries):
         if file not in entries:
             os.remove(f"_working_show/backdrop_library/{file}")
 
+@sio.on("blackout") # enter full manual blackout
+def blackout(sid, data=None):
+    if p2p_network_manager.is_master_node:
+        if show:
+            show.audio_subsystem.run_command({"subsystem": "mixer", "action": "disable_channels", "channels": "HANG WL"})
+            show.lighting_subsystem.run_command({"subsystem": "lights", "action": "jump_to_cue", "cue": "0.1"})
+            show.spotlight_subsystem.run_command({"subsystem": "spotlight", "action": "change_guide", "icon": "BO", "guide": "Blackout"})
+            show.scenery_subsystem.run_command({"subsystem": "scenery", "action": "enter_scenery_blackout"})
+            show.audio_subsystem.run_command({"subsystem": "audio", "action": "stop", "fade_out": "1250"})
+    else:
+        p2p_network_manager.master_node.send("blackout")
+
 app.mount("/audio", StaticFiles(directory="_working_show/audio_library"))
 app.mount("/backdrops", StaticFiles(directory="_working_show/backdrop_library"))
 app.mount("/", StaticFiles(directory="frontend/static"))
