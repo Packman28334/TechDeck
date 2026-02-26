@@ -125,15 +125,15 @@ async def select_show(sid, title):
     if p2p_network_manager.is_master_node:
         global show
         show = Show.load_or_create(title)
-        p2p_network_manager.broadcast_to_servers("selected_show", show.title)
+        p2p_network_manager.broadcast_to_servers("selected_show", {"title": show.title, "configuration": show.accumulate_subsystem_configuration()})
         await p2p_network_manager.broadcast_to_client_async("selected_show", show.title)
     else:
         p2p_network_manager.master_node.send("select_show", title)
 
 @sio.on("selected_show") # load or create show that was just selected by the master node
-async def selected_show(sid, title):
+async def selected_show(sid, data):
     global show
-    show = Show.load_or_create(title)
+    show = Show.load_or_create(data["title"], override_configuration=data["configuration"])
     p2p_network_manager.master_node.send("get_cues")
     p2p_network_manager.master_node.send("get_current_cue")
     p2p_network_manager.master_node.send("get_subsystem_state")

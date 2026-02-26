@@ -6,10 +6,10 @@ from subsystems import MixerSubsystem, LightingSubsystem, SpotlightSubsystem, Au
 from p2p_networking import p2p_network_manager, P2PNetworkManager
 from config import DEBUG_MODE
 
-DEFAULT_CONFIGURATION = {
+DEFAULT_CONFIGURATION: dict = {
     "mixer_subsystem": {
         "aliases": {
-            "WL": [13, 14],
+            "WL": [21],
             "HANG": [1, 2, 3, 4, 5, 6, 7, 8, 9]
         }
     },
@@ -44,20 +44,20 @@ class Show:
         self.scenery_subsystem: ScenerySubsystem = ScenerySubsystem(self.p2p_network_manager, **configuration["scenery_subsystem"])
 
     @classmethod
-    def new(cls, title: str):
-        obj = cls(title, CueList(), DEFAULT_CONFIGURATION)
+    def new(cls, title: str, configuration: dict = DEFAULT_CONFIGURATION):
+        obj = cls(title, CueList(), configuration)
         if os.path.exists("_working_show/") and os.path.isdir("_working_show/"):
             shutil.rmtree("_working_show/")
         os.mkdir("_working_show")
         os.mkdir("_working_show/audio_library")
         os.mkdir("_working_show/backdrop_library")
         pathlib.Path("_working_show/cue_list.json").write_text('{"cues": []}')
-        pathlib.Path("_working_show/configuration.json").write_text(json.dumps(DEFAULT_CONFIGURATION))
+        pathlib.Path("_working_show/configuration.json").write_text(json.dumps(configuration))
         obj.save(title)
         return obj
    
     @classmethod
-    def load(cls, filename: str):
+    def load(cls, filename: str, override_configuration: dict | None = None):
         if os.path.exists("_working_show/") and os.path.isdir("_working_show/"):
             shutil.rmtree("_working_show/")
         with zipfile.ZipFile(f"shows/{filename}.tdshw", "r") as zip:
@@ -65,15 +65,15 @@ class Show:
         return cls(
             filename,
             CueList.create_from_serialized(json.loads(pathlib.Path("_working_show/cue_list.json").read_text())["cues"]),
-            json.loads(pathlib.Path("_working_show/configuration.json").read_text()),
+            override_configuration if override_configuration else json.loads(pathlib.Path("_working_show/configuration.json").read_text()),
         )
 
     @classmethod
-    def load_or_create(cls, title: str):
+    def load_or_create(cls, title: str, override_configuration: dict | None = None):
         if os.path.exists(f"shows/{title}.tdshw"):
-            return cls.load(title)
+            return cls.load(title, override_configuration=override_configuration)
         else:
-            return cls.new(title)
+            return cls.new(title, configuration=override_configuration if override_configuration else DEFAULT_CONFIGURATION)
 
     def accumulate_subsystem_configuration(self) -> dict:
         return {
