@@ -80,6 +80,9 @@ class Cue:
             if row[8].startswith("L#"): # if we're requesting another sound but looping this time,
                 cue.commands.append({"subsystem": "audio", "action": "play", "index": row[8].strip().split()[0].removeprefix("L#"), "loops": -1}) # we play it (but looping).
 
+            if (row[8].startswith("#") or row[8].startswith("L#")) and row[8].split()[1] == "#<":
+                cue.commands[-1]["fade_in"] = "500"
+
         for command in cue.commands: # add UUIDs for frontend manipulation
             command["id"] = str(uuid4())
 
