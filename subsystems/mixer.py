@@ -27,7 +27,14 @@ class MixerSubsystem:
     def send_requests(self, requests: list[str]):
         if DUMMY_MODE:
             return
-        self.socket.sendall(("\n ".join(requests)+"\n").encode())
+        try:
+            self.socket.sendall(("\n ".join(requests)+"\n").encode())
+        except BrokenPipeError:
+            print("YAMAHA RCP CONNECTION FAILED - Reconnecting")
+            self.socket: socket.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.socket.settimeout(5)
+            self.socket.connect((MIXER_IP, 49280))
+            self.socket.sendall(("\n ".join(requests)+"\n").encode())
         #self.socket.recv(1500).decode()
 
     def expand_aliases(self, channels: list[str]) -> list[str]:
