@@ -271,15 +271,6 @@ function formatCommandParams(command) {
                     return "PB" + command["playback"];
             }
             break;
-        case "spotlight":
-            switch(command["action"]) {
-                case "change_guide":
-                    if (command["icon"]) {
-                        return '(' + command["icon"] + ') "' + command["guide"] + '"';
-                    }
-                    return '"' + command["guide"] + '"';
-            }
-            break;
         case "audio":
             switch(command["action"]) {
                 case "play":
@@ -364,9 +355,6 @@ function populateConfigureCommandDialog(commandType) {
         case "lights.switch_playback":
             commandFieldContainer.innerHTML = `<input type="number" placeholder="ID of playback to switch to" name="playback">`;
             break;
-        case "spotlight.change_guide":
-            commandFieldContainer.innerHTML = `<input type="text" placeholder="New guide message" name="guide">`;
-            break;
         case "audio.play":
             // here we go
             commandFieldContainer.innerHTML = `
@@ -421,9 +409,6 @@ function populateConfiguredCommandValues() {
             break;
         case "lights.switch_playback":
             commandFieldContainer.querySelector("input[name=playback]").value = command["playback"];
-            break;
-        case "spotlight.change_guide":
-            commandFieldContainer.querySelector("input[name=guide]").value = command["guide"];
             break;
         case "audio.play":
             commandFieldContainer.querySelector("input[name=index]").value = command["index"];

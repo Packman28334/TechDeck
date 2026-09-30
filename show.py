@@ -2,7 +2,7 @@
 import zipfile, shutil, pathlib, json, os
 
 from cue_list import CueList
-from subsystems import MixerSubsystem, LightingSubsystem, SpotlightSubsystem, AudioSubsystem, ScenerySubsystem
+from subsystems import MixerSubsystem, LightingSubsystem, AudioSubsystem, ScenerySubsystem
 from p2p_networking import p2p_network_manager, P2PNetworkManager
 from config import DEBUG_MODE
 
@@ -16,7 +16,6 @@ DEFAULT_CONFIGURATION: dict = {
     "lighting_subsystem": {
         "initial_playback": 1
     },
-    "spotlight_subsystem": {},
     "audio_subsystem": {},
     "scenery_subsystem": {}
 }
@@ -40,7 +39,6 @@ class Show:
 
         self.mixer_subsystem: MixerSubsystem = MixerSubsystem(**configuration["mixer_subsystem"])
         self.lighting_subsystem: LightingSubsystem = LightingSubsystem(**configuration["lighting_subsystem"])
-        self.spotlight_subsystem: SpotlightSubsystem = SpotlightSubsystem(self.p2p_network_manager, **configuration["spotlight_subsystem"])
         self.audio_subsystem: AudioSubsystem = AudioSubsystem(**configuration["audio_subsystem"])
         self.scenery_subsystem: ScenerySubsystem = ScenerySubsystem(self.p2p_network_manager, **configuration["scenery_subsystem"])
 
@@ -80,7 +78,6 @@ class Show:
         return {
             "mixer_subsystem": self.mixer_subsystem.get_configuration(),
             "lighting_subsystem": self.lighting_subsystem.get_configuration(),
-            "spotlight_subsystem": self.spotlight_subsystem.get_configuration(),
             "audio_subsystem": self.audio_subsystem.get_configuration(),
             "scenery_subsystem": self.scenery_subsystem.get_configuration()
         }
@@ -89,7 +86,6 @@ class Show:
         return {
             "mixer_subsystem": self.mixer_subsystem.state,
             "lighting_subsystem": self.lighting_subsystem.state,
-            "spotlight_subsystem": self.spotlight_subsystem.state,
             "audio_subsystem": self.audio_subsystem.state,
             "scenery_subsystem": self.scenery_subsystem.state
         }
@@ -97,7 +93,6 @@ class Show:
     def update_subsystem_states(self, states: dict):
         self.mixer_subsystem.state = states["mixer_subsystem"]
         self.lighting_subsystem.state = states["lighting_subsystem"]
-        self.spotlight_subsystem.state = states["spotlight_subsystem"]
         self.audio_subsystem.state = states["audio_subsystem"]
         self.scenery_subsystem.state = states["scenery_subsystem"]
 

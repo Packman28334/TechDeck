@@ -335,7 +335,6 @@ def blackout(sid, data=None):
         if show:
             show.audio_subsystem.run_command({"subsystem": "mixer", "action": "disable_channels", "channels": "HANG WL"})
             show.lighting_subsystem.run_command({"subsystem": "lights", "action": "jump_to_cue", "cue": "0.1"})
-            show.spotlight_subsystem.run_command({"subsystem": "spotlight", "action": "change_guide", "icon": "BO", "guide": "Blackout"})
             show.scenery_subsystem.run_command({"subsystem": "scenery", "action": "enter_scenery_blackout"})
             show.audio_subsystem.run_command({"subsystem": "audio", "action": "stop", "fade_out": "1250"})
     else:

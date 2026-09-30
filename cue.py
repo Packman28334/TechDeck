@@ -62,25 +62,20 @@ class Cue:
         elif row[5].strip().startswith("#"):
             cue.commands.append({"subsystem": "lights", "action": "jump_to_cue", "cue": row[5].strip().split()[0].removeprefix("#")})
 
-        if row[6].strip().startswith("#"):
-            cue.commands.append({"subsystem": "spotlight", "action": "change_guide", "icon": row[6].strip().split()[0].removeprefix("#"), "guide": " ".join(row[6].strip().split()[1:])})
-        elif row[6]:
-            cue.commands.append({"subsystem": "spotlight", "action": "change_guide", "guide": row[6]})
-
-        if row[7].startswith("#BO"):
+        if row[6].startswith("#BO"):
             cue.commands.append({"subsystem": "scenery", "action": "enter_scenery_blackout"})
-        elif row[7].startswith("V#"):
+        elif row[6].startswith("V#"):
             cue.commands.append({"subsystem": "scenery", "action": "change_backdrop_to_video", "index": row[7].strip().split()[0].removeprefix("V#")})
-        elif row[7].startswith("#"):
+        elif row[6].startswith("#"):
             cue.commands.append({"subsystem": "scenery", "action": "change_backdrop_to_image", "index": row[7].strip().split()[0].removeprefix("#")})
 
-        if not row[8].startswith("#CONT'D"): # if we're not continuing a previous sound,
-            if row[8].startswith("#"): # if we're requesting another sound,
-                cue.commands.append({"subsystem": "audio", "action": "play", "index": row[8].strip().split()[0].removeprefix("#")}) # we play it.
-            if row[8].startswith("L#"): # if we're requesting another sound but looping this time,
-                cue.commands.append({"subsystem": "audio", "action": "play", "index": row[8].strip().split()[0].removeprefix("L#"), "loops": -1}) # we play it (but looping).
+        if not row[7].startswith("#CONT'D"): # if we're not continuing a previous sound,
+            if row[7].startswith("#"): # if we're requesting another sound,
+                cue.commands.append({"subsystem": "audio", "action": "play", "index": row[7].strip().split()[0].removeprefix("#")}) # we play it.
+            if row[7].startswith("L#"): # if we're requesting another sound but looping this time,
+                cue.commands.append({"subsystem": "audio", "action": "play", "index": row[7].strip().split()[0].removeprefix("L#"), "loops": -1}) # we play it (but looping).
 
-            if (row[8].startswith("#") or row[8].startswith("L#")) and row[8].split()[1] == "#<":
+            if (row[7].startswith("#") or row[8].startswith("L#")) and row[7].split()[1] == "#<":
                 cue.commands[-1]["fade_in"] = "500"
 
         for command in cue.commands: # add UUIDs for frontend manipulation
@@ -105,8 +100,6 @@ class Cue:
                     self.show.mixer_subsystem.run_command(command)
                 case "lights":
                     self.show.lighting_subsystem.run_command(command)
-                case "spotlight":
-                    self.show.spotlight_subsystem.run_command(command)
                 case "audio":
                     self.show.audio_subsystem.run_command(command)
                 case "scenery":

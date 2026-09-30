@@ -107,8 +107,6 @@
             <label class="subsystem-tab" for="radio-mixer-tab"><h5>Mixer</h5></label>
             <input type="radio" id="radio-lights-tab" name="subsystem-tab" />
             <label class="subsystem-tab" for="radio-lights-tab"><h5>Lights</h5></label>
-            <input type="radio" id="radio-spotlight-tab" name="subsystem-tab" />
-            <label class="subsystem-tab" for="radio-spotlight-tab"><h5>Spotlight</h5></label>
             <input type="radio" id="radio-audio-tab" name="subsystem-tab" />
             <label class="subsystem-tab" for="radio-audio-tab"><h5>Audio</h5></label>
             <input type="radio" id="radio-scenery-tab" name="subsystem-tab" />
@@ -127,8 +125,6 @@
 
             <button class="available-command lights-command" onclick="show?.addCommand('lights.jump_to_cue'); openDialog('configure-command-dialog');"><p>Jump to cue</p></button>
             <button class="available-command lights-command" onclick="show?.addCommand('lights.switch_playback'); openDialog('configure-command-dialog');"><p>Switch playback</p></button>
-
-            <button class="available-command spotlight-command" onclick="show?.addCommand('spotlight.change_guide'); openDialog('configure-command-dialog');"><p>Change guide</p></button>
 
             <button class="available-command audio-command" onclick="show?.addCommand('audio.play'); openDialog('configure-command-dialog');"><p>Play</p></button>
             <button class="available-command audio-command" onclick="show?.addCommand('audio.stop'); openDialog('configure-command-dialog');"><p>Stop</p></button>
