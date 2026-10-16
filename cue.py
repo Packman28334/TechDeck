@@ -8,10 +8,11 @@ if TYPE_CHECKING:
     from show import Show
 
 class Cue:
-    def __init__(self, description: str, commands: list[dict], notes: str = "", uuid: str = ""):
+    def __init__(self, description: str, commands: list[dict], index: float = -1.0, notes: str = "", uuid: str = ""):
         self.description: str = description
-        self.notes: str = notes
+        self.index: float = index
         self.commands: list[dict] = commands
+        self.notes: str = notes
         self.uuid: str = uuid if uuid else str(uuid4())
         self.show: "Show" | None = None
 
@@ -20,6 +21,7 @@ class Cue:
         return cls(
             serialized["description"],
             serialized["commands"],
+            index=serialized["index"],
             notes=serialized["notes"],
             uuid=serialized["uuid"]
         )
@@ -28,15 +30,16 @@ class Cue:
         return {
             "description": self.description,
             "commands": self.commands,
+            "index": self.index,
             "notes": self.notes,
             "uuid": self.uuid
         }
 
     @classmethod
     def parse_from_spreadsheet(cls, row: list[str]):
-        cue = cls(row[3], [], row[9])
+        cue = cls(row[3], [], index=float(row[0]), notes=row[8])
 
-        if not row[8].startswith("#CONT'D"): # if we don't explicity want to continue an audio file,
+        if not row[7].startswith("#CONT'D"): # if we don't explicity want to continue an audio file,
             cue.commands.append({"subsystem": "audio", "action": "stop", "fade_out": "1250"}) # we stop it.
         # the fade out takes 1.25s and is blocking, so we want to make sure we don't put it between stage lights and the backdrop, for example.
         # therefore we do it right now before anything else.
@@ -65,9 +68,9 @@ class Cue:
         if row[6].startswith("#BO"):
             cue.commands.append({"subsystem": "scenery", "action": "enter_scenery_blackout"})
         elif row[6].startswith("V#"):
-            cue.commands.append({"subsystem": "scenery", "action": "change_backdrop_to_video", "index": row[7].strip().split()[0].removeprefix("V#")})
+            cue.commands.append({"subsystem": "scenery", "action": "change_backdrop_to_video", "index": row[6].strip().split()[0].removeprefix("V#")})
         elif row[6].startswith("#"):
-            cue.commands.append({"subsystem": "scenery", "action": "change_backdrop_to_image", "index": row[7].strip().split()[0].removeprefix("#")})
+            cue.commands.append({"subsystem": "scenery", "action": "change_backdrop_to_image", "index": row[6].strip().split()[0].removeprefix("#")})
 
         if not row[7].startswith("#CONT'D"): # if we're not continuing a previous sound,
             if row[7].startswith("#"): # if we're requesting another sound,
@@ -89,7 +92,7 @@ class Cue:
             return
         
         if DEBUG_MODE:
-            print(f"Cue \"{self.description}\" triggered ({self.uuid})")
+            print(f"Cue {self.index} \"{self.description}\" triggered ({self.uuid})")
 
         for command in self.commands:
             if DEBUG_MODE:
@@ -111,4 +114,4 @@ class Cue:
             print(f"Cue execution completed")
 
     def __str__(self) -> str:
-        return f"Cue \"{self.description}\" ({self.uuid})"
+        return f"Cue {self.index} \"{self.description}\" ({self.uuid})"

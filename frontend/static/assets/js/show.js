@@ -75,7 +75,7 @@ class Show {
         var uuid = this.configuringCueUuid ? this.configuringCueUuid : window.crypto.randomUUID(); // just embracing the secure contexts atp
 
         if (this.newCueMode) {
-            socket.emit("add_cue", {"description": description, "notes": notes, "uuid": uuid, "commands": this.configuringCueCommands});
+            socket.emit("add_cue", {"description": description, "index": this.cues.length > 0 ? Math.floor(this.cues[this.cues.length-1].index)+1 : 1.0, "notes": notes, "uuid": uuid, "commands": this.configuringCueCommands});
         } else {
             socket.emit("edit_cue", {"index": this.configuringCueIndex, "cue": {"description": description, "notes": notes, "uuid": uuid, "commands": this.configuringCueCommands}});
         }
@@ -166,12 +166,10 @@ function populateCueTable() {
         cueTable = getShadowDOMOf("editshow").querySelector(".cue-table");
         
         var selectedCueUuids = new Object();
-        var index = 0;
         Array.from(cueTable.children).forEach(child => {
             if (!child.classList.contains("header")) {
                 selectedCueUuids[child.querySelector(".cue-uuid").textContent] = child.querySelector(".select-checkbox input").checked;
                 cueTable.removeChild(child);
-                index++;
             }
         });
 
@@ -180,7 +178,7 @@ function populateCueTable() {
             row = document.createElement("div");
             row.classList.add("row");
 
-            if (index == show.currentCue) {
+            if (cue["index"] == show.currentCue) {
                 row.classList.add("active");
             }
 
@@ -208,7 +206,7 @@ function populateCueTable() {
             `.replaceAll("$DESCRIPTION$", cue["description"])
             .replaceAll("$NOTES$", cue["notes"])
             .replaceAll("$ID$", index)
-            .replaceAll("$DISPLAY_ID$", index+1)
+            .replaceAll("$DISPLAY_ID$", cue["index"])
             .replaceAll("$UUID$", cue["uuid"]);
 
             if (Object.keys(selectedCueUuids).includes(cue["uuid"]) && selectedCueUuids[cue["uuid"]]) {
