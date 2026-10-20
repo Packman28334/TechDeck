@@ -30,6 +30,10 @@ class CueList:
         for cue in self.cues:
             cue.show = show
 
+    def _cascade_number_change_from_point(self, change: int, point: int):
+        for cue in self.cues[point:]:
+            cue.index = round(cue.index + change, 2)
+
     def _cues_changed(self):
         if self.show:
             if self.show.p2p_network_manager.is_master_node:
@@ -71,13 +75,17 @@ class CueList:
         self.cues.append(cue)
         self._cues_changed()
 
-    def insert(self, position: int, cue: Cue) -> None:
+    def insert(self, position: int, cue: Cue, _suppress_change: bool = False) -> None:
         self.cues.insert(position, cue)
-        self._cues_changed()
+        self._cascade_number_change_from_point(1, position+1)
+        if not _suppress_change:
+            self._cues_changed()
 
-    def pop(self, position: int) -> Cue:
+    def pop(self, position: int, _suppress_change: bool = False) -> Cue:
         cue: Cue = self.cues.pop(position)
-        self._cues_changed()
+        self._cascade_number_change_from_point(-1, position)
+        if not _suppress_change:
+            self._cues_changed()
         return cue
 
     def index(self, cue: Cue) -> Cue:
@@ -111,10 +119,12 @@ class CueList:
         self._cues_changed()
     
     def move(self, old_position: int, new_position: int, _suppress_change: bool = False) -> None:
-        if new_position > old_position:
-            self.cues.insert(new_position-1, self.cues.pop(old_position))
-        elif new_position < old_position:
-            self.cues.insert(new_position+1, self.cues.pop(old_position))
+        if new_position > old_position: # down
+            self.insert(new_position-1, self.pop(old_position, _suppress_change=True), _suppress_change=True)
+            self.cues[new_position-1].index = round(self.cues[new_position-1].index + new_position-old_position-1, 2)
+        elif new_position < old_position: # up
+            self.insert(new_position+1, self.pop(old_position, _suppress_change=True), _suppress_change=True)
+            self.cues[new_position+1].index = round(self.cues[new_position+1].index + new_position-old_position+1, 2)
         if not _suppress_change:
             self._cues_changed()
 
