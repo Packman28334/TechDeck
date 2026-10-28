@@ -1,7 +1,6 @@
 
 import copy
-import re
-from typing import TYPE_CHECKING
+from typing import Callable, TYPE_CHECKING
 
 from cue import Cue
 
@@ -24,6 +23,7 @@ class CueList:
         self.cues: list[Cue] = cues
         self.unsaved: bool = False
         self.show: "Show" | None = None
+        self.cue_change_callbacks: list[Callable] = []
 
     def set_show(self, show: "Show"):
         self.show = show
@@ -44,6 +44,8 @@ class CueList:
             self.show.p2p_network_manager.broadcast_to_servers("save_state_changed", True)
             self.show.p2p_network_manager.broadcast_to_client("save_state_changed", True)
             self.show.p2p_network_manager.broadcast_to_client("cue_list_changed", {"cue_list": self.serialize()})
+            for callback in self.cue_change_callbacks:
+                callback()
 
     def _single_cue_changed(self, index: int):
         if self.show:
@@ -54,6 +56,8 @@ class CueList:
             self.show.p2p_network_manager.broadcast_to_servers("save_state_changed", True)
             self.show.p2p_network_manager.broadcast_to_client("save_state_changed", True)
             self.show.p2p_network_manager.broadcast_to_client("cue_edited", {"index": index, "cue": self.cues[index].serialize()})
+            for callback in self.cue_change_callbacks:
+                callback()
 
     def __str__(self) -> str:
         return str([str(cue) for cue in self.cues])

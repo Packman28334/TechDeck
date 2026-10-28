@@ -8,3 +8,4 @@ zeroconf
 python-socketio[client]
 requests
 websocket-client
+PySide6

@@ -20,6 +20,7 @@ if TYPE_CHECKING:
 
 class Peer:
     def __init__(self, network_manager: "P2PNetworkManager", ip_address: str, port: int, hostname: str, uuid: str):
+        return
         self.network_manager: "P2PNetworkManager" = network_manager
         self.ip_address: str = ip_address
         self.port: int = port
@@ -38,6 +39,7 @@ class Peer:
                 self.send("selected_show", {"title": self.network_manager.show.title, "configuration": self.network_manager.show.accumulate_subsystem_configuration()})
 
     def send(self, event: str, data: Any | None = None):
+        return
         if DEBUG_MODE:
             print(f"Sending peer {self.hostname} message {event}: {data}")
         if data != None:
@@ -46,6 +48,7 @@ class Peer:
             self.sio.emit(event)
 
     def close(self):
+        return
         if DEBUG_MODE:
             print(f"Disconnected from peer {self.hostname} with UUID {self.uuid} at {self.ip_address}:{self.port}")
 
@@ -190,6 +193,7 @@ class P2PNetworkManager:
                 peer.send(event)
 
     def broadcast_to_client(self, event: str, data: Any | None = None) -> None:
+        return
         if DEBUG_MODE and event not in ["client_ping"]:
             print(f"Sending client message {event}: {data}")
         try:
@@ -205,6 +209,7 @@ class P2PNetworkManager:
                 asyncio.run(self.sio.emit(event))
 
     async def broadcast_to_client_async(self, event: str, data: Any | None = None) -> None:
+        return
         if DEBUG_MODE and event not in ["client_ping"]:
             print(f"Sending client message {event}: {data}")
         if data:
