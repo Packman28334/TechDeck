@@ -92,7 +92,7 @@ class Cue:
             return
         
         if DEBUG_MODE:
-            print(f"Cue {self.index} \"{self.description}\" triggered ({self.uuid})")
+            print(f"Cue {int(self.index) if self.index.is_integer() else self.index} \"{self.description}\" triggered ({self.uuid})")
 
         for command in self.commands:
             if DEBUG_MODE:
@@ -114,4 +114,4 @@ class Cue:
             print(f"Cue execution completed")
 
     def __str__(self) -> str:
-        return f"Cue {self.index} \"{self.description}\" ({self.uuid})"
+        return f"Cue {int(self.index) if self.index.is_integer() else self.index} \"{self.description}\" ({self.uuid})"

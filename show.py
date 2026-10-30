@@ -6,6 +6,8 @@ from subsystems import MixerSubsystem, LightingSubsystem, AudioSubsystem, Scener
 from p2p_networking import p2p_network_manager, P2PNetworkManager
 from config import DEBUG_MODE
 
+from typing import Callable
+
 DEFAULT_CONFIGURATION: dict = {
     "mixer_subsystem": {
         "aliases": {
@@ -36,6 +38,8 @@ class Show:
         self.cue_list: CueList = cue_list
         self.cue_list.set_show(self)
         self.current_cue: int = -1
+        self.staged_cue: int = -1
+        self.cue_change_callbacks: list[Callable] = []
 
         self.mixer_subsystem: MixerSubsystem = MixerSubsystem(**configuration["mixer_subsystem"])
         self.lighting_subsystem: LightingSubsystem = LightingSubsystem(**configuration["lighting_subsystem"])
@@ -124,38 +128,47 @@ class Show:
             os.mkdir("shows")
         return [show_name.removesuffix(".tdshw") for show_name in os.listdir("shows") if show_name.endswith(".tdshw")]
 
-    def trigger_cue(self):
-        self.cue_list[self.current_cue].call()
-        self.p2p_network_manager.broadcast_to_servers("subsystem_state_changed", self.accumulate_subsystem_states())
-        self.p2p_network_manager.broadcast_to_servers("current_cue_changed", {"index": self.current_cue})
-        self.p2p_network_manager.broadcast_to_client("current_cue_changed", {"index": self.current_cue})
+    # TODO: re-add P2P
 
-    def next_cue(self):
-        if not self.p2p_network_manager.is_master_node:
-            return
-        self.current_cue += 1
-        if self.current_cue > len(self.cue_list)-1:
-            self.current_cue = 0
-        self.trigger_cue()
-        return self.current_cue
+    def stage_next_cue(self) -> int:
+        if self.staged_cue >= 0:
+            self.staged_cue += 1
+        else:
+            self.staged_cue = self.current_cue + 1
+        if self.staged_cue > len(self.cue_list)-1:
+            self.staged_cue = 0
+        for callback in self.cue_change_callbacks:
+            callback()
+        return self.staged_cue
 
-    def previous_cue(self):
-        if not self.p2p_network_manager.is_master_node:
-            return
-        self.current_cue -= 1
-        if self.current_cue < 0:
-            self.current_cue = len(self.cue_list)-1
-        self.trigger_cue()
-        return self.current_cue
+    def stage_previous_cue(self) -> int:
+        if self.staged_cue >= 0:
+            self.staged_cue -= 1
+        else:
+            self.staged_cue = self.current_cue - 1
+        if self.staged_cue < 0:
+            self.staged_cue = len(self.cue_list)-1
+        for callback in self.cue_change_callbacks:
+            callback()
+        return self.staged_cue
 
-    def jump_to_cue(self, index: int):
-        if not self.p2p_network_manager.is_master_node:
-            return
+    def stage_cue(self, index: int) -> int:
         if index > len(self.cue_list)-1 or index < 0:
-            return self.current_cue
-        self.current_cue = index
-        self.trigger_cue()
-        return self.current_cue
+            return self.staged_cue
+        self.staged_cue = index
+        for callback in self.cue_change_callbacks:
+            callback()
+        return self.staged_cue
+
+    def execute_staged_cue(self):
+        if self.staged_cue < 0:
+            self.stage_next_cue()
+            return
+        self.current_cue = self.staged_cue
+        self.staged_cue = -1
+        self.cue_list[self.current_cue].call()
+        for callback in self.cue_change_callbacks:
+            callback()
 
     def update_polling_tasks(self):
         self.audio_subsystem.update_polling_tasks()

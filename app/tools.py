@@ -1,11 +1,9 @@
 
 import sys
 
-from PySide6.QtCore import QFile, QIODevice, QObject, QEvent
+from PySide6.QtCore import QFile, QIODevice
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import QWidget, QApplication
-
-from typing import Callable
 
 app: QApplication | None = None
 

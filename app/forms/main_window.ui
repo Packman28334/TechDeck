@@ -160,6 +160,74 @@
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
+  <action name="actionExecuteStagedCue">
+   <property name="icon">
+    <iconset theme="media-playback-start"/>
+   </property>
+   <property name="text">
+    <string>Execute Staged Cue</string>
+   </property>
+   <property name="toolTip">
+    <string>Execute the currently staged cue</string>
+   </property>
+   <property name="shortcut">
+    <string>Space</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionStageCue">
+   <property name="icon">
+    <iconset theme="media-playback-pause"/>
+   </property>
+   <property name="text">
+    <string>Stage Cue</string>
+   </property>
+   <property name="toolTip">
+    <string>Stage the selected cue</string>
+   </property>
+   <property name="shortcut">
+    <string>Return</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionStageNextCue">
+   <property name="icon">
+    <iconset theme="media-skip-forward"/>
+   </property>
+   <property name="text">
+    <string>Stage Next Cue</string>
+   </property>
+   <property name="toolTip">
+    <string>Stage the next cue</string>
+   </property>
+   <property name="shortcut">
+    <string>Right</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionStagePreviousCue">
+   <property name="icon">
+    <iconset theme="media-skip-backward"/>
+   </property>
+   <property name="text">
+    <string>Stage Next Cue</string>
+   </property>
+   <property name="toolTip">
+    <string>Stage the previous cue</string>
+   </property>
+   <property name="shortcut">
+    <string>Left</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>
