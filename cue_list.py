@@ -95,6 +95,14 @@ class CueList:
     def index(self, cue: Cue) -> Cue:
         return self.cues.index(cue)
 
+    def update(self, new_cue: Cue) -> Cue:
+        for idx, cue in enumerate(self.cues):
+            if cue.uuid == new_cue.uuid:
+                self.cues[idx] = new_cue
+                self._single_cue_changed(idx)
+                return
+        self.append(new_cue)
+
     @staticmethod
     def deserialize(cues: list[dict]) -> list[Cue]:
         out = []

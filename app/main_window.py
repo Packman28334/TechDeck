@@ -5,6 +5,7 @@ from PySide6.QtWidgets import QMainWindow, QMenuBar, QMenu, QTableView, QHeaderV
 from PySide6.QtCore import Qt, QAbstractTableModel, Slot, QItemSelection, QModelIndex, QObject, QEvent
 from PySide6.QtGui import QIcon, QAction, QColor
 
+from .cue_dialog import CueDialog
 from . import tools
 
 from typing import TYPE_CHECKING
@@ -119,7 +120,7 @@ class MainWindow:
             actions: list[str] = []
             match name:
                 case "File":
-                    pass
+                    actions: list[str] = ["actionSave", "actionSaveAs"]
                 case "Edit":
                     pass
                 case "Show":
@@ -156,6 +157,10 @@ class MainWindow:
     # TODO: make these do P2P properly
 
     @Slot()
+    def action_save(self):
+        self.show.save("test")
+
+    @Slot()
     def action_move_up(self):
         if self.table_view.selectionModel().selection().indexes():
             self.show.cue_list.move_up(self.table_view.selectionModel().selection().indexes()[0].row(), 1)
@@ -164,6 +169,12 @@ class MainWindow:
     def action_move_down(self):
         if self.table_view.selectionModel().selection().indexes():
             self.show.cue_list.move_down(self.table_view.selectionModel().selection().indexes()[0].row(), 1)
+
+    @Slot()
+    def action_edit_cue(self):
+        if self.table_view.selectionModel().selection().indexes():
+            self._open_dialog: CueDialog = CueDialog(self.show, self.show.cue_list[self.table_view.selectionModel().selection().indexes()[0].row()])
+            self._open_dialog.show_dialog()
 
     @Slot()
     def action_delete_cue(self):
@@ -187,8 +198,10 @@ class MainWindow:
         self.show.execute_staged_cue()
 
     def setup_actions(self):
+        self.widget.findChild(QAction, "actionSave").triggered.connect(self.action_save)
         self.widget.findChild(QAction, "actionMoveUp").triggered.connect(self.action_move_up)
         self.widget.findChild(QAction, "actionMoveDown").triggered.connect(self.action_move_down)
+        self.widget.findChild(QAction, "actionEditCue").triggered.connect(self.action_edit_cue)
         self.widget.findChild(QAction, "actionDeleteCue").triggered.connect(self.action_delete_cue)
         self.widget.findChild(QAction, "actionStageCue").triggered.connect(self.action_stage_cue)
         self.widget.findChild(QAction, "actionStageNextCue").triggered.connect(self.action_stage_next_cue)

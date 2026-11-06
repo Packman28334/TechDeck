@@ -39,6 +39,8 @@ class LightingSubsystem:
                 self.current_cue: float = float(command['cue'])
             
             case "switch_playback":
+                if self.playback == int(command['playback']):
+                    return
                 self.client.send_message(f"/pb/{self.playback}", 0.0)
                 self.playback = int(command['playback'])
                 self.client.send_message(f"/pb/{self.playback}", 1.0)

@@ -35,6 +35,13 @@ class Cue:
             "uuid": self.uuid
         }
 
+    def get_commands(self, subsystem: str, action: str) -> list[dict]:
+        out: list[dict] = []
+        for command in self.commands:
+            if command["subsystem"] == subsystem and command["action"] == action:
+                out.append(command)
+        return out
+
     @classmethod
     def parse_from_spreadsheet(cls, row: list[str]):
         cue = cls(row[3], [], index=float(row[0]), notes=row[8])
