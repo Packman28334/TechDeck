@@ -1,15 +1,19 @@
 
+from pathlib import Path
 from copy import copy
 
-from PySide6.QtWidgets import QMainWindow, QMenuBar, QMenu, QTableView, QHeaderView
+from PySide6.QtWidgets import QMainWindow, QMenuBar, QMenu, QTableView, QHeaderView, QFileDialog
 from PySide6.QtCore import Qt, QAbstractTableModel, Slot, QItemSelection, QModelIndex, QObject, QEvent
 from PySide6.QtGui import QIcon, QAction, QColor
+
+from typing import Callable
 
 from .cue_dialog import CueDialog
 from . import tools
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
+    from ..main import MainController
     from ..show import Show
     from ..cue import Cue
 
@@ -27,8 +31,9 @@ class TableEventFilter(QObject):
         return super().eventFilter(watched, event)
 
 class CueTableModel(QAbstractTableModel):
-    def __init__(self, show: 'Show'):
+    def __init__(self, window: MainWindow, show: 'Show'):
         super().__init__()
+        self.window: MainWindow = window
         self.show: 'Show' = show
         self.cue_list: list["Cue"] = copy(self.show.cue_list.cues) # we have QTableWidget at home
         self.show.cue_change_callbacks.append(self.callback)
@@ -56,6 +61,7 @@ class CueTableModel(QAbstractTableModel):
         # update content
         self.cue_list = copy(self.show.cue_list.cues)
         self.dataChanged.emit(self.index(0, 0), self.index(len(self.cue_list)-1, 3))
+        self.window.update_title()
 
     def rowCount(self, /, parent = ...):
         return len(self.show.cue_list)
@@ -95,17 +101,18 @@ class CueTableModel(QAbstractTableModel):
         return super().headerData(section, orientation, role)
 
 class MainWindow:
-    def __init__(self, show: "Show"):
+    def __init__(self, controller: "MainController", show: "Show"):
+        self.controller: "MainController" = controller
         self.show: "Show" = show
 
         self.widget: QMainWindow = tools.load_form("main_window")
         self.widget.resize(1000, 600)
-        self.widget.setWindowTitle("Tech Deck")
+        self.update_title()
         self.widget.setWindowIcon(QIcon("app/resources/icon.png"))
 
         self.table_view: QTableView = self.widget.findChild(QTableView, "cueTableView")
         self.table_event_filter: TableEventFilter = TableEventFilter()
-        self.table_model: CueTableModel = CueTableModel(self.show)
+        self.table_model: CueTableModel = CueTableModel(self, self.show)
 
         self.setup_menu()
         self.setup_table()
@@ -114,15 +121,16 @@ class MainWindow:
     def show_window(self):
         self.widget.show()
 
+    def close_window(self):
+        self.widget.close()
+
     def setup_menu(self):
-        for name in ["File", "Edit", "Show", "Cue", "Window"]:
+        for name in ["File", "Show", "Cue", "Window"]:
             menu: QMenu = self.widget.findChild(QMenuBar, "menuBar").addMenu(name)
             actions: list[str] = []
             match name:
                 case "File":
-                    actions: list[str] = ["actionSave", "actionSaveAs"]
-                case "Edit":
-                    pass
+                    actions: list[str] = ["actionNew", "", "actionOpen", "", "actionSave", "actionSaveAs"]
                 case "Show":
                     actions: list[str] = ["actionStageNextCue", "actionStagePreviousCue", "actionExecuteStagedCue", "", "actionAddCue"]
                 case "Cue":
@@ -150,6 +158,12 @@ class MainWindow:
 
         self.table_view.selectionModel().selectionChanged.connect(self.table_selection_changed)
 
+    def update_title(self):
+        if self.show.file_path:
+            self.widget.setWindowTitle(f"{Path(self.show.file_path).name}{'*' if self.show.cue_list.unsaved else ''} | Tech Deck 2")
+        else:
+            self.widget.setWindowTitle("Tech Deck 2")
+
     @Slot(QItemSelection, QItemSelection)
     def table_selection_changed(self, selected: QItemSelection, deselected: QItemSelection):
         pass
@@ -158,7 +172,35 @@ class MainWindow:
 
     @Slot()
     def action_save(self):
-        self.show.save("test")
+        if self.show.file_path:
+            self.show.save(self.show.file_path)
+        else:
+            self.action_save_as()
+
+    @Slot()
+    def action_save_as(self):
+        dest_path: str = QFileDialog.getSaveFileName(caption="Save as...", dir="./shows", filter="Tech Deck shows (*.tdshw)")[0]
+        if dest_path:
+            if not dest_path.endswith(".tdshw"):
+                dest_path += ".tdshw"
+            self.show.file_path = dest_path
+            self.show.save(self.show.file_path)
+
+    @Slot()
+    def action_open(self):
+        self.controller.open_show()
+
+    @Slot()
+    def action_new(self):
+        if self.show.cue_list.unsaved:
+            pass # TODO
+        self.controller.new_show()
+
+    @Slot()
+    def action_add_cue(self):
+        #self._open_dialog: CueDialog = CueDialog(self.show)
+        #self._open_dialog.show_dialog()
+        pass # TODO
 
     @Slot()
     def action_move_up(self):
@@ -198,12 +240,20 @@ class MainWindow:
         self.show.execute_staged_cue()
 
     def setup_actions(self):
-        self.widget.findChild(QAction, "actionSave").triggered.connect(self.action_save)
-        self.widget.findChild(QAction, "actionMoveUp").triggered.connect(self.action_move_up)
-        self.widget.findChild(QAction, "actionMoveDown").triggered.connect(self.action_move_down)
-        self.widget.findChild(QAction, "actionEditCue").triggered.connect(self.action_edit_cue)
-        self.widget.findChild(QAction, "actionDeleteCue").triggered.connect(self.action_delete_cue)
-        self.widget.findChild(QAction, "actionStageCue").triggered.connect(self.action_stage_cue)
-        self.widget.findChild(QAction, "actionStageNextCue").triggered.connect(self.action_stage_next_cue)
-        self.widget.findChild(QAction, "actionStagePreviousCue").triggered.connect(self.action_stage_previous_cue)
-        self.widget.findChild(QAction, "actionExecuteStagedCue").triggered.connect(self.action_execute_staged_cue)
+        ACTION_MAPPING: dict[str, Callable] = {
+            "actionSave": self.action_save,
+            "actionSaveAs": self.action_save_as,
+            "actionOpen": self.action_open,
+            "actionNew": self.action_new,
+            "actionAddCue": self.action_add_cue,
+            "actionMoveUp": self.action_move_up,
+            "actionMoveDown": self.action_move_down,
+            "actionEditCue": self.action_edit_cue,
+            "actionDeleteCue": self.action_delete_cue,
+            "actionStageCue": self.action_stage_cue,
+            "actionStageNextCue": self.action_stage_next_cue,
+            "actionStagePreviousCue": self.action_stage_previous_cue,
+            "actionExecuteStagedCue": self.action_execute_staged_cue
+        }
+        for action_name, action_callable in ACTION_MAPPING.items():
+            self.widget.findChild(QAction, action_name).triggered.connect(action_callable)

@@ -29,8 +29,8 @@ os.mkdir("_working_show/audio_library") # this must exist for the StaticFiles to
 os.mkdir("_working_show/backdrop_library") # ditto
 
 class Show:
-    def __init__(self, title: str, cue_list: CueList, configuration: dict):
-        self.title: str = title
+    def __init__(self, file_path: str, cue_list: CueList, configuration: dict):
+        self.file_path: str = file_path
 
         self.p2p_network_manager: P2PNetworkManager = p2p_network_manager
         self.p2p_network_manager.show = self
@@ -47,8 +47,8 @@ class Show:
         self.scenery_subsystem: ScenerySubsystem = ScenerySubsystem(self.p2p_network_manager, **configuration["scenery_subsystem"])
 
     @classmethod
-    def new(cls, title: str, configuration: dict = DEFAULT_CONFIGURATION):
-        obj = cls(title, CueList(), configuration)
+    def new(cls, configuration: dict = DEFAULT_CONFIGURATION):
+        obj = cls("", CueList(), configuration)
         if os.path.exists("_working_show/") and os.path.isdir("_working_show/"):
             shutil.rmtree("_working_show/")
         os.mkdir("_working_show")
@@ -56,27 +56,26 @@ class Show:
         os.mkdir("_working_show/backdrop_library")
         pathlib.Path("_working_show/cue_list.json").write_text('{"cues": []}')
         pathlib.Path("_working_show/configuration.json").write_text(json.dumps(configuration))
-        obj.save(title)
         return obj
    
     @classmethod
-    def load(cls, filename: str, override_configuration: dict | None = None):
+    def load(cls, file_path: str, override_configuration: dict | None = None):
         if os.path.exists("_working_show/") and os.path.isdir("_working_show/"):
             shutil.rmtree("_working_show/")
-        with zipfile.ZipFile(f"shows/{filename}.tdshw", "r") as zip:
+        with zipfile.ZipFile(file_path, "r") as zip:
             zip.extractall("_working_show/")
         return cls(
-            filename,
+            file_path,
             CueList.create_from_serialized(json.loads(pathlib.Path("_working_show/cue_list.json").read_text())["cues"]),
             override_configuration if override_configuration else json.loads(pathlib.Path("_working_show/configuration.json").read_text()),
         )
 
     @classmethod
-    def load_or_create(cls, title: str, override_configuration: dict | None = None):
-        if os.path.exists(f"shows/{title}.tdshw"):
-            return cls.load(title, override_configuration=override_configuration)
+    def load_or_create(cls, file_path: str, override_configuration: dict | None = None):
+        if os.path.exists(file_path):
+            return cls.load(file_path, override_configuration=override_configuration)
         else:
-            return cls.new(title, configuration=override_configuration if override_configuration else DEFAULT_CONFIGURATION)
+            return cls.new(configuration=override_configuration if override_configuration else DEFAULT_CONFIGURATION)
 
     def accumulate_subsystem_configuration(self) -> dict:
         return {
@@ -100,25 +99,24 @@ class Show:
         self.audio_subsystem.state = states["audio_subsystem"]
         self.scenery_subsystem.state = states["scenery_subsystem"]
 
-    def save(self, filename: str, backup: bool = False):
+    def save(self, file_path: str, backup: bool = False):
         if DEBUG_MODE:
             print("Commencing save...")
         if not os.path.exists("_working_show/"):
             return
-        if not os.path.exists("shows/"):
-            os.mkdir("shows")
-        full_filename: str = f"shows/{filename}.tdshw"
         if backup:
-            full_filename += ".bak"
-        if os.path.exists(full_filename):
-            os.remove(full_filename)
+            file_path += ".bak"
+        if os.path.exists(file_path):
+            os.remove(file_path)
         pathlib.Path("_working_show/cue_list.json").write_text(json.dumps({"cues": self.cue_list.serialize()}))
         pathlib.Path("_working_show/configuration.json").write_text(json.dumps(self.accumulate_subsystem_configuration()))
-        shutil.make_archive(f"shows/{filename}", "zip", "_working_show/")
-        os.rename(f"shows/{filename}.zip", full_filename)
+        shutil.make_archive(file_path, "zip", "_working_show/")
+        os.rename(file_path+".zip", file_path)
         self.p2p_network_manager.broadcast_to_servers("save_state_changed", False)
         self.p2p_network_manager.broadcast_to_client("save_state_changed", False)
         self.cue_list.unsaved = False
+        for callback in self.cue_change_callbacks:
+            callback()
         if DEBUG_MODE:
             print("Save completed.")
 
